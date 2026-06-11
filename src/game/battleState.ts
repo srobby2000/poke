@@ -143,6 +143,8 @@ type QueuedAction = {
   targetId: string;
   move: Move;
   delay: number;
+  // Original delay, so the canvas can derive projectile flight progress.
+  totalDelay: number;
   sync?: boolean;
   unity?: boolean;
 };
@@ -192,6 +194,8 @@ export type BattleState = {
   syncBoosts: Record<Team, number>;
   statusTickTimer: number;
   status: BattleStatus;
+  paused: boolean;
+  timeScale: number;
   log: string[];
   elapsed: number;
   rng: number;
@@ -206,6 +210,8 @@ export type BattleAction =
   | { type: "useTrainerMove" }
   | { type: "useSyncMove" }
   | { type: "useUnityAttack" }
+  | { type: "togglePause" }
+  | { type: "cycleTimeScale" }
   | { type: "restart" };
 
 // Every tunable battle number lives here so balancing is a one-file job.
@@ -802,6 +808,8 @@ export const createInitialBattleState = (seed?: number, config?: Partial<BattleC
     syncBoosts: { ally: 0, enemy: 0 },
     statusTickTimer: BALANCE.statusTickInterval,
     status: "playing",
+    paused: false,
+    timeScale: 1,
     log: [`Stage ${stage} — Kanto League skirmish started.`],
     elapsed: 0,
     rng: seed ?? Math.floor(Math.random() * 0xffffffff),
@@ -895,7 +903,19 @@ export function battleReducer(state: BattleState, action: BattleAction): BattleS
     return { ...state, targetMode: action.mode };
   }
 
+  if (action.type === "togglePause") {
+    return { ...state, paused: !state.paused };
+  }
+
+  if (action.type === "cycleTimeScale") {
+    return { ...state, timeScale: state.timeScale >= 2 ? 1 : 2 };
+  }
+
   if (state.status !== "playing") {
+    return state;
+  }
+
+  if (state.paused) {
     return state;
   }
 
@@ -916,7 +936,7 @@ export function battleReducer(state: BattleState, action: BattleAction): BattleS
   }
 
   if (action.type === "tick") {
-    return tickPlayingBattle(state, action.deltaSeconds);
+    return tickPlayingBattle(state, action.deltaSeconds * state.timeScale);
   }
 
   return state;
@@ -1409,6 +1429,7 @@ function enqueueAttack({
         targetId,
         move,
         delay,
+        totalDelay: delay,
         sync,
         unity,
       },

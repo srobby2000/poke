@@ -31,6 +31,7 @@ export function BattleCanvas({ state, dispatch }: BattleCanvasProps) {
         />
       ))}
       <BattleFeedbackLayer feedback={state.feedback} units={state.units} />
+      <ProjectileLayer state={state} />
       <ContactShadows position={[0, -0.03, 0]} opacity={0.42} scale={12} blur={2.2} far={5} />
       <OrbitControls
         enablePan={false}
@@ -43,6 +44,50 @@ export function BattleCanvas({ state, dispatch }: BattleCanvasProps) {
     </Canvas>
   );
 }
+
+// Projectiles are derived entirely from the action queue: an attack in flight
+// is a queued action whose delay is counting down, so flight progress is
+// 1 - delay/totalDelay and the orb lands exactly when the damage applies.
+const ProjectileLayer = memo(function ProjectileLayer({ state }: { state: BattleState }) {
+  return (
+    <>
+      {state.actionQueue.map((queued) => {
+        if (queued.actorId === queued.targetId) {
+          return null;
+        }
+        const actor = state.units.find((unit) => unit.id === queued.actorId);
+        const target = state.units.find((unit) => unit.id === queued.targetId);
+        if (!actor || !target || queued.totalDelay <= 0) {
+          return null;
+        }
+
+        const progress = Math.min(1, Math.max(0, 1 - queued.delay / queued.totalDelay));
+        if (progress < 0.08) {
+          return null;
+        }
+
+        const x = actor.position[0] + (target.position[0] - actor.position[0]) * progress;
+        const z = actor.position[2] + (target.position[2] - actor.position[2]) * progress;
+        const y = 1 + Math.sin(progress * Math.PI) * (queued.sync || queued.unity ? 1.15 : 0.75);
+        const size = queued.unity ? 0.3 : queued.sync ? 0.24 : 0.13;
+
+        return (
+          <group key={queued.id} position={[x, y, z]}>
+            <mesh>
+              <sphereGeometry args={[size, 12, 10]} />
+              <meshBasicMaterial color={queued.move.accent} toneMapped={false} />
+            </mesh>
+            <mesh>
+              <sphereGeometry args={[size * 1.7, 10, 8]} />
+              <meshBasicMaterial color={queued.move.accent} transparent opacity={0.22} toneMapped={false} />
+            </mesh>
+            <pointLight color={queued.move.accent} intensity={2.2} distance={3.2} />
+          </group>
+        );
+      })}
+    </>
+  );
+});
 
 const BattleFeedbackLayer = memo(function BattleFeedbackLayer({ feedback, units }: { feedback: BattleFeedback[]; units: Unit[] }) {
   return (
@@ -111,16 +156,19 @@ const CreatureUnit = memo(function CreatureUnit({
   const accentColor = useMemo(() => new Color(unit.accent), [unit.accent]);
   const alive = isAlive(unit);
 
-  useFrame(({ clock }) => {
+  useFrame(({ clock }, delta) => {
     if (!ref.current) {
       return;
     }
     const t = clock.elapsedTime;
     const side = unit.team === "ally" ? 1 : -1;
-    ref.current.position.y = alive ? Math.sin(t * 2.2 + unit.position[2]) * 0.045 + unit.actionPulse * 0.1 : -0.18;
+    const targetY = alive ? Math.sin(t * 2.2 + unit.position[2]) * 0.045 + unit.actionPulse * 0.1 : -0.18;
+    const targetRotZ = alive ? 0 : side * 0.7;
+    // Ease toward KO pose instead of snapping, so faints read as a fall.
+    ref.current.position.y += (targetY - ref.current.position.y) * Math.min(1, delta * (alive ? 14 : 5));
+    ref.current.rotation.z += (targetRotZ - ref.current.rotation.z) * Math.min(1, delta * 5);
     ref.current.position.x = unit.position[0] + unit.actionPulse * 0.35 * side;
     ref.current.rotation.y = (unit.team === "ally" ? Math.PI / 2 : -Math.PI / 2) + Math.sin(t + unit.position[2]) * 0.05;
-    ref.current.rotation.z = alive ? 0 : side * 0.7;
   });
 
   const flashColor = unit.hitFlash > 0 ? "#ffffff" : unit.color;

@@ -16,6 +16,9 @@ A real-time, Pokémon Masters-inspired 3v3 battle game built with React, TypeScr
 - **Rival trainer AI** — the enemy team's trainer heals weakened teammates and buffs attackers before sync moves
 - **Damage variance & crits** — seeded RNG (0.85–1.0× rolls, 1/16 crit chance) keeps battles deterministic in tests but varied in play
 - **Smart targeting** — auto mode picks the best matchup; manual mode honors your selected target
+- **Attack projectiles & sound** — moves fly as glowing orbs that land exactly when damage applies, with synthesized WebAudio effects (mutable)
+- **Keyboard shortcuts** — `1/2/3` moves, `Q/W/E` switch allies, `Space` sync, `T` trainer move, `U` unity, `M` target mode, `P` pause, `F` 2x speed
+- **Pause and fast-forward** — freeze the battle or run it at double speed
 
 ## Getting started
 

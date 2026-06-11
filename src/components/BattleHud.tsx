@@ -1,7 +1,8 @@
-import { memo } from "react";
+import { memo, useState } from "react";
 import type { Dispatch } from "react";
 import type { BattleAction, BattleState, Unit } from "../game/battleState";
 import { isAlive, previewPlayerMove, teamUnits } from "../game/battleState";
+import { isSoundMuted, setSoundMuted } from "../game/sound";
 
 type BattleHudProps = {
   state: BattleState;
@@ -12,6 +13,7 @@ type BattleHudProps = {
 };
 
 export function BattleHud({ state, dispatch, onNextStage, onRetry, onChangeTeam }: BattleHudProps) {
+  const [muted, setMuted] = useState(isSoundMuted);
   const allies = teamUnits(state, "ally");
   const enemies = teamUnits(state, "enemy");
   const selectedAlly = allies.find((unit) => unit.id === state.selectedAllyId) ?? allies[0];
@@ -60,11 +62,41 @@ export function BattleHud({ state, dispatch, onNextStage, onRetry, onChangeTeam 
           </div>
           <strong>{state.unityGauge} / {state.maxUnityGauge}</strong>
         </div>
+        <div className="control-chip" aria-label="Battle controls">
+          <button onClick={() => dispatch({ type: "togglePause" })}>
+            {state.paused ? "Resume" : "Pause"} <kbd>P</kbd>
+          </button>
+          <button onClick={() => dispatch({ type: "cycleTimeScale" })}>
+            {state.timeScale}x <kbd>F</kbd>
+          </button>
+          <button
+            onClick={() => {
+              const next = !muted;
+              setSoundMuted(next);
+              setMuted(next);
+            }}
+          >
+            {muted ? "Sound off" : "Sound on"}
+          </button>
+        </div>
       </section>
 
+      {state.paused && state.status === "playing" ? (
+        <div className="pause-overlay" aria-live="polite">
+          <span>Paused</span>
+          <small>Press P to resume</small>
+        </div>
+      ) : null}
+
       <section className="team-panel allies-panel" aria-label="Ally team">
-        {allies.map((unit) => (
-          <UnitButton key={unit.id} unit={unit} selected={unit.id === state.selectedAllyId} dispatch={dispatch} />
+        {allies.map((unit, index) => (
+          <UnitButton
+            key={unit.id}
+            unit={unit}
+            selected={unit.id === state.selectedAllyId}
+            dispatch={dispatch}
+            shortcut={["Q", "W", "E"][index]}
+          />
         ))}
       </section>
 
@@ -95,9 +127,10 @@ export function BattleHud({ state, dispatch, onNextStage, onRetry, onChangeTeam 
           <span>{state.targetMode === "auto" ? "best matchup" : selectedEnemy?.name ?? "No target"}</span>
         </div>
         <div className="move-grid">
-          {selectedAlly?.moves.map((move) => {
+          {selectedAlly?.moves.map((move, index) => {
             const hasTarget = enemies.some(isAlive);
-            const disabled = state.status !== "playing" || !hasTarget || state.moveGauge < move.cost || !isAlive(selectedAlly);
+            const disabled =
+              state.status !== "playing" || state.paused || !hasTarget || state.moveGauge < move.cost || !isAlive(selectedAlly);
             const preview = previewPlayerMove(state, move.id);
             return (
               <button
@@ -107,7 +140,9 @@ export function BattleHud({ state, dispatch, onNextStage, onRetry, onChangeTeam 
                 onClick={() => dispatch({ type: "useMove", moveId: move.id })}
                 style={{ borderColor: move.accent }}
               >
-                <span>{move.name}</span>
+                <span>
+                  {move.name} <kbd>{index + 1}</kbd>
+                </span>
                 <strong>{move.type} | {move.cost} gauge</strong>
                 {preview ? (
                   <small>
@@ -126,28 +161,36 @@ export function BattleHud({ state, dispatch, onNextStage, onRetry, onChangeTeam 
             {selectedAlly.trainerMove ? (
               <button
                 className="trainer-button"
-                disabled={state.status !== "playing" || selectedAlly.trainerMove.uses <= 0 || !isAlive(selectedAlly)}
+                disabled={state.status !== "playing" || state.paused || selectedAlly.trainerMove.uses <= 0 || !isAlive(selectedAlly)}
                 onClick={() => dispatch({ type: "useTrainerMove" })}
               >
-                <span>{selectedAlly.trainerMove.name}</span>
+                <span>
+                  {selectedAlly.trainerMove.name} <kbd>T</kbd>
+                </span>
                 <strong>{selectedAlly.trainerMove.uses} / {selectedAlly.trainerMove.maxUses} uses</strong>
               </button>
             ) : null}
             <button
               className="sync-button"
-              disabled={state.status !== "playing" || selectedAlly.syncCountdown > 0 || !enemies.some(isAlive) || !isAlive(selectedAlly)}
+              disabled={
+                state.status !== "playing" || state.paused || selectedAlly.syncCountdown > 0 || !enemies.some(isAlive) || !isAlive(selectedAlly)
+              }
               onClick={() => dispatch({ type: "useSyncMove" })}
               style={{ borderColor: selectedAlly.syncMove.accent }}
             >
-              <span>{selectedAlly.syncMove.name}</span>
+              <span>
+                {selectedAlly.syncMove.name} <kbd>SPACE</kbd>
+              </span>
               <strong>{selectedAlly.syncCountdown === 0 ? `${selectedAlly.syncMove.type} sync` : `${selectedAlly.syncCountdown} moves`}</strong>
             </button>
             <button
               className="unity-button"
-              disabled={state.status !== "playing" || state.unityGauge < state.maxUnityGauge || !enemies.some(isAlive)}
+              disabled={state.status !== "playing" || state.paused || state.unityGauge < state.maxUnityGauge || !enemies.some(isAlive)}
               onClick={() => dispatch({ type: "useUnityAttack" })}
             >
-              <span>Unity Burst</span>
+              <span>
+                Unity Burst <kbd>U</kbd>
+              </span>
               <strong>{state.unityGauge >= state.maxUnityGauge ? "team attack" : `${state.maxUnityGauge - state.unityGauge} actions`}</strong>
             </button>
           </div>
@@ -202,10 +245,12 @@ const UnitButton = memo(function UnitButton({
   unit,
   selected,
   dispatch,
+  shortcut,
 }: {
   unit: Unit;
   selected: boolean;
   dispatch: Dispatch<BattleAction>;
+  shortcut?: string;
 }) {
   const hpPercent = (unit.hp / unit.maxHp) * 100;
   return (
@@ -217,6 +262,7 @@ const UnitButton = memo(function UnitButton({
       <span className="unit-name">
         <i style={{ backgroundColor: unit.color }} />
         {unit.name}
+        {shortcut ? <kbd>{shortcut}</kbd> : null}
         {unit.team === "ally" && unit.syncCountdown === 0 && isAlive(unit) ? (
           <b className="role-badge sync-ready-badge">sync</b>
         ) : null}

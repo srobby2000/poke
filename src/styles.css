@@ -170,6 +170,68 @@ button {
   white-space: nowrap;
 }
 
+.control-chip {
+  display: flex;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid rgba(224, 242, 254, 0.22);
+  border-radius: 8px;
+  background: rgba(9, 17, 30, 0.76);
+  backdrop-filter: blur(14px);
+}
+
+.control-chip button {
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid rgba(148, 163, 184, 0.34);
+  border-radius: 6px;
+  color: #dbeafe;
+  font-size: 0.74rem;
+  font-weight: 800;
+  white-space: nowrap;
+  background: rgba(15, 23, 42, 0.8);
+  cursor: pointer;
+}
+
+kbd {
+  display: inline-block;
+  padding: 0 5px;
+  border: 1px solid rgba(203, 213, 225, 0.3);
+  border-radius: 4px;
+  color: #94a3b8;
+  font-family: inherit;
+  font-size: 0.6rem;
+  font-weight: 800;
+  line-height: 1.5;
+  vertical-align: middle;
+  background: rgba(8, 13, 24, 0.8);
+}
+
+.pause-overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  gap: 4px;
+  text-align: center;
+  background: rgba(5, 10, 18, 0.42);
+  pointer-events: none;
+}
+
+.pause-overlay span {
+  color: #f8fafc;
+  font-size: 1.6rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.pause-overlay small {
+  color: #94a3b8;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
 .gauge-track,
 .unity-track,
 .hp-track {
@@ -787,16 +849,24 @@ button {
     top: 10px;
     left: 10px;
     right: 10px;
+    flex-wrap: wrap;
+    gap: 8px;
   }
 
   .objective-chip {
-    min-width: 140px;
+    min-width: 120px;
+    padding: 8px 10px;
+  }
+
+  .objective-chip span {
+    display: none;
   }
 
   .gauge-panel {
     grid-template-columns: 1fr;
-    width: 150px;
-    gap: 5px;
+    width: 140px;
+    gap: 4px;
+    padding: 8px 10px;
   }
 
   .sync-chip {
@@ -807,10 +877,25 @@ button {
     display: none;
   }
 
+  .control-chip {
+    padding: 6px;
+  }
+
+  .control-chip button {
+    min-height: 36px;
+    padding: 0 8px;
+    font-size: 0.68rem;
+  }
+
+  .control-chip kbd {
+    display: none;
+  }
+
   .team-panel {
-    top: 102px;
+    top: 112px;
     width: calc(50vw - 15px);
-    padding: 7px;
+    padding: 6px;
+    gap: 6px;
   }
 
   .allies-panel {
@@ -822,12 +907,18 @@ button {
   }
 
   .unit-button {
-    min-height: 82px;
-    padding: 8px;
+    min-height: 64px;
+    padding: 7px;
+    gap: 4px;
   }
 
-  .stat-source {
-    white-space: normal;
+  .stat-source,
+  .passive-line {
+    display: none;
+  }
+
+  .unit-name {
+    font-size: 0.8rem;
   }
 
   .command-panel,
@@ -839,9 +930,67 @@ button {
 
   .command-panel {
     bottom: 10px;
+    padding: 8px;
+  }
+
+  .selection-line {
+    margin-bottom: 6px;
+    font-size: 0.78rem;
+  }
+
+  .target-mode {
+    margin-bottom: 6px;
+  }
+
+  .target-mode button {
+    min-height: 38px;
+  }
+
+  .move-grid,
+  .special-grid {
+    gap: 6px;
+  }
+
+  .move-button {
+    min-height: 64px;
+    padding: 8px;
+  }
+
+  .move-button small {
+    white-space: normal;
+  }
+
+  .special-grid {
+    margin-top: 6px;
+  }
+
+  .sync-button,
+  .trainer-button,
+  .unity-button {
+    min-height: 52px;
+    padding: 8px;
+    font-size: 0.82rem;
   }
 
   .battle-log {
+    display: none;
+  }
+
+  .select-screen {
+    padding: 16px 12px;
+  }
+
+  .select-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 8px;
+  }
+
+  .select-card {
+    padding: 9px;
+    gap: 4px;
+  }
+
+  .select-moves {
     display: none;
   }
 }

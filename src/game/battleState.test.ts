@@ -571,6 +571,42 @@ describe("battle simulation", () => {
     expect(options.filter((option) => option.role === "strike").length).toBeGreaterThanOrEqual(3);
   });
 
+  it("pauses the battle and blocks actions while paused", () => {
+    let state = createInitialBattleState(1);
+    state = { ...state, moveGauge: 6 };
+
+    const paused = battleReducer(state, { type: "togglePause" });
+    expect(paused.paused).toBe(true);
+    expect(battleReducer(paused, tickBattle(1))).toBe(paused);
+    expect(battleReducer(paused, { type: "useMove", moveId: "water-gun" })).toBe(paused);
+
+    const resumed = battleReducer(paused, { type: "togglePause" });
+    expect(resumed.paused).toBe(false);
+  });
+
+  it("doubles simulation speed at 2x time scale", () => {
+    const base = createInitialBattleState(1);
+
+    const fast = battleReducer(base, { type: "cycleTimeScale" });
+    expect(fast.timeScale).toBe(2);
+
+    const ticked = battleReducer(fast, tickBattle(1));
+    expect(ticked.elapsed).toBeCloseTo(2, 5);
+
+    const cycled = battleReducer(fast, { type: "cycleTimeScale" });
+    expect(cycled.timeScale).toBe(1);
+  });
+
+  it("records projectile flight time on queued actions", () => {
+    let state = createInitialBattleState(1);
+    state = { ...state, moveGauge: 6 };
+
+    const queued = battleReducer(state, { type: "useMove", moveId: "water-gun" });
+
+    expect(queued.actionQueue[0]?.totalDelay).toBe(BALANCE.playerAttackDelay);
+    expect(queued.actionQueue[0]?.delay).toBe(queued.actionQueue[0]?.totalDelay);
+  });
+
   it("detects wins and losses", () => {
     let won = createInitialBattleState();
     won = {

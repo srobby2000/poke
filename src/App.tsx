@@ -1,11 +1,12 @@
-import { useEffect, useReducer, useState } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 import { BattleCanvas } from "./components/BattleCanvas";
 import { BattleHud } from "./components/BattleHud";
 import { TeamSelect } from "./components/TeamSelect";
-import type { PokemonBaseStats } from "./game/battleState";
-import { battleReducer, createInitialBattleState, speciesNames, tickBattle } from "./game/battleState";
+import type { BattleState, PokemonBaseStats } from "./game/battleState";
+import { battleReducer, createInitialBattleState, isAlive, speciesNames, tickBattle } from "./game/battleState";
 import { fetchSpeciesStats } from "./game/pokeApi";
 import { loadBestStage, saveBestStage } from "./game/progress";
+import { playFeedbackSound, playKoSound } from "./game/sound";
 
 // Game logic runs at a fixed 30Hz instead of once per animation frame, so the
 // React tree re-renders at most 30 times per second. Purely visual motion
@@ -79,6 +80,62 @@ function Battle({ allyIds, stage, speciesStats, onStageCleared, onNextStage, onR
     createInitialBattleState(undefined, { allyIds, stage, speciesStats: speciesStats ?? undefined }),
   );
 
+  useBattleSounds(battle);
+
+  const battleRef = useRef(battle);
+  useEffect(() => {
+    battleRef.current = battle;
+  }, [battle]);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.repeat || event.ctrlKey || event.metaKey || event.altKey) {
+        return;
+      }
+      const current = battleRef.current;
+      const key = event.key.toLowerCase();
+
+      if (key === "p") {
+        dispatch({ type: "togglePause" });
+        return;
+      }
+      if (key === "f") {
+        dispatch({ type: "cycleTimeScale" });
+        return;
+      }
+      if (current.status !== "playing" || current.paused) {
+        return;
+      }
+
+      const allies = current.units.filter((unit) => unit.team === "ally");
+      const selectedAlly = allies.find((unit) => unit.id === current.selectedAllyId);
+
+      if (key === "1" || key === "2" || key === "3") {
+        const move = selectedAlly?.moves[Number(key) - 1];
+        if (move) {
+          dispatch({ type: "useMove", moveId: move.id });
+        }
+      } else if (key === "q" || key === "w" || key === "e") {
+        const ally = allies[{ q: 0, w: 1, e: 2 }[key]];
+        if (ally) {
+          dispatch({ type: "selectAlly", unitId: ally.id });
+        }
+      } else if (key === " ") {
+        event.preventDefault();
+        dispatch({ type: "useSyncMove" });
+      } else if (key === "t") {
+        dispatch({ type: "useTrainerMove" });
+      } else if (key === "u") {
+        dispatch({ type: "useUnityAttack" });
+      } else if (key === "m") {
+        dispatch({ type: "setTargetMode", mode: current.targetMode === "auto" ? "manual" : "auto" });
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+
   useEffect(() => {
     let last = performance.now();
     let accumulated = 0;
@@ -117,4 +174,27 @@ function Battle({ allyIds, stage, speciesStats, onStageCleared, onNextStage, onR
       />
     </main>
   );
+}
+
+// Plays a sound for each new feedback entry and for KOs, by diffing state.
+function useBattleSounds(state: BattleState) {
+  const seenFeedback = useRef<Set<string>>(new Set());
+  const aliveById = useRef<Map<string, boolean>>(new Map());
+
+  useEffect(() => {
+    for (const entry of state.feedback) {
+      if (!seenFeedback.current.has(entry.id)) {
+        seenFeedback.current.add(entry.id);
+        playFeedbackSound(entry.kind);
+      }
+    }
+    for (const unit of state.units) {
+      const wasAlive = aliveById.current.get(unit.id);
+      const aliveNow = isAlive(unit);
+      if (wasAlive === true && !aliveNow) {
+        playKoSound();
+      }
+      aliveById.current.set(unit.id, aliveNow);
+    }
+  }, [state]);
 }
