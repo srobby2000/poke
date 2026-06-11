@@ -6,8 +6,10 @@ A real-time, Pokémon Masters-inspired 3v3 battle game built with React, TypeScr
 
 ## Features
 
-- **Team selection** — pick any 3 of 9 allies (Squirtle, Bulbasaur, Charmander, Vulpix, Machop, Eevee, Abra, Geodude, Jigglypuff), each with a distinct role, passive, and moveset
-- **Stage progression** — enemies grow stronger every stage; your best cleared stage is saved locally between sessions
+- **Gacha scouting** — earn gems by clearing stages and spend them on pulls; new allies are guaranteed while any remain locked (weighted by ★ rarity), then pulls become level-ups
+- **16-ally roster** — from 3★ starters to the 5★ chase units Dratini and Lapras, each with a distinct role, rarity, passive, and moveset
+- **Leveling** — raise allies with gems or duplicate pulls (+6% stats per level, cap 10); team, gems, and levels persist in a local save
+- **Stage progression** — enemies grow stronger every stage, with a first-clear gem bonus; your best cleared stage is saved between sessions
 - **Live PokeAPI stats** — base stats are fetched from [pokeapi.co](https://pokeapi.co) (cached for 7 days) with identical bundled values as an offline fallback
 - **Real-time combat** — a shared move gauge fills over time; spend it on moves while enemies act on their own cooldowns
 - **Full 18-type chart** — main-series type effectiveness, same-type attack bonus, and role-based damage modifiers
@@ -47,7 +49,9 @@ src/
 │   ├── battleState.ts       # All game logic: pure reducer, type chart, AI, balance constants
 │   ├── battleState.test.ts  # Vitest suite for the battle simulation
 │   ├── pokeApi.ts           # Live PokeAPI stat fetching with localStorage cache
-│   └── progress.ts          # Best-stage persistence
+│   ├── gacha.ts             # Pull, leveling, and gem-reward logic
+│   ├── sound.ts             # Synthesized WebAudio effects
+│   └── progress.ts          # Persistent save: gems, unlocks, levels, best stage
 ├── components/
 │   ├── TeamSelect.tsx       # Pre-battle roster screen
 │   ├── BattleCanvas.tsx     # three.js scene (react-three-fiber + drei)

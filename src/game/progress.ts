@@ -1,8 +1,28 @@
-const PROGRESS_KEY = "creature-masters-progress-v1";
+import { DEFAULT_ALLY_IDS } from "./battleState";
 
-export function loadBestStage(): number {
+const SAVE_KEY = "creature-masters-save-v1";
+const LEGACY_PROGRESS_KEY = "creature-masters-progress-v1";
+
+export type PlayerProgress = {
+  bestStage: number;
+  gems: number;
+  unlockedAllies: string[];
+  allyLevels: Record<string, number>;
+};
+
+export function defaultProgress(): PlayerProgress {
+  return {
+    bestStage: legacyBestStage(),
+    gems: 200,
+    unlockedAllies: [...DEFAULT_ALLY_IDS],
+    allyLevels: {},
+  };
+}
+
+// Best stage saved by versions that predate the full save file.
+function legacyBestStage(): number {
   try {
-    const raw = globalThis.localStorage?.getItem(PROGRESS_KEY);
+    const raw = globalThis.localStorage?.getItem(LEGACY_PROGRESS_KEY);
     if (!raw) {
       return 0;
     }
@@ -13,11 +33,30 @@ export function loadBestStage(): number {
   }
 }
 
-export function saveBestStage(stage: number) {
+export function loadProgress(): PlayerProgress {
   try {
-    if (stage > loadBestStage()) {
-      globalThis.localStorage?.setItem(PROGRESS_KEY, JSON.stringify({ bestStage: Math.floor(stage) }));
+    const raw = globalThis.localStorage?.getItem(SAVE_KEY);
+    if (!raw) {
+      return defaultProgress();
     }
+    const parsed = JSON.parse(raw) as Partial<PlayerProgress>;
+    return {
+      bestStage: typeof parsed.bestStage === "number" && parsed.bestStage > 0 ? Math.floor(parsed.bestStage) : 0,
+      gems: typeof parsed.gems === "number" && parsed.gems >= 0 ? Math.floor(parsed.gems) : 0,
+      unlockedAllies:
+        Array.isArray(parsed.unlockedAllies) && parsed.unlockedAllies.length > 0
+          ? parsed.unlockedAllies.filter((id): id is string => typeof id === "string")
+          : [...DEFAULT_ALLY_IDS],
+      allyLevels: parsed.allyLevels && typeof parsed.allyLevels === "object" ? parsed.allyLevels : {},
+    };
+  } catch {
+    return defaultProgress();
+  }
+}
+
+export function saveProgress(progress: PlayerProgress) {
+  try {
+    globalThis.localStorage?.setItem(SAVE_KEY, JSON.stringify(progress));
   } catch {
     // Storage unavailable (private browsing, etc.) — progress just won't persist.
   }

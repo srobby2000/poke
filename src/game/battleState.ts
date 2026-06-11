@@ -52,12 +52,17 @@ export type Move = {
   statChange?: StatChange;
 };
 
+export type Rarity = 3 | 4 | 5;
+
 export type Unit = {
   id: string;
   name: string;
   team: Team;
   sourcePokemon: string;
   role: BattleRole;
+  rarity: Rarity;
+  // Ally level from progression; enemies show their stage number here.
+  level: number;
   passive: PassiveSkill;
   types: PokemonType[];
   baseStats: PokemonBaseStats;
@@ -125,6 +130,7 @@ type UnitTemplate = {
   team: Team;
   sourcePokemon: keyof typeof pokeApiBaseStats;
   role: BattleRole;
+  rarity: Rarity;
   passive: PassiveSkill;
   types: PokemonType[];
   // Allies are positioned by team-slot at battle start; enemies set this explicitly.
@@ -173,6 +179,7 @@ export type BattleConfig = {
   allyIds: string[];
   stage: number;
   speciesStats?: Record<string, PokemonBaseStats>;
+  allyLevels?: Record<string, number>;
 };
 
 export type BattleState = {
@@ -253,6 +260,8 @@ export const BALANCE = {
   stageEnemyHpGrowth: 0.16,
   stageEnemyAttackGrowth: 0.1,
   stageEnemyDefenseGrowth: 0.08,
+  allyLevelGrowth: 0.06,
+  maxAllyLevel: 10,
   logLimit: 6,
   feedbackLimit: 10,
 } as const;
@@ -270,6 +279,13 @@ const pokeApiBaseStats = {
   abra: { hp: 25, attack: 105, defense: 15, speed: 90 },
   geodude: { hp: 40, attack: 80, defense: 100, speed: 20 },
   jigglypuff: { hp: 115, attack: 45, defense: 20, speed: 20 },
+  growlithe: { hp: 55, attack: 70, defense: 45, speed: 60 },
+  psyduck: { hp: 50, attack: 65, defense: 48, speed: 55 },
+  meowth: { hp: 40, attack: 45, defense: 35, speed: 90 },
+  cubone: { hp: 50, attack: 50, defense: 95, speed: 35 },
+  haunter: { hp: 45, attack: 115, defense: 45, speed: 95 },
+  dratini: { hp: 41, attack: 64, defense: 45, speed: 50 },
+  lapras: { hp: 130, attack: 85, defense: 80, speed: 60 },
   pikachu: { hp: 35, attack: 55, defense: 40, speed: 90 },
   snorlax: { hp: 160, attack: 110, defense: 65, speed: 30 },
   butterfree: { hp: 60, attack: 90, defense: 50, speed: 70 },
@@ -373,6 +389,7 @@ const allyTemplates: UnitTemplate[] = [
     team: "ally",
     sourcePokemon: "squirtle",
     role: "support",
+    rarity: 3,
     passive: {
       id: "team-first-aid",
       name: "Team First Aid",
@@ -404,6 +421,7 @@ const allyTemplates: UnitTemplate[] = [
     team: "ally",
     sourcePokemon: "bulbasaur",
     role: "tech",
+    rarity: 3,
     passive: {
       id: "toxic-focus",
       name: "Toxic Focus",
@@ -436,6 +454,7 @@ const allyTemplates: UnitTemplate[] = [
     team: "ally",
     sourcePokemon: "charmander",
     role: "strike",
+    rarity: 3,
     passive: {
       id: "power-reserves",
       name: "Power Reserves",
@@ -467,6 +486,7 @@ const allyTemplates: UnitTemplate[] = [
     team: "ally",
     sourcePokemon: "vulpix",
     role: "tech",
+    rarity: 3,
     passive: {
       id: "toxic-focus",
       name: "Searing Focus",
@@ -499,6 +519,7 @@ const allyTemplates: UnitTemplate[] = [
     team: "ally",
     sourcePokemon: "machop",
     role: "strike",
+    rarity: 3,
     passive: {
       id: "power-reserves",
       name: "Second Wind",
@@ -531,6 +552,7 @@ const allyTemplates: UnitTemplate[] = [
     team: "ally",
     sourcePokemon: "eevee",
     role: "support",
+    rarity: 4,
     passive: {
       id: "team-first-aid",
       name: "Helping Hand",
@@ -562,6 +584,7 @@ const allyTemplates: UnitTemplate[] = [
     team: "ally",
     sourcePokemon: "abra",
     role: "strike",
+    rarity: 4,
     passive: {
       id: "power-reserves",
       name: "Psychic Surge",
@@ -593,6 +616,7 @@ const allyTemplates: UnitTemplate[] = [
     team: "ally",
     sourcePokemon: "geodude",
     role: "support",
+    rarity: 3,
     passive: {
       id: "thick-guard",
       name: "Stone Wall",
@@ -625,6 +649,7 @@ const allyTemplates: UnitTemplate[] = [
     team: "ally",
     sourcePokemon: "jigglypuff",
     role: "tech",
+    rarity: 4,
     passive: {
       id: "debilitating-dust",
       name: "Lingering Lullaby",
@@ -649,6 +674,233 @@ const allyTemplates: UnitTemplate[] = [
       description: "Heal the weakest ally",
     },
   },
+  {
+    id: "growlithe",
+    name: "Growlithe",
+    team: "ally",
+    sourcePokemon: "growlithe",
+    role: "strike",
+    rarity: 3,
+    passive: {
+      id: "power-reserves",
+      name: "Blazing Grit",
+      description: "Deals more damage below half HP",
+    },
+    types: ["fire"],
+    color: "#f97316",
+    accent: "#fdba74",
+    shape: "ember",
+    moves: [
+      { id: "bite", name: "Bite", type: "dark", cost: 2, power: 45, accent: "#a78bfa" },
+      { id: "flame-wheel", name: "Flame Wheel", type: "fire", cost: 3, power: 58, accent: "#fb923c", statusEffect: "burn" },
+    ],
+    syncMove: { id: "sync-loyal-blaze", name: "Sync Loyal Blaze", type: "fire", cost: 0, power: 118, accent: "#fb923c" },
+    trainerMove: {
+      id: "x-attack",
+      name: "X Attack",
+      kind: "attackBuff",
+      uses: 2,
+      maxUses: 2,
+      stages: 2,
+      target: "self",
+      description: "Raise own Attack",
+    },
+  },
+  {
+    id: "psyduck",
+    name: "Psyduck",
+    team: "ally",
+    sourcePokemon: "psyduck",
+    role: "tech",
+    rarity: 3,
+    passive: {
+      id: "thick-guard",
+      name: "Damp Composure",
+      description: "Takes less damage while above half HP",
+    },
+    types: ["water"],
+    color: "#fbd35f",
+    accent: "#a5e8ff",
+    shape: "horn",
+    moves: [
+      { id: "water-pulse", name: "Water Pulse", type: "water", cost: 2, power: 44, accent: "#78e1ff" },
+      { id: "zen-headbutt", name: "Zen Headbutt", type: "psychic", cost: 3, power: 56, accent: "#f0abfc" },
+      { id: "screech", name: "Screech", type: "normal", cost: 1, power: 0, accent: "#e2e8f0", statChange: { stat: "defense", stages: -1, target: "enemy" } },
+    ],
+    syncMove: { id: "sync-headache-wave", name: "Sync Headache Wave", type: "psychic", cost: 0, power: 114, accent: "#f0abfc" },
+    trainerMove: {
+      id: "x-defense-all",
+      name: "X Defense All",
+      kind: "defenseBuff",
+      uses: 2,
+      maxUses: 2,
+      stages: 1,
+      target: "allAllies",
+      description: "Raise allied Defense",
+    },
+  },
+  {
+    id: "meowth",
+    name: "Meowth",
+    team: "ally",
+    sourcePokemon: "meowth",
+    role: "support",
+    rarity: 3,
+    passive: {
+      id: "team-first-aid",
+      name: "Pampered Care",
+      description: "Potion heals a little extra",
+    },
+    types: ["normal"],
+    color: "#f4e3c1",
+    accent: "#fcd34d",
+    shape: "crystal",
+    moves: [
+      { id: "scratch", name: "Scratch", type: "normal", cost: 2, power: 40, accent: "#fef9c3" },
+      { id: "pay-day", name: "Pay Day", type: "normal", cost: 3, power: 54, accent: "#fcd34d" },
+      { id: "meowth-growl", name: "Growl", type: "normal", cost: 1, power: 0, accent: "#e2e8f0", statChange: { stat: "attack", stages: -1, target: "enemy" } },
+    ],
+    syncMove: { id: "sync-jackpot", name: "Sync Jackpot Strike", type: "normal", cost: 0, power: 112, accent: "#fcd34d" },
+    trainerMove: {
+      id: "potion",
+      name: "Potion",
+      kind: "heal",
+      uses: 2,
+      maxUses: 2,
+      amount: 45,
+      description: "Heal the weakest ally",
+    },
+  },
+  {
+    id: "cubone",
+    name: "Cubone",
+    team: "ally",
+    sourcePokemon: "cubone",
+    role: "strike",
+    rarity: 4,
+    passive: {
+      id: "thick-guard",
+      name: "Bone Armor",
+      description: "Takes less damage while above half HP",
+    },
+    types: ["ground"],
+    color: "#d4a373",
+    accent: "#f1f5f9",
+    shape: "shell",
+    moves: [
+      { id: "bone-club", name: "Bone Club", type: "ground", cost: 2, power: 50, accent: "#e7e5e4" },
+      { id: "bonemerang", name: "Bonemerang", type: "ground", cost: 3, power: 64, accent: "#d6d3d1" },
+    ],
+    syncMove: { id: "sync-bone-rush", name: "Sync Bone Rush", type: "ground", cost: 0, power: 120, accent: "#d4a373" },
+    trainerMove: {
+      id: "x-attack",
+      name: "X Attack",
+      kind: "attackBuff",
+      uses: 2,
+      maxUses: 2,
+      stages: 2,
+      target: "self",
+      description: "Raise own Attack",
+    },
+  },
+  {
+    id: "haunter",
+    name: "Haunter",
+    team: "ally",
+    sourcePokemon: "haunter",
+    role: "tech",
+    rarity: 4,
+    passive: {
+      id: "debilitating-dust",
+      name: "Creeping Dread",
+      description: "Status conditions last longer",
+    },
+    types: ["ghost", "poison"],
+    color: "#8b5cf6",
+    accent: "#d8b4fe",
+    shape: "bloom",
+    moves: [
+      { id: "lick", name: "Lick", type: "ghost", cost: 2, power: 42, accent: "#c4b5fd", statusEffect: "paralysis" },
+      { id: "smog", name: "Smog", type: "poison", cost: 1, power: 16, accent: "#d8b4fe", statusEffect: "poison" },
+      { id: "night-shade", name: "Night Shade", type: "ghost", cost: 3, power: 58, accent: "#a78bfa" },
+    ],
+    syncMove: { id: "sync-phantom-grip", name: "Sync Phantom Grip", type: "ghost", cost: 0, power: 116, accent: "#a78bfa" },
+    trainerMove: {
+      id: "x-attack-all",
+      name: "X Attack All",
+      kind: "attackBuff",
+      uses: 2,
+      maxUses: 2,
+      stages: 1,
+      target: "allAllies",
+      description: "Raise allied Attack",
+    },
+  },
+  {
+    id: "dratini",
+    name: "Dratini",
+    team: "ally",
+    sourcePokemon: "dratini",
+    role: "strike",
+    rarity: 5,
+    passive: {
+      id: "power-reserves",
+      name: "Rising Fury",
+      description: "Deals more damage below half HP",
+    },
+    types: ["dragon"],
+    color: "#60a5fa",
+    accent: "#bfdbfe",
+    shape: "wing",
+    moves: [
+      { id: "twister", name: "Twister", type: "dragon", cost: 2, power: 48, accent: "#93c5fd" },
+      { id: "dragon-pulse", name: "Dragon Pulse", type: "dragon", cost: 3, power: 66, accent: "#60a5fa" },
+      { id: "dragon-dance", name: "Dragon Dance", type: "dragon", cost: 1, power: 0, accent: "#bfdbfe", statChange: { stat: "attack", stages: 1, target: "self" } },
+    ],
+    syncMove: { id: "sync-dragon-ascent", name: "Sync Dragon Ascent", type: "dragon", cost: 0, power: 125, accent: "#60a5fa" },
+    trainerMove: {
+      id: "x-attack",
+      name: "X Attack",
+      kind: "attackBuff",
+      uses: 2,
+      maxUses: 2,
+      stages: 2,
+      target: "self",
+      description: "Raise own Attack",
+    },
+  },
+  {
+    id: "lapras",
+    name: "Lapras",
+    team: "ally",
+    sourcePokemon: "lapras",
+    role: "support",
+    rarity: 5,
+    passive: {
+      id: "team-first-aid",
+      name: "Soothing Melody",
+      description: "Potion heals a little extra",
+    },
+    types: ["water", "ice"],
+    color: "#5eead4",
+    accent: "#ccfbf1",
+    shape: "shell",
+    moves: [
+      { id: "lapras-water-pulse", name: "Water Pulse", type: "water", cost: 2, power: 44, accent: "#78e1ff" },
+      { id: "ice-beam", name: "Ice Beam", type: "ice", cost: 3, power: 62, accent: "#a5f3fc" },
+      { id: "mist", name: "Mist", type: "ice", cost: 1, power: 0, accent: "#ccfbf1", statChange: { stat: "defense", stages: 1, target: "self" } },
+    ],
+    syncMove: { id: "sync-glacial-song", name: "Sync Glacial Song", type: "ice", cost: 0, power: 122, accent: "#a5f3fc" },
+    trainerMove: {
+      id: "potion",
+      name: "Potion",
+      kind: "heal",
+      uses: 2,
+      maxUses: 2,
+      amount: 45,
+      description: "Heal the weakest ally",
+    },
+  },
 ];
 
 const enemyTemplates: UnitTemplate[] = [
@@ -658,6 +910,7 @@ const enemyTemplates: UnitTemplate[] = [
     team: "enemy",
     sourcePokemon: "pikachu",
     role: "strike",
+    rarity: 3,
     passive: {
       id: "fast-entry",
       name: "Fast Entry",
@@ -681,6 +934,7 @@ const enemyTemplates: UnitTemplate[] = [
     team: "enemy",
     sourcePokemon: "snorlax",
     role: "support",
+    rarity: 4,
     passive: {
       id: "thick-guard",
       name: "Thick Guard",
@@ -704,6 +958,7 @@ const enemyTemplates: UnitTemplate[] = [
     team: "enemy",
     sourcePokemon: "butterfree",
     role: "tech",
+    rarity: 3,
     passive: {
       id: "debilitating-dust",
       name: "Debilitating Dust",
@@ -737,12 +992,11 @@ const ALLY_SLOTS: [number, number, number][] = [
 
 type StatScale = { hp: number; attack: number; defense: number };
 
-const NEUTRAL_SCALE: StatScale = { hp: 1, attack: 1, defense: 1 };
-
 export type AllyOption = {
   id: string;
   name: string;
   role: BattleRole;
+  rarity: Rarity;
   types: PokemonType[];
   passive: PassiveSkill;
   color: string;
@@ -756,6 +1010,7 @@ export function getAllyOptions(speciesStats?: Record<string, PokemonBaseStats>):
     id: template.id,
     name: template.name,
     role: template.role,
+    rarity: template.rarity,
     types: template.types,
     passive: template.passive,
     color: template.color,
@@ -775,16 +1030,31 @@ export const createInitialBattleState = (seed?: number, config?: Partial<BattleC
   };
   const allies = allyIds.map((allyId, index) => {
     const template = allyTemplates.find((candidate) => candidate.id === allyId) ?? allyTemplates[index];
-    return makeUnit(template, ALLY_SLOTS[index % ALLY_SLOTS.length], statsLookup, NEUTRAL_SCALE);
+    const level = clamp(Math.floor(config?.allyLevels?.[template.id] ?? 1), 1, BALANCE.maxAllyLevel);
+    const levelFactor = 1 + BALANCE.allyLevelGrowth * (level - 1);
+    return makeUnit(
+      template,
+      ALLY_SLOTS[index % ALLY_SLOTS.length],
+      statsLookup,
+      { hp: levelFactor, attack: levelFactor, defense: levelFactor },
+      level,
+    );
   });
-  const enemies = enemyTemplates.map((template) => makeUnit(template, template.position ?? [3.5, 0, 0], statsLookup, enemyScale));
+  const enemies = enemyTemplates.map((template) =>
+    makeUnit(template, template.position ?? [3.5, 0, 0], statsLookup, enemyScale, stage),
+  );
 
   return {
     units: [...allies, ...enemies],
     enemyCooldowns: Object.fromEntries(
       enemyTemplates.map((template) => [template.id, initialEnemyCooldown(template, statsLookup)]),
     ),
-    config: { allyIds: allies.map((unit) => unit.id), stage, speciesStats: config?.speciesStats },
+    config: {
+      allyIds: allies.map((unit) => unit.id),
+      stage,
+      speciesStats: config?.speciesStats,
+      allyLevels: config?.allyLevels,
+    },
     selectedAllyId: allies[0]?.id ?? DEFAULT_ALLY_IDS[0],
     selectedEnemyId: "snorlax",
     targetMode: "auto",
@@ -830,12 +1100,14 @@ function makeUnit(
   position: [number, number, number],
   statsLookup: Record<string, PokemonBaseStats>,
   scale: StatScale,
+  level = 1,
 ): Unit {
   const baseStats = statsLookup[template.sourcePokemon];
   const maxHp = Math.round((baseStats.hp * 0.65 + 82) * scale.hp);
 
   return {
     ...template,
+    level,
     position,
     sourcePokemon: titleCase(template.sourcePokemon),
     baseStats,

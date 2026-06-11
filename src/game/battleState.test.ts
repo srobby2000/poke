@@ -565,10 +565,28 @@ describe("battle simulation", () => {
   it("exposes the full ally roster for team selection", () => {
     const options = getAllyOptions();
 
-    expect(options).toHaveLength(9);
+    expect(options).toHaveLength(16);
     expect(options.map((option) => option.id)).toContain("jigglypuff");
+    expect(options.map((option) => option.id)).toContain("dratini");
     expect(options.every((option) => option.baseStats.hp > 0)).toBe(true);
     expect(options.filter((option) => option.role === "strike").length).toBeGreaterThanOrEqual(3);
+    expect(options.filter((option) => option.rarity === 5).map((option) => option.id)).toEqual(["dratini", "lapras"]);
+  });
+
+  it("scales ally stats with their saved level", () => {
+    const levelOne = createInitialBattleState(1);
+    const levelSix = createInitialBattleState(1, { allyLevels: { squirtle: 6 } });
+
+    const squirtleOne = levelOne.units.find((unit) => unit.id === "squirtle");
+    const squirtleSix = levelSix.units.find((unit) => unit.id === "squirtle");
+
+    expect(squirtleOne?.level).toBe(1);
+    expect(squirtleSix?.level).toBe(6);
+    expect(squirtleSix?.maxHp ?? 0).toBeGreaterThan(squirtleOne?.maxHp ?? 0);
+    expect(squirtleSix?.attack ?? 0).toBeGreaterThan(squirtleOne?.attack ?? 0);
+    // Restart keeps the levels via config.
+    const restarted = battleReducer(levelSix, { type: "restart" });
+    expect(restarted.units.find((unit) => unit.id === "squirtle")?.level).toBe(6);
   });
 
   it("pauses the battle and blocks actions while paused", () => {

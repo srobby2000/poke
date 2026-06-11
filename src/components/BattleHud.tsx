@@ -269,7 +269,7 @@ const UnitButton = memo(function UnitButton({
         <b className={`role-badge role-${unit.role}`}>{unit.role}</b>
       </span>
       <span className="stat-source">
-        {unit.types.join(" / ")} | HP {unit.baseStats.hp} ATK {unit.baseStats.attack} DEF {unit.baseStats.defense} SPD {unit.baseStats.speed}
+        Lv {unit.level} | {unit.types.join(" / ")} | HP {unit.baseStats.hp} ATK {unit.baseStats.attack} DEF {unit.baseStats.defense} SPD {unit.baseStats.speed}
       </span>
       <span className="passive-line">{unit.passive.name}</span>
       {(unit.attackStage !== 0 || unit.defenseStage !== 0) ? (

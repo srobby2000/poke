@@ -3,8 +3,10 @@ import { BattleHud } from "./components/BattleHud";
 import { TeamSelect } from "./components/TeamSelect";
 import type { BattleState, PokemonBaseStats } from "./game/battleState";
 import { battleReducer, createInitialBattleState, isAlive, speciesNames, tickBattle } from "./game/battleState";
+import type { PullResult } from "./game/gacha";
+import { applyStageClear, performLevelUp, performPull } from "./game/gacha";
 import { fetchSpeciesStats } from "./game/pokeApi";
-import { loadBestStage, saveBestStage } from "./game/progress";
+import { loadProgress, saveProgress } from "./game/progress";
 import { playFeedbackSound, playKoSound } from "./game/sound";
 
 // Game logic runs at a fixed 30Hz instead of once per animation frame, so the
@@ -23,8 +25,15 @@ type Session = { allyIds: string[]; stage: number; runId: number };
 
 export default function App() {
   const [speciesStats, setSpeciesStats] = useState<Record<string, PokemonBaseStats> | null>(null);
-  const [bestStage, setBestStage] = useState(loadBestStage);
+  const [progress, setProgress] = useState(loadProgress);
+  const [lastPull, setLastPull] = useState<PullResult | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  // Seeded lazily in the pull handler — impure calls are not allowed in render.
+  const pullSeedRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    saveProgress(progress);
+  }, [progress]);
 
   useEffect(() => {
     let cancelled = false;
@@ -46,10 +55,27 @@ export default function App() {
   if (!session) {
     return (
       <TeamSelect
-        bestStage={bestStage}
+        progress={progress}
+        lastPull={lastPull}
         statsSource={speciesStats ? "live" : "bundled"}
         speciesStats={speciesStats}
         onStart={(allyIds) => setSession({ allyIds, stage: 1, runId: 1 })}
+        onPull={() => {
+          const seed = pullSeedRef.current ?? (Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0;
+          const outcome = performPull(progress, seed);
+          if (!outcome) {
+            return;
+          }
+          pullSeedRef.current = outcome.nextSeed;
+          setProgress(outcome.progress);
+          setLastPull(outcome.result);
+        }}
+        onLevelUp={(allyId) => {
+          const next = performLevelUp(progress, allyId);
+          if (next) {
+            setProgress(next);
+          }
+        }}
       />
     );
   }
@@ -60,10 +86,8 @@ export default function App() {
       allyIds={session.allyIds}
       stage={session.stage}
       speciesStats={speciesStats}
-      onStageCleared={(stage) => {
-        saveBestStage(stage);
-        setBestStage((best) => Math.max(best, stage));
-      }}
+      allyLevels={progress.allyLevels}
+      onStageCleared={(stage) => setProgress((current) => applyStageClear(current, stage))}
       onNextStage={() => setSession((current) => current && { ...current, stage: current.stage + 1, runId: current.runId + 1 })}
       onRetry={() => setSession((current) => current && { ...current, runId: current.runId + 1 })}
       onChangeTeam={() => setSession(null)}
@@ -75,15 +99,16 @@ type BattleProps = {
   allyIds: string[];
   stage: number;
   speciesStats: Record<string, PokemonBaseStats> | null;
+  allyLevels: Record<string, number>;
   onStageCleared: (stage: number) => void;
   onNextStage: () => void;
   onRetry: () => void;
   onChangeTeam: () => void;
 };
 
-function Battle({ allyIds, stage, speciesStats, onStageCleared, onNextStage, onRetry, onChangeTeam }: BattleProps) {
+function Battle({ allyIds, stage, speciesStats, allyLevels, onStageCleared, onNextStage, onRetry, onChangeTeam }: BattleProps) {
   const [battle, dispatch] = useReducer(battleReducer, undefined, () =>
-    createInitialBattleState(undefined, { allyIds, stage, speciesStats: speciesStats ?? undefined }),
+    createInitialBattleState(undefined, { allyIds, stage, speciesStats: speciesStats ?? undefined, allyLevels }),
   );
 
   useBattleSounds(battle);
@@ -161,9 +186,13 @@ function Battle({ allyIds, stage, speciesStats, onStageCleared, onNextStage, onR
     return () => cancelAnimationFrame(frame);
   }, []);
 
+  // Gems and best-stage are awarded exactly once per battle, even though the
+  // status stays "won" and the callback identity changes across renders.
   const won = battle.status === "won";
+  const rewardedRef = useRef(false);
   useEffect(() => {
-    if (won) {
+    if (won && !rewardedRef.current) {
+      rewardedRef.current = true;
       onStageCleared(stage);
     }
   }, [won, stage, onStageCleared]);
