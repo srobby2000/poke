@@ -41,6 +41,18 @@ button {
   inset: 0;
 }
 
+.canvas-loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #78e1ff;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .hud-layer {
   position: absolute;
   inset: 0;

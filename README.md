@@ -1,5 +1,7 @@
 # Creature Masters Battle
 
+[![CI](https://github.com/srobby2000/poke/actions/workflows/ci.yml/badge.svg)](https://github.com/srobby2000/poke/actions/workflows/ci.yml)
+
 A real-time, Pokémon Masters-inspired 3v3 battle game built with React, TypeScript, and three.js. Build a team of three from a nine-Pokémon roster and climb an endless ladder of increasingly tough rival battles.
 
 ## Features

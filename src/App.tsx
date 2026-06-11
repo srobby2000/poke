@@ -1,5 +1,4 @@
-import { useEffect, useReducer, useRef, useState } from "react";
-import { BattleCanvas } from "./components/BattleCanvas";
+import { Suspense, lazy, useEffect, useReducer, useRef, useState } from "react";
 import { BattleHud } from "./components/BattleHud";
 import { TeamSelect } from "./components/TeamSelect";
 import type { BattleState, PokemonBaseStats } from "./game/battleState";
@@ -14,6 +13,12 @@ import { playFeedbackSound, playKoSound } from "./game/sound";
 const LOGIC_STEP_SECONDS = 1 / 30;
 const MAX_DELTA_SECONDS = 0.08;
 
+// The 3D canvas (and the ~1MB three.js chunk behind it) loads lazily so the
+// team-select screen paints immediately; preloadCanvas() starts the download
+// in the background while the player is still picking a team.
+const preloadCanvas = () => import("./components/BattleCanvas");
+const BattleCanvas = lazy(() => preloadCanvas().then((module) => ({ default: module.BattleCanvas })));
+
 type Session = { allyIds: string[]; stage: number; runId: number };
 
 export default function App() {
@@ -23,6 +28,7 @@ export default function App() {
 
   useEffect(() => {
     let cancelled = false;
+    void preloadCanvas();
     fetchSpeciesStats(speciesNames)
       .then((stats) => {
         if (!cancelled) {
@@ -164,7 +170,9 @@ function Battle({ allyIds, stage, speciesStats, onStageCleared, onNextStage, onR
 
   return (
     <main className="app-shell">
-      <BattleCanvas state={battle} dispatch={dispatch} />
+      <Suspense fallback={<div className="canvas-loading">Loading arena…</div>}>
+        <BattleCanvas state={battle} dispatch={dispatch} />
+      </Suspense>
       <BattleHud
         state={battle}
         dispatch={dispatch}
