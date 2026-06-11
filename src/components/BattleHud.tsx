@@ -6,9 +6,12 @@ import { isAlive, previewPlayerMove, teamUnits } from "../game/battleState";
 type BattleHudProps = {
   state: BattleState;
   dispatch: Dispatch<BattleAction>;
+  onNextStage?: () => void;
+  onRetry?: () => void;
+  onChangeTeam?: () => void;
 };
 
-export function BattleHud({ state, dispatch }: BattleHudProps) {
+export function BattleHud({ state, dispatch, onNextStage, onRetry, onChangeTeam }: BattleHudProps) {
   const allies = teamUnits(state, "ally");
   const enemies = teamUnits(state, "enemy");
   const selectedAlly = allies.find((unit) => unit.id === state.selectedAllyId) ?? allies[0];
@@ -21,7 +24,7 @@ export function BattleHud({ state, dispatch }: BattleHudProps) {
       {state.feedback.some((entry) => entry.kind === "sync") ? <div className="sync-flash" /> : null}
       <section className="top-strip" aria-label="Battle status">
         <div className="objective-chip">
-          <strong>Rift League</strong>
+          <strong>Rift League · Stage {state.config.stage}</strong>
           <span>Defeat the rival trio</span>
         </div>
         <div className="gauge-panel">
@@ -166,8 +169,26 @@ export function BattleHud({ state, dispatch }: BattleHudProps) {
         <div className="result-overlay" role="dialog" aria-live="polite">
           <div className="result-panel">
             <span>{state.status === "won" ? "Victory" : "Defeat"}</span>
-            <strong>{state.status === "won" ? "The rival trio is down." : "Your team has fallen."}</strong>
-            <button onClick={() => dispatch({ type: "restart" })}>Restart Battle</button>
+            <strong>
+              {state.status === "won"
+                ? `Stage ${state.config.stage} cleared!`
+                : `Your team has fallen on stage ${state.config.stage}.`}
+            </strong>
+            {state.status === "won" && onNextStage ? (
+              <button onClick={onNextStage}>Continue — Stage {state.config.stage + 1}</button>
+            ) : null}
+            {state.status === "lost" ? (
+              onRetry ? (
+                <button onClick={onRetry}>Retry Stage {state.config.stage}</button>
+              ) : (
+                <button onClick={() => dispatch({ type: "restart" })}>Restart Battle</button>
+              )
+            ) : null}
+            {onChangeTeam ? (
+              <button className="secondary-button" onClick={onChangeTeam}>
+                Change Team
+              </button>
+            ) : null}
           </div>
         </div>
       ) : null}

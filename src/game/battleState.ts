@@ -127,7 +127,8 @@ type UnitTemplate = {
   role: BattleRole;
   passive: PassiveSkill;
   types: PokemonType[];
-  position: [number, number, number];
+  // Allies are positioned by team-slot at battle start; enemies set this explicitly.
+  position?: [number, number, number];
   color: string;
   accent: string;
   shape: Unit["shape"];
@@ -166,9 +167,16 @@ export type MovePreview = {
   statChangeLabel?: string;
 };
 
+export type BattleConfig = {
+  allyIds: string[];
+  stage: number;
+  speciesStats?: Record<string, PokemonBaseStats>;
+};
+
 export type BattleState = {
   units: Unit[];
   enemyCooldowns: Record<string, number>;
+  config: BattleConfig;
   selectedAllyId: string;
   selectedEnemyId: string;
   targetMode: TargetMode;
@@ -236,18 +244,32 @@ export const BALANCE = {
   paralysisBlockChance: 0.2,
   enemyHealThreshold: 0.45,
   enemyTrainerActionCooldown: 1.5,
+  stageEnemyHpGrowth: 0.16,
+  stageEnemyAttackGrowth: 0.1,
+  stageEnemyDefenseGrowth: 0.08,
   logLimit: 6,
   feedbackLimit: 10,
 } as const;
 
+// Bundled fallback stats, identical to live PokeAPI values. The battle model
+// has a single offensive stat, so `attack` is max(Attack, Sp. Atk) — this is
+// also how src/game/pokeApi.ts maps live data, keeping both sources consistent.
 const pokeApiBaseStats = {
-  bulbasaur: { hp: 45, attack: 49, defense: 49, speed: 45 },
-  squirtle: { hp: 44, attack: 48, defense: 65, speed: 43 },
-  charmander: { hp: 39, attack: 52, defense: 43, speed: 65 },
+  bulbasaur: { hp: 45, attack: 65, defense: 49, speed: 45 },
+  squirtle: { hp: 44, attack: 50, defense: 65, speed: 43 },
+  charmander: { hp: 39, attack: 60, defense: 43, speed: 65 },
+  vulpix: { hp: 38, attack: 50, defense: 40, speed: 65 },
+  machop: { hp: 70, attack: 80, defense: 50, speed: 35 },
+  eevee: { hp: 55, attack: 55, defense: 50, speed: 55 },
+  abra: { hp: 25, attack: 105, defense: 15, speed: 90 },
+  geodude: { hp: 40, attack: 80, defense: 100, speed: 20 },
+  jigglypuff: { hp: 115, attack: 45, defense: 20, speed: 20 },
   pikachu: { hp: 35, attack: 55, defense: 40, speed: 90 },
   snorlax: { hp: 160, attack: 110, defense: 65, speed: 30 },
-  butterfree: { hp: 60, attack: 45, defense: 50, speed: 70 },
+  butterfree: { hp: 60, attack: 90, defense: 50, speed: 70 },
 } satisfies Record<string, PokemonBaseStats>;
+
+export const speciesNames = Object.keys(pokeApiBaseStats);
 
 type TypeRelation = {
   doubleDamageTo?: PokemonType[];
@@ -338,7 +360,7 @@ const typeRelations: Record<PokemonType, TypeRelation> = {
   },
 };
 
-const unitTemplates: UnitTemplate[] = [
+const allyTemplates: UnitTemplate[] = [
   {
     id: "squirtle",
     name: "Squirtle",
@@ -351,7 +373,6 @@ const unitTemplates: UnitTemplate[] = [
       description: "Potion heals a little extra",
     },
     types: ["water"],
-    position: [-3.3, 0, 1.7],
     color: "#5ad7ff",
     accent: "#ffe66a",
     shape: "horn",
@@ -383,7 +404,6 @@ const unitTemplates: UnitTemplate[] = [
       description: "Status moves hit harder against afflicted targets",
     },
     types: ["grass", "poison"],
-    position: [-3.7, 0, 0],
     color: "#6bdf91",
     accent: "#b8ff72",
     shape: "wing",
@@ -416,7 +436,6 @@ const unitTemplates: UnitTemplate[] = [
       description: "Deals more damage below half HP",
     },
     types: ["fire"],
-    position: [-3.3, 0, -1.7],
     color: "#ff8659",
     accent: "#ffd166",
     shape: "ember",
@@ -436,6 +455,197 @@ const unitTemplates: UnitTemplate[] = [
       description: "Raise own Attack",
     },
   },
+  {
+    id: "vulpix",
+    name: "Vulpix",
+    team: "ally",
+    sourcePokemon: "vulpix",
+    role: "tech",
+    passive: {
+      id: "toxic-focus",
+      name: "Searing Focus",
+      description: "Status moves hit harder against afflicted targets",
+    },
+    types: ["fire"],
+    color: "#ff9f6e",
+    accent: "#ffd9a0",
+    shape: "ember",
+    moves: [
+      { id: "vulpix-ember", name: "Ember", type: "fire", cost: 2, power: 40, accent: "#ff9f5a", statusEffect: "burn" },
+      { id: "fire-spin", name: "Fire Spin", type: "fire", cost: 3, power: 55, accent: "#fb923c", statusEffect: "burn" },
+      { id: "tail-whip", name: "Tail Whip", type: "normal", cost: 1, power: 0, accent: "#e2e8f0", statChange: { stat: "defense", stages: -1, target: "enemy" } },
+    ],
+    syncMove: { id: "sync-inferno-tails", name: "Sync Inferno Tails", type: "fire", cost: 0, power: 115, accent: "#fb923c" },
+    trainerMove: {
+      id: "x-attack-all",
+      name: "X Attack All",
+      kind: "attackBuff",
+      uses: 2,
+      maxUses: 2,
+      stages: 1,
+      target: "allAllies",
+      description: "Raise allied Attack",
+    },
+  },
+  {
+    id: "machop",
+    name: "Machop",
+    team: "ally",
+    sourcePokemon: "machop",
+    role: "strike",
+    passive: {
+      id: "power-reserves",
+      name: "Second Wind",
+      description: "Deals more damage below half HP",
+    },
+    types: ["fighting"],
+    color: "#9fb6c9",
+    accent: "#f1f5f9",
+    shape: "horn",
+    moves: [
+      { id: "karate-chop", name: "Karate Chop", type: "fighting", cost: 2, power: 45, accent: "#fda4af" },
+      { id: "low-sweep", name: "Low Sweep", type: "fighting", cost: 3, power: 62, accent: "#fb7185" },
+      { id: "bulk-up", name: "Bulk Up", type: "fighting", cost: 1, power: 0, accent: "#fecaca", statChange: { stat: "attack", stages: 1, target: "self" } },
+    ],
+    syncMove: { id: "sync-mach-impact", name: "Sync Mach Impact", type: "fighting", cost: 0, power: 120, accent: "#fb7185" },
+    trainerMove: {
+      id: "x-attack",
+      name: "X Attack",
+      kind: "attackBuff",
+      uses: 2,
+      maxUses: 2,
+      stages: 2,
+      target: "self",
+      description: "Raise own Attack",
+    },
+  },
+  {
+    id: "eevee",
+    name: "Eevee",
+    team: "ally",
+    sourcePokemon: "eevee",
+    role: "support",
+    passive: {
+      id: "team-first-aid",
+      name: "Helping Hand",
+      description: "Potion heals a little extra",
+    },
+    types: ["normal"],
+    color: "#c9a27a",
+    accent: "#fff1d6",
+    shape: "bloom",
+    moves: [
+      { id: "quick-attack", name: "Quick Attack", type: "normal", cost: 2, power: 40, accent: "#fef9c3" },
+      { id: "swift", name: "Swift", type: "normal", cost: 3, power: 55, accent: "#fde68a" },
+      { id: "charm", name: "Charm", type: "fairy", cost: 1, power: 0, accent: "#fbcfe8", statChange: { stat: "attack", stages: -1, target: "enemy" } },
+    ],
+    syncMove: { id: "sync-star-burst", name: "Sync Star Burst", type: "normal", cost: 0, power: 115, accent: "#fde68a" },
+    trainerMove: {
+      id: "potion",
+      name: "Potion",
+      kind: "heal",
+      uses: 2,
+      maxUses: 2,
+      amount: 45,
+      description: "Heal the weakest ally",
+    },
+  },
+  {
+    id: "abra",
+    name: "Abra",
+    team: "ally",
+    sourcePokemon: "abra",
+    role: "strike",
+    passive: {
+      id: "power-reserves",
+      name: "Psychic Surge",
+      description: "Deals more damage below half HP",
+    },
+    types: ["psychic"],
+    color: "#f5d76e",
+    accent: "#ffe9a8",
+    shape: "crystal",
+    moves: [
+      { id: "confusion", name: "Confusion", type: "psychic", cost: 2, power: 48, accent: "#f0abfc" },
+      { id: "psybeam", name: "Psybeam", type: "psychic", cost: 3, power: 65, accent: "#e879f9" },
+    ],
+    syncMove: { id: "sync-mind-shock", name: "Sync Mind Shock", type: "psychic", cost: 0, power: 120, accent: "#e879f9" },
+    trainerMove: {
+      id: "x-attack",
+      name: "X Attack",
+      kind: "attackBuff",
+      uses: 2,
+      maxUses: 2,
+      stages: 2,
+      target: "self",
+      description: "Raise own Attack",
+    },
+  },
+  {
+    id: "geodude",
+    name: "Geodude",
+    team: "ally",
+    sourcePokemon: "geodude",
+    role: "support",
+    passive: {
+      id: "thick-guard",
+      name: "Stone Wall",
+      description: "Takes less damage while above half HP",
+    },
+    types: ["rock", "ground"],
+    color: "#a8a29e",
+    accent: "#d6d3d1",
+    shape: "shell",
+    moves: [
+      { id: "rock-throw", name: "Rock Throw", type: "rock", cost: 2, power: 48, accent: "#d6d3d1" },
+      { id: "magnitude", name: "Magnitude", type: "ground", cost: 3, power: 60, accent: "#d4a373" },
+      { id: "harden", name: "Harden", type: "normal", cost: 1, power: 0, accent: "#e7e5e4", statChange: { stat: "defense", stages: 1, target: "self" } },
+    ],
+    syncMove: { id: "sync-rock-avalanche", name: "Sync Rock Avalanche", type: "rock", cost: 0, power: 118, accent: "#d6d3d1" },
+    trainerMove: {
+      id: "x-defense-all",
+      name: "X Defense All",
+      kind: "defenseBuff",
+      uses: 2,
+      maxUses: 2,
+      stages: 1,
+      target: "allAllies",
+      description: "Raise allied Defense",
+    },
+  },
+  {
+    id: "jigglypuff",
+    name: "Jigglypuff",
+    team: "ally",
+    sourcePokemon: "jigglypuff",
+    role: "tech",
+    passive: {
+      id: "debilitating-dust",
+      name: "Lingering Lullaby",
+      description: "Status conditions last longer",
+    },
+    types: ["normal", "fairy"],
+    color: "#ffb3d9",
+    accent: "#ffe3f2",
+    shape: "bloom",
+    moves: [
+      { id: "disarming-voice", name: "Disarming Voice", type: "fairy", cost: 2, power: 42, accent: "#fbcfe8" },
+      { id: "sing", name: "Sing", type: "normal", cost: 1, power: 15, accent: "#f9a8d4", statusEffect: "paralysis" },
+    ],
+    syncMove: { id: "sync-lullaby-crash", name: "Sync Lullaby Crash", type: "fairy", cost: 0, power: 112, accent: "#f9a8d4" },
+    trainerMove: {
+      id: "potion",
+      name: "Potion",
+      kind: "heal",
+      uses: 2,
+      maxUses: 2,
+      amount: 45,
+      description: "Heal the weakest ally",
+    },
+  },
+];
+
+const enemyTemplates: UnitTemplate[] = [
   {
     id: "pikachu",
     name: "Pikachu",
@@ -511,60 +721,120 @@ const UNITY_BURST_MOVE: Move = { id: "unity-burst", name: "Unity Burst", type: "
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
-export const createInitialBattleState = (seed?: number): BattleState => ({
-  units: unitTemplates.map(makeUnit),
-  enemyCooldowns: Object.fromEntries(
-    unitTemplates.filter((template) => template.team === "enemy").map((template) => [template.id, initialEnemyCooldown(template)]),
-  ),
-  selectedAllyId: "squirtle",
-  selectedEnemyId: "snorlax",
-  targetMode: "auto",
-  moveGauge: 2,
-  maxMoveGauge: 6,
-  unityGauge: 0,
-  maxUnityGauge: 3,
-  enemySyncCountdown: 3,
-  maxEnemySyncCountdown: 3,
-  enemyTrainer: {
-    name: "Rival Trainer",
-    healUses: 2,
-    maxHealUses: 2,
-    healAmount: 55,
-    buffUses: 1,
-    maxBuffUses: 1,
-    buffStages: 1,
-  },
-  actionQueue: [],
-  feedback: [],
-  syncBoosts: { ally: 0, enemy: 0 },
-  statusTickTimer: BALANCE.statusTickInterval,
-  status: "playing",
-  log: ["Kanto League skirmish started."],
-  elapsed: 0,
-  rng: seed ?? Math.floor(Math.random() * 0xffffffff),
-});
+export const DEFAULT_ALLY_IDS = ["squirtle", "bulbasaur", "charmander"];
+
+const ALLY_SLOTS: [number, number, number][] = [
+  [-3.3, 0, 1.7],
+  [-3.7, 0, 0],
+  [-3.3, 0, -1.7],
+];
+
+type StatScale = { hp: number; attack: number; defense: number };
+
+const NEUTRAL_SCALE: StatScale = { hp: 1, attack: 1, defense: 1 };
+
+export type AllyOption = {
+  id: string;
+  name: string;
+  role: BattleRole;
+  types: PokemonType[];
+  passive: PassiveSkill;
+  color: string;
+  moveNames: string[];
+  baseStats: PokemonBaseStats;
+};
+
+export function getAllyOptions(speciesStats?: Record<string, PokemonBaseStats>): AllyOption[] {
+  const statsLookup: Record<string, PokemonBaseStats> = { ...pokeApiBaseStats, ...(speciesStats ?? {}) };
+  return allyTemplates.map((template) => ({
+    id: template.id,
+    name: template.name,
+    role: template.role,
+    types: template.types,
+    passive: template.passive,
+    color: template.color,
+    moveNames: template.moves.map((move) => move.name),
+    baseStats: statsLookup[template.sourcePokemon],
+  }));
+}
+
+export const createInitialBattleState = (seed?: number, config?: Partial<BattleConfig>): BattleState => {
+  const allyIds = config?.allyIds && config.allyIds.length > 0 ? config.allyIds.slice(0, ALLY_SLOTS.length) : DEFAULT_ALLY_IDS;
+  const stage = Math.max(1, Math.floor(config?.stage ?? 1));
+  const statsLookup: Record<string, PokemonBaseStats> = { ...pokeApiBaseStats, ...(config?.speciesStats ?? {}) };
+  const enemyScale: StatScale = {
+    hp: 1 + BALANCE.stageEnemyHpGrowth * (stage - 1),
+    attack: 1 + BALANCE.stageEnemyAttackGrowth * (stage - 1),
+    defense: 1 + BALANCE.stageEnemyDefenseGrowth * (stage - 1),
+  };
+  const allies = allyIds.map((allyId, index) => {
+    const template = allyTemplates.find((candidate) => candidate.id === allyId) ?? allyTemplates[index];
+    return makeUnit(template, ALLY_SLOTS[index % ALLY_SLOTS.length], statsLookup, NEUTRAL_SCALE);
+  });
+  const enemies = enemyTemplates.map((template) => makeUnit(template, template.position ?? [3.5, 0, 0], statsLookup, enemyScale));
+
+  return {
+    units: [...allies, ...enemies],
+    enemyCooldowns: Object.fromEntries(
+      enemyTemplates.map((template) => [template.id, initialEnemyCooldown(template, statsLookup)]),
+    ),
+    config: { allyIds: allies.map((unit) => unit.id), stage, speciesStats: config?.speciesStats },
+    selectedAllyId: allies[0]?.id ?? DEFAULT_ALLY_IDS[0],
+    selectedEnemyId: "snorlax",
+    targetMode: "auto",
+    moveGauge: 2,
+    maxMoveGauge: 6,
+    unityGauge: 0,
+    maxUnityGauge: 3,
+    enemySyncCountdown: 3,
+    maxEnemySyncCountdown: 3,
+    enemyTrainer: {
+      name: "Rival Trainer",
+      healUses: 2,
+      maxHealUses: 2,
+      healAmount: 55,
+      buffUses: 1,
+      maxBuffUses: 1,
+      buffStages: 1,
+    },
+    actionQueue: [],
+    feedback: [],
+    syncBoosts: { ally: 0, enemy: 0 },
+    statusTickTimer: BALANCE.statusTickInterval,
+    status: "playing",
+    log: [`Stage ${stage} — Kanto League skirmish started.`],
+    elapsed: 0,
+    rng: seed ?? Math.floor(Math.random() * 0xffffffff),
+  };
+};
 
 function computeSpeed(baseStats: PokemonBaseStats) {
   return Number((0.72 + baseStats.speed / 140).toFixed(2));
 }
 
-function initialEnemyCooldown(template: UnitTemplate) {
-  const speed = computeSpeed(pokeApiBaseStats[template.sourcePokemon]);
+function initialEnemyCooldown(template: UnitTemplate, statsLookup: Record<string, PokemonBaseStats>) {
+  const speed = computeSpeed(statsLookup[template.sourcePokemon]);
   return Math.max(0.7, 1.8 + (1.4 / speed) * 2 - (template.passive.id === "fast-entry" ? 0.7 : 0));
 }
 
-function makeUnit(template: UnitTemplate): Unit {
-  const baseStats = pokeApiBaseStats[template.sourcePokemon];
-  const maxHp = Math.round(baseStats.hp * 0.65 + 82);
+function makeUnit(
+  template: UnitTemplate,
+  position: [number, number, number],
+  statsLookup: Record<string, PokemonBaseStats>,
+  scale: StatScale,
+): Unit {
+  const baseStats = statsLookup[template.sourcePokemon];
+  const maxHp = Math.round((baseStats.hp * 0.65 + 82) * scale.hp);
 
   return {
     ...template,
+    position,
     sourcePokemon: titleCase(template.sourcePokemon),
     baseStats,
     maxHp,
     hp: maxHp,
-    attack: Math.round(baseStats.attack * 0.38 + 12),
-    defense: Math.round(baseStats.defense * 0.18 + 4),
+    attack: Math.round((baseStats.attack * 0.38 + 12) * scale.attack),
+    defense: Math.round((baseStats.defense * 0.18 + 4) * scale.defense),
     attackStage: 0,
     defenseStage: 0,
     statusCondition: null,
@@ -608,7 +878,7 @@ export const tickBattle = (deltaSeconds: number): BattleAction => ({
 
 export function battleReducer(state: BattleState, action: BattleAction): BattleState {
   if (action.type === "restart") {
-    return createInitialBattleState();
+    return createInitialBattleState(undefined, state.config);
   }
 
   if (action.type === "selectAlly") {

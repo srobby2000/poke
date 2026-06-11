@@ -1,9 +1,12 @@
 # Creature Masters Battle
 
-A real-time, Pokémon Masters-inspired 3v3 battle game built with React, TypeScript, and three.js. Command a trio of Kanto starters against a rival team in a live-action battle with move gauges, sync moves, and team unity attacks.
+A real-time, Pokémon Masters-inspired 3v3 battle game built with React, TypeScript, and three.js. Build a team of three from a nine-Pokémon roster and climb an endless ladder of increasingly tough rival battles.
 
 ## Features
 
+- **Team selection** — pick any 3 of 9 allies (Squirtle, Bulbasaur, Charmander, Vulpix, Machop, Eevee, Abra, Geodude, Jigglypuff), each with a distinct role, passive, and moveset
+- **Stage progression** — enemies grow stronger every stage; your best cleared stage is saved locally between sessions
+- **Live PokeAPI stats** — base stats are fetched from [pokeapi.co](https://pokeapi.co) (cached for 7 days) with identical bundled values as an offline fallback
 - **Real-time combat** — a shared move gauge fills over time; spend it on moves while enemies act on their own cooldowns
 - **Full 18-type chart** — main-series type effectiveness, same-type attack bonus, and role-based damage modifiers
 - **Per-ally sync moves** — each ally charges its own sync countdown by acting; unleash big sync attacks with a team-wide damage boost
@@ -26,7 +29,7 @@ npm run dev      # start dev server at http://127.0.0.1:5173
 | Command           | Description                                |
 | ----------------- | ------------------------------------------ |
 | `npm run dev`     | Start the Vite dev server                  |
-| `npm test`        | Run the vitest suite (33 tests)            |
+| `npm test`        | Run the vitest suite                       |
 | `npm run lint`    | Run ESLint over `src/`                     |
 | `npm run build`   | Type-check and build for production        |
 | `npm run preview` | Preview the production build               |
@@ -37,11 +40,14 @@ npm run dev      # start dev server at http://127.0.0.1:5173
 src/
 ├── game/
 │   ├── battleState.ts       # All game logic: pure reducer, type chart, AI, balance constants
-│   └── battleState.test.ts  # Vitest suite for the battle simulation
+│   ├── battleState.test.ts  # Vitest suite for the battle simulation
+│   ├── pokeApi.ts           # Live PokeAPI stat fetching with localStorage cache
+│   └── progress.ts          # Best-stage persistence
 ├── components/
+│   ├── TeamSelect.tsx       # Pre-battle roster screen
 │   ├── BattleCanvas.tsx     # three.js scene (react-three-fiber + drei)
 │   └── BattleHud.tsx        # 2D HUD: gauges, move buttons, battle log
-├── App.tsx                  # 30Hz fixed-rate game loop
+├── App.tsx                  # Screen flow + 30Hz fixed-rate game loop
 └── styles.css
 ```
 

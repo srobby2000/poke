@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { BALANCE, battleReducer, createInitialBattleState, getTypeEffectiveness, previewPlayerMove, tickBattle } from "./battleState";
+import {
+  BALANCE,
+  battleReducer,
+  createInitialBattleState,
+  getAllyOptions,
+  getTypeEffectiveness,
+  previewPlayerMove,
+  tickBattle,
+} from "./battleState";
 
 const resolveQueuedActions = <T extends ReturnType<typeof createInitialBattleState>>(state: T) =>
   battleReducer(state, tickBattle(1));
@@ -18,7 +26,7 @@ describe("battle simulation", () => {
     expect(bulbasaur?.role).toBe("tech");
     expect(charmander?.role).toBe("strike");
     expect(squirtle?.sourcePokemon).toBe("Squirtle");
-    expect(squirtle?.baseStats).toEqual({ hp: 44, attack: 48, defense: 65, speed: 43 });
+    expect(squirtle?.baseStats).toEqual({ hp: 44, attack: 50, defense: 65, speed: 43 });
     expect(snorlax?.name).toBe("Snorlax");
     expect(snorlax?.sourcePokemon).toBe("Snorlax");
     expect(snorlax?.baseStats).toEqual({ hp: 160, attack: 110, defense: 65, speed: 30 });
@@ -100,10 +108,10 @@ describe("battle simulation", () => {
     const afterVineWhip = resolveQueuedActions(battleReducer(state, { type: "useMove", moveId: "vine-whip" }));
     const afterPikachu = afterVineWhip.units.find((unit) => unit.id === "pikachu");
 
-    // Deterministic base damage is 70; the roll spans 0.85-1.0 plus a possible 1.5x crit.
+    // Deterministic base damage is 75; the roll spans 0.85-1.0 plus a possible 1.5x crit.
     const dealt = (beforePikachu?.hp ?? 0) - (afterPikachu?.hp ?? 0);
-    expect(dealt).toBeGreaterThanOrEqual(55);
-    expect(dealt).toBeLessThanOrEqual(110);
+    expect(dealt).toBeGreaterThanOrEqual(60);
+    expect(dealt).toBeLessThanOrEqual(115);
     expect(afterVineWhip.log[0]).toContain("Vine Whip");
   });
 
@@ -505,6 +513,62 @@ describe("battle simulation", () => {
 
     expect(snorlax?.hp).toBeLessThan(snorlax?.maxHp ?? 0);
     expect(butterfree?.hp).toBe(butterfree?.maxHp);
+  });
+
+  it("builds a battle from a chosen ally team", () => {
+    const state = createInitialBattleState(1, { allyIds: ["eevee", "machop", "abra"] });
+    const allies = state.units.filter((unit) => unit.team === "ally");
+
+    expect(allies.map((unit) => unit.id)).toEqual(["eevee", "machop", "abra"]);
+    expect(state.selectedAllyId).toBe("eevee");
+    expect(new Set(allies.map((unit) => unit.position.join(","))).size).toBe(3);
+    expect(state.config.allyIds).toEqual(["eevee", "machop", "abra"]);
+  });
+
+  it("scales enemy stats with the stage number", () => {
+    const stageOne = createInitialBattleState(1, { stage: 1 });
+    const stageFour = createInitialBattleState(1, { stage: 4 });
+
+    const snorlaxOne = stageOne.units.find((unit) => unit.id === "snorlax");
+    const snorlaxFour = stageFour.units.find((unit) => unit.id === "snorlax");
+    const squirtleOne = stageOne.units.find((unit) => unit.id === "squirtle");
+    const squirtleFour = stageFour.units.find((unit) => unit.id === "squirtle");
+
+    expect(snorlaxFour?.maxHp ?? 0).toBeGreaterThan(snorlaxOne?.maxHp ?? 0);
+    expect(snorlaxFour?.attack ?? 0).toBeGreaterThan(snorlaxOne?.attack ?? 0);
+    expect(squirtleFour?.maxHp).toBe(squirtleOne?.maxHp);
+    expect(stageFour.config.stage).toBe(4);
+  });
+
+  it("preserves team and stage on restart", () => {
+    const state = createInitialBattleState(1, { allyIds: ["geodude", "vulpix", "jigglypuff"], stage: 3 });
+    const restarted = battleReducer(state, { type: "restart" });
+
+    expect(restarted.units.filter((unit) => unit.team === "ally").map((unit) => unit.id)).toEqual([
+      "geodude",
+      "vulpix",
+      "jigglypuff",
+    ]);
+    expect(restarted.config.stage).toBe(3);
+    expect(restarted.status).toBe("playing");
+  });
+
+  it("applies species stat overrides from live data", () => {
+    const state = createInitialBattleState(1, {
+      speciesStats: { snorlax: { hp: 300, attack: 110, defense: 65, speed: 30 } },
+    });
+    const snorlax = state.units.find((unit) => unit.id === "snorlax");
+
+    expect(snorlax?.maxHp).toBe(Math.round(300 * 0.65 + 82));
+  });
+
+  it("exposes the full ally roster for team selection", () => {
+    const options = getAllyOptions();
+
+    expect(options).toHaveLength(9);
+    expect(options.map((option) => option.id)).toContain("jigglypuff");
+    expect(options.every((option) => option.baseStats.hp > 0)).toBe(true);
+    expect(options.filter((option) => option.role === "strike").length).toBeGreaterThanOrEqual(3);
   });
 
   it("detects wins and losses", () => {
