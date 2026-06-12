@@ -7,18 +7,16 @@ export const WORLD_BALANCE = {
   interactRange: 0.9,
 } as const;
 
-// Buildings the player can actually enter in this phase; the rest respond
-// with a message so doors never feel dead.
-const OPEN_BUILDINGS = ["arena"];
+// Buildings the player can actually enter; the rest respond with a message
+// so doors never feel dead.
+const OPEN_BUILDINGS = ["arena", "shop"];
 
-const CLOSED_BUILDING_MESSAGES: Record<string, string> = {
-  shop: "The shop is still being stocked. Opening soon!",
-};
+const CLOSED_BUILDING_MESSAGES: Record<string, string> = {};
 
 export type WorldInteraction =
   | { kind: "door"; building: string; label: string }
   | { kind: "npc"; name: string; dialogue: string }
-  | { kind: "berry" };
+  | { kind: "berry"; tileKey: string };
 
 export type WorldState = {
   map: WorldMap;
@@ -31,6 +29,9 @@ export type WorldState = {
   moving: boolean;
   nearby: WorldInteraction | null;
   enteredBuilding: string | null;
+  // Tile key of a berry tree the player just checked; the screen layer
+  // resolves it against the save file and reports back via showMessage.
+  berryTarget: string | null;
   message: string | null;
   elapsed: number;
 };
@@ -40,6 +41,8 @@ export type WorldAction =
   | { type: "setMoveInput"; x: number; z: number }
   | { type: "interact" }
   | { type: "clearEntry" }
+  | { type: "clearBerryTarget" }
+  | { type: "showMessage"; text: string }
   | { type: "dismissMessage" };
 
 export function createInitialWorldState(position?: { x: number; z: number } | null): WorldState {
@@ -58,6 +61,7 @@ export function createInitialWorldState(position?: { x: number; z: number } | nu
     moving: false,
     nearby: null,
     enteredBuilding: null,
+    berryTarget: null,
     message: null,
     elapsed: 0,
   };
@@ -94,7 +98,7 @@ function findNearbyInteraction(state: WorldState): WorldInteraction | null {
     }
   }
   if (kind === "berry") {
-    return { kind: "berry" };
+    return { kind: "berry", tileKey: key };
   }
   return null;
 }
@@ -120,11 +124,19 @@ export function worldReducer(state: WorldState, action: WorldAction): WorldState
     if (nearby.kind === "npc") {
       return { ...state, message: `${nearby.name}: ${nearby.dialogue}` };
     }
-    return { ...state, message: "The berries aren't ripe yet. Come back soon!" };
+    return { ...state, berryTarget: nearby.tileKey };
   }
 
   if (action.type === "clearEntry") {
     return state.enteredBuilding ? { ...state, enteredBuilding: null } : state;
+  }
+
+  if (action.type === "clearBerryTarget") {
+    return state.berryTarget ? { ...state, berryTarget: null } : state;
+  }
+
+  if (action.type === "showMessage") {
+    return { ...state, message: action.text };
   }
 
   if (action.type === "dismissMessage") {

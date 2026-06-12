@@ -1,5 +1,6 @@
 import { Suspense, lazy, useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { BattleHud } from "./components/BattleHud";
+import { ShopScreen } from "./components/ShopScreen";
 import { TeamSelect } from "./components/TeamSelect";
 import { WorldScreen } from "./components/WorldScreen";
 import type { BattleMode, BattleState, PokemonBaseStats } from "./game/battleState";
@@ -15,8 +16,10 @@ import {
   performMultiPull,
   performPull,
 } from "./game/gacha";
+import { ITEMS, pickBerry, pickedBerryTiles } from "./game/items";
 import { fetchSpeciesStats } from "./game/pokeApi";
 import { loadProgress, saveProgress } from "./game/progress";
+import { buyItem, sellItem } from "./game/shop";
 import { playFeedbackSound, playKoSound } from "./game/sound";
 
 // Game logic runs at a fixed 30Hz instead of once per animation frame, so the
@@ -38,7 +41,7 @@ export default function App() {
   const [progress, setProgress] = useState(loadProgress);
   const [lastPulls, setLastPulls] = useState<PullResult[] | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [screen, setScreen] = useState<"world" | "hub">("world");
+  const [screen, setScreen] = useState<"world" | "hub" | "shop">("world");
   const todayKey = dailyChallengeKey();
 
   const savePosition = useCallback((position: { x: number; z: number }) => {
@@ -98,10 +101,43 @@ export default function App() {
     return (
       <WorldScreen
         progress={progress}
+        pickedBerries={pickedBerryTiles(progress, todayKey)}
         onSavePosition={savePosition}
         onEnterBuilding={(building) => {
           if (building === "arena") {
             setScreen("hub");
+          } else if (building === "shop") {
+            setScreen("shop");
+          }
+        }}
+        onPickBerry={(tileKey) => {
+          const result = pickBerry(progress, tileKey, todayKey);
+          if (!result) {
+            return "This tree was already picked today. It will regrow tomorrow!";
+          }
+          commitProgress(result.progress);
+          const item = ITEMS[result.itemId];
+          return `You picked ${result.quantity} × ${item?.name ?? result.itemId}! Sell them at the shop.`;
+        }}
+      />
+    );
+  }
+
+  if (!session && screen === "shop") {
+    return (
+      <ShopScreen
+        progress={progress}
+        onBack={() => setScreen("world")}
+        onBuy={(itemId) => {
+          const next = buyItem(progress, itemId);
+          if (next) {
+            commitProgress(next);
+          }
+        }}
+        onSell={(itemId) => {
+          const next = sellItem(progress, itemId);
+          if (next) {
+            commitProgress(next);
           }
         }}
       />
