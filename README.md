@@ -11,6 +11,7 @@ A real-time, Pokémon Masters-inspired 3v3 battle game built with React, TypeScr
 - **16-ally roster** — from 3★ starters to the 5★ chase units Dratini and Lapras, each with a distinct role, rarity, passive, and moveset
 - **Leveling & evolution** — raise allies with gems or duplicate pulls (+6% stats per level, cap 10); allies evolve at level thresholds (Charmander → Charmeleon → Charizard) with real evolved-form stats
 - **Battle report** — the result screen shows damage dealt per ally, so you can judge team compositions
+- **Achievements** — eight one-time missions (Flawless, League Champion, Full Roster…) that pay gem rewards and persist in the save
 - **Stage progression** — enemies grow stronger every stage, with a first-clear gem bonus; your best cleared stage is saved between sessions
 - **Live PokeAPI stats** — base stats are fetched from [pokeapi.co](https://pokeapi.co) (cached for 7 days) with identical bundled values as an offline fallback
 - **Real-time combat** — a shared move gauge fills over time; spend it on moves while enemies act on their own cooldowns

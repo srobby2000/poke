@@ -3,6 +3,8 @@ import { BattleHud } from "./components/BattleHud";
 import { TeamSelect } from "./components/TeamSelect";
 import type { BattleMode, BattleState, PokemonBaseStats } from "./game/battleState";
 import { battleReducer, createInitialBattleState, dailyChallengeKey, dailyChallengeStage, isAlive, speciesNames, tickBattle } from "./game/battleState";
+import type { AchievementDef, BattleSummary } from "./game/achievements";
+import { evaluateAchievements } from "./game/achievements";
 import type { PullResult } from "./game/gacha";
 import {
   DAILY_CHALLENGE_REWARD,
@@ -40,6 +42,18 @@ export default function App() {
   const pullSeedRef = useRef<number | null>(null);
 
   const nextPullSeed = () => pullSeedRef.current ?? (Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0;
+
+  // Every progress change runs through here so achievements unlock (and pay
+  // their gem rewards) regardless of which action earned them.
+  const [recentAchievements, setRecentAchievements] = useState<AchievementDef[] | null>(null);
+  const commitProgress = (next: Parameters<typeof evaluateAchievements>[0], battle?: BattleSummary) => {
+    const { progress: evaluated, earned } = evaluateAchievements(next, battle);
+    setProgress(evaluated);
+    if (earned.length > 0) {
+      setRecentAchievements(earned);
+      playFeedbackSound("unity");
+    }
+  };
 
   const registerPullResults = (results: PullResult[]) => {
     setLastPulls(results);
@@ -79,6 +93,7 @@ export default function App() {
       <TeamSelect
         progress={progress}
         lastPulls={lastPulls}
+        recentAchievements={recentAchievements}
         statsSource={speciesStats ? "live" : "bundled"}
         speciesStats={speciesStats}
         dailyKey={todayKey}
@@ -94,7 +109,7 @@ export default function App() {
             return;
           }
           pullSeedRef.current = outcome.nextSeed;
-          setProgress(outcome.progress);
+          commitProgress(outcome.progress);
           registerPullResults([outcome.result]);
         }}
         onMultiPull={() => {
@@ -103,13 +118,13 @@ export default function App() {
             return;
           }
           pullSeedRef.current = outcome.nextSeed;
-          setProgress(outcome.progress);
+          commitProgress(outcome.progress);
           registerPullResults(outcome.results);
         }}
         onLevelUp={(allyId) => {
           const next = performLevelUp(progress, allyId);
           if (next) {
-            setProgress(next);
+            commitProgress(next);
           }
         }}
       />
@@ -125,13 +140,13 @@ export default function App() {
       dailyKey={session.dailyKey}
       speciesStats={speciesStats}
       allyLevels={progress.allyLevels}
-      onBattleCleared={() =>
-        setProgress((current) =>
+      onBattleCleared={(summary) => {
+        const rewarded =
           session.battleMode === "daily" && session.dailyKey
-            ? applyDailyChallengeClear(current, session.dailyKey)
-            : applyStageClear(current, session.stage),
-        )
-      }
+            ? applyDailyChallengeClear(progress, session.dailyKey)
+            : applyStageClear(progress, session.stage);
+        commitProgress(rewarded, summary);
+      }}
       onNextStage={
         session.battleMode === "daily"
           ? undefined
@@ -150,7 +165,7 @@ type BattleProps = {
   dailyKey?: string;
   speciesStats: Record<string, PokemonBaseStats> | null;
   allyLevels: Record<string, number>;
-  onBattleCleared: () => void;
+  onBattleCleared: (summary: BattleSummary) => void;
   onNextStage?: () => void;
   onRetry: () => void;
   onChangeTeam: () => void;
@@ -243,7 +258,12 @@ function Battle({ allyIds, stage, battleMode, dailyKey, speciesStats, allyLevels
   useEffect(() => {
     if (won && !rewardedRef.current) {
       rewardedRef.current = true;
-      onBattleCleared();
+      const allies = battleRef.current.units.filter((unit) => unit.team === "ally");
+      onBattleCleared({
+        won: true,
+        alliesAlive: allies.filter(isAlive).length,
+        alliesTotal: allies.length,
+      });
     }
   }, [won, onBattleCleared]);
 

@@ -9,6 +9,7 @@ export type PlayerProgress = {
   unlockedAllies: string[];
   allyLevels: Record<string, number>;
   dailyClearedDate: string | null;
+  achievements: string[];
 };
 
 export function defaultProgress(): PlayerProgress {
@@ -18,6 +19,7 @@ export function defaultProgress(): PlayerProgress {
     unlockedAllies: [...DEFAULT_ALLY_IDS],
     allyLevels: {},
     dailyClearedDate: null,
+    achievements: [],
   };
 }
 
@@ -51,6 +53,9 @@ export function loadProgress(): PlayerProgress {
           : [...DEFAULT_ALLY_IDS],
       allyLevels: parsed.allyLevels && typeof parsed.allyLevels === "object" ? parsed.allyLevels : {},
       dailyClearedDate: typeof parsed.dailyClearedDate === "string" ? parsed.dailyClearedDate : null,
+      achievements: Array.isArray(parsed.achievements)
+        ? parsed.achievements.filter((id): id is string => typeof id === "string")
+        : [],
     };
   } catch {
     return defaultProgress();

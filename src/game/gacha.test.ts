@@ -25,6 +25,7 @@ const baseProgress = (overrides: Partial<PlayerProgress> = {}): PlayerProgress =
   unlockedAllies: ["squirtle", "bulbasaur", "charmander"],
   allyLevels: {},
   dailyClearedDate: null,
+  achievements: [],
   ...overrides,
 });
 
