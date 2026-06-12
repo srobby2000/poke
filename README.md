@@ -6,7 +6,8 @@ A real-time, Pokémon Masters-inspired 3v3 battle game built with React, TypeScr
 
 ## Features
 
-- **Gacha scouting** — earn gems by clearing stages and spend them on pulls; new allies are guaranteed while any remain locked (weighted by ★ rarity), then pulls become level-ups
+- **Gacha scouting** — earn gems by clearing stages and spend them on pulls (×1 or discounted ×10) with an animated rarity reveal; new allies are guaranteed while any remain locked (weighted by ★ rarity), then pulls become level-ups
+- **Rotating rival squads** — four enemy teams rotate by stage, with a Boss Aura team every fifth stage, plus a once-per-day seeded Daily Challenge for bonus gems
 - **16-ally roster** — from 3★ starters to the 5★ chase units Dratini and Lapras, each with a distinct role, rarity, passive, and moveset
 - **Leveling** — raise allies with gems or duplicate pulls (+6% stats per level, cap 10); team, gems, and levels persist in a local save
 - **Stage progression** — enemies grow stronger every stage, with a first-clear gem bonus; your best cleared stage is saved between sessions

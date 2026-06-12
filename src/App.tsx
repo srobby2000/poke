@@ -4,7 +4,14 @@ import { TeamSelect } from "./components/TeamSelect";
 import type { BattleMode, BattleState, PokemonBaseStats } from "./game/battleState";
 import { battleReducer, createInitialBattleState, dailyChallengeKey, dailyChallengeStage, isAlive, speciesNames, tickBattle } from "./game/battleState";
 import type { PullResult } from "./game/gacha";
-import { DAILY_CHALLENGE_REWARD, applyDailyChallengeClear, applyStageClear, performLevelUp, performPull } from "./game/gacha";
+import {
+  DAILY_CHALLENGE_REWARD,
+  applyDailyChallengeClear,
+  applyStageClear,
+  performLevelUp,
+  performMultiPull,
+  performPull,
+} from "./game/gacha";
 import { fetchSpeciesStats } from "./game/pokeApi";
 import { loadProgress, saveProgress } from "./game/progress";
 import { playFeedbackSound, playKoSound } from "./game/sound";
@@ -26,11 +33,25 @@ type Session = { allyIds: string[]; stage: number; runId: number; battleMode: Ba
 export default function App() {
   const [speciesStats, setSpeciesStats] = useState<Record<string, PokemonBaseStats> | null>(null);
   const [progress, setProgress] = useState(loadProgress);
-  const [lastPull, setLastPull] = useState<PullResult | null>(null);
+  const [lastPulls, setLastPulls] = useState<PullResult[] | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const todayKey = dailyChallengeKey();
   // Seeded lazily in the pull handler — impure calls are not allowed in render.
   const pullSeedRef = useRef<number | null>(null);
+
+  const nextPullSeed = () => pullSeedRef.current ?? (Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0;
+
+  const registerPullResults = (results: PullResult[]) => {
+    setLastPulls(results);
+    const bestNew = results.filter((result) => result.isNew).sort((left, right) => right.rarity - left.rarity)[0];
+    if (bestNew?.rarity === 5) {
+      playFeedbackSound("sync");
+    } else if (bestNew) {
+      playFeedbackSound("super");
+    } else {
+      playFeedbackSound("damage");
+    }
+  };
 
   useEffect(() => {
     saveProgress(progress);
@@ -57,7 +78,7 @@ export default function App() {
     return (
       <TeamSelect
         progress={progress}
-        lastPull={lastPull}
+        lastPulls={lastPulls}
         statsSource={speciesStats ? "live" : "bundled"}
         speciesStats={speciesStats}
         dailyKey={todayKey}
@@ -68,14 +89,22 @@ export default function App() {
           setSession({ allyIds, stage: dailyChallengeStage(todayKey), runId: 1, battleMode: "daily", dailyKey: todayKey })
         }
         onPull={() => {
-          const seed = pullSeedRef.current ?? (Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0;
-          const outcome = performPull(progress, seed);
+          const outcome = performPull(progress, nextPullSeed());
           if (!outcome) {
             return;
           }
           pullSeedRef.current = outcome.nextSeed;
           setProgress(outcome.progress);
-          setLastPull(outcome.result);
+          registerPullResults([outcome.result]);
+        }}
+        onMultiPull={() => {
+          const outcome = performMultiPull(progress, nextPullSeed());
+          if (!outcome) {
+            return;
+          }
+          pullSeedRef.current = outcome.nextSeed;
+          setProgress(outcome.progress);
+          registerPullResults(outcome.results);
         }}
         onLevelUp={(allyId) => {
           const next = performLevelUp(progress, allyId);

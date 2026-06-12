@@ -3,6 +3,9 @@ import { BALANCE, getAllyOptions } from "./battleState";
 import type { PlayerProgress } from "./progress";
 
 export const PULL_COST = 100;
+export const MULTI_PULL_COUNT = 10;
+// Ten pulls for the price of nine.
+export const MULTI_PULL_COST = 900;
 export const DAILY_CHALLENGE_REWARD = 180;
 
 // Progression-flavored gacha: while any ally is still locked, a pull is
@@ -38,20 +41,25 @@ export function levelUpCost(currentLevel: number): number {
   return 40 * Math.max(1, currentLevel);
 }
 
-export function canPull(progress: PlayerProgress): boolean {
-  if (progress.gems < PULL_COST) {
-    return false;
-  }
+function hasPullTargets(progress: PlayerProgress): boolean {
   const roster = getAllyOptions();
-  const lockedRemain = roster.some((option) => !progress.unlockedAllies.includes(option.id));
-  if (lockedRemain) {
+  if (roster.some((option) => !progress.unlockedAllies.includes(option.id))) {
     return true;
   }
   return roster.some((option) => levelOf(progress, option.id) < BALANCE.maxAllyLevel);
 }
 
-export function performPull(progress: PlayerProgress, seed: number): PullOutcome | null {
-  if (!canPull(progress)) {
+export function canPull(progress: PlayerProgress): boolean {
+  return progress.gems >= PULL_COST && hasPullTargets(progress);
+}
+
+export function canMultiPull(progress: PlayerProgress): boolean {
+  return progress.gems >= MULTI_PULL_COST && hasPullTargets(progress);
+}
+
+// One pull without the gem charge; performPull/performMultiPull handle cost.
+function pullOnce(progress: PlayerProgress, seed: number): PullOutcome | null {
+  if (!hasPullTargets(progress)) {
     return null;
   }
 
@@ -64,7 +72,6 @@ export function performPull(progress: PlayerProgress, seed: number): PullOutcome
     return {
       progress: {
         ...progress,
-        gems: progress.gems - PULL_COST,
         unlockedAllies: [...progress.unlockedAllies, pick.id],
       },
       result: { allyId: pick.id, name: pick.name, rarity: pick.rarity, isNew: true, level: levelOf(progress, pick.id) },
@@ -78,12 +85,49 @@ export function performPull(progress: PlayerProgress, seed: number): PullOutcome
   return {
     progress: {
       ...progress,
-      gems: progress.gems - PULL_COST,
       allyLevels: { ...progress.allyLevels, [pick.id]: level },
     },
     result: { allyId: pick.id, name: pick.name, rarity: pick.rarity, isNew: false, level },
     nextSeed,
   };
+}
+
+export function performPull(progress: PlayerProgress, seed: number): PullOutcome | null {
+  if (!canPull(progress)) {
+    return null;
+  }
+  return pullOnce({ ...progress, gems: progress.gems - PULL_COST }, seed);
+}
+
+export type MultiPullOutcome = {
+  progress: PlayerProgress;
+  results: PullResult[];
+  nextSeed: number;
+};
+
+export function performMultiPull(progress: PlayerProgress, seed: number): MultiPullOutcome | null {
+  if (!canMultiPull(progress)) {
+    return null;
+  }
+
+  let current: PlayerProgress = { ...progress, gems: progress.gems - MULTI_PULL_COST };
+  let currentSeed = seed;
+  const results: PullResult[] = [];
+
+  for (let index = 0; index < MULTI_PULL_COUNT; index += 1) {
+    const outcome = pullOnce(current, currentSeed);
+    if (!outcome) {
+      // Everything hit the cap mid-batch: refund the unused pulls pro rata.
+      const refund = Math.round((MULTI_PULL_COST / MULTI_PULL_COUNT) * (MULTI_PULL_COUNT - index));
+      current = { ...current, gems: current.gems + refund };
+      break;
+    }
+    current = outcome.progress;
+    currentSeed = outcome.nextSeed;
+    results.push(outcome.result);
+  }
+
+  return { progress: current, results, nextSeed: currentSeed };
 }
 
 function weightedPick(options: AllyOption[], roll: number): AllyOption {

@@ -1,15 +1,19 @@
 import { describe, expect, it } from "vitest";
 import { BALANCE, getAllyOptions } from "./battleState";
 import {
-  PULL_COST,
   DAILY_CHALLENGE_REWARD,
+  MULTI_PULL_COST,
+  MULTI_PULL_COUNT,
+  PULL_COST,
   applyDailyChallengeClear,
   applyStageClear,
+  canMultiPull,
   canPull,
   dailyChallengeReward,
   levelOf,
   levelUpCost,
   performLevelUp,
+  performMultiPull,
   performPull,
   stageClearReward,
 } from "./gacha";
@@ -82,6 +86,52 @@ describe("gacha pulls", () => {
 
     expect(canPull(maxed)).toBe(false);
     expect(performPull(maxed, 1)).toBeNull();
+  });
+});
+
+describe("multi pulls", () => {
+  it("performs ten discounted pulls with unique new recruits", () => {
+    const outcome = performMultiPull(baseProgress({ gems: 1000 }), 4242);
+
+    expect(MULTI_PULL_COST).toBeLessThan(MULTI_PULL_COUNT * PULL_COST);
+    expect(outcome?.results).toHaveLength(MULTI_PULL_COUNT);
+    expect(outcome?.progress.gems).toBe(1000 - MULTI_PULL_COST);
+    // 13 allies were locked, so all ten pulls are guaranteed-new and unique.
+    const newIds = outcome?.results.filter((result) => result.isNew).map((result) => result.allyId) ?? [];
+    expect(newIds).toHaveLength(MULTI_PULL_COUNT);
+    expect(new Set(newIds).size).toBe(MULTI_PULL_COUNT);
+    expect(outcome?.progress.unlockedAllies).toHaveLength(3 + MULTI_PULL_COUNT);
+  });
+
+  it("is deterministic for a given seed", () => {
+    const first = performMultiPull(baseProgress({ gems: 2000 }), 31337);
+    const second = performMultiPull(baseProgress({ gems: 2000 }), 31337);
+
+    expect(first?.results.map((result) => result.allyId)).toEqual(second?.results.map((result) => result.allyId));
+    expect(first?.nextSeed).toBe(second?.nextSeed);
+  });
+
+  it("requires the full multi-pull price", () => {
+    expect(canMultiPull(baseProgress({ gems: MULTI_PULL_COST - 1 }))).toBe(false);
+    expect(performMultiPull(baseProgress({ gems: MULTI_PULL_COST - 1 }), 1)).toBeNull();
+  });
+
+  it("refunds unused pulls when targets run out mid-batch", () => {
+    // Everything unlocked; only one ally has level-up room, so one pull lands.
+    const nearlyMaxed = baseProgress({
+      gems: 1000,
+      unlockedAllies: [...allAllyIds],
+      allyLevels: Object.fromEntries(
+        allAllyIds.map((id) => [id, id === "squirtle" ? BALANCE.maxAllyLevel - 1 : BALANCE.maxAllyLevel]),
+      ),
+    });
+
+    const outcome = performMultiPull(nearlyMaxed, 7);
+    const perPull = MULTI_PULL_COST / MULTI_PULL_COUNT;
+
+    expect(outcome?.results).toHaveLength(1);
+    expect(outcome?.results[0].allyId).toBe("squirtle");
+    expect(outcome?.progress.gems).toBe(1000 - MULTI_PULL_COST + perPull * (MULTI_PULL_COUNT - 1));
   });
 });
 

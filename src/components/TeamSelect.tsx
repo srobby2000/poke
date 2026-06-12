@@ -2,14 +2,14 @@ import { useState } from "react";
 import type { PokemonBaseStats } from "../game/battleState";
 import { BALANCE, getAllyOptions } from "../game/battleState";
 import type { PullResult } from "../game/gacha";
-import { PULL_COST, canPull, levelOf, levelUpCost } from "../game/gacha";
+import { MULTI_PULL_COST, MULTI_PULL_COUNT, PULL_COST, canMultiPull, canPull, levelOf, levelUpCost } from "../game/gacha";
 import type { PlayerProgress } from "../game/progress";
 
 const TEAM_SIZE = 3;
 
 type TeamSelectProps = {
   progress: PlayerProgress;
-  lastPull: PullResult | null;
+  lastPulls: PullResult[] | null;
   statsSource: "live" | "bundled";
   speciesStats: Record<string, PokemonBaseStats> | null;
   dailyKey: string;
@@ -18,12 +18,13 @@ type TeamSelectProps = {
   onStart: (allyIds: string[]) => void;
   onStartDaily: (allyIds: string[]) => void;
   onPull: () => void;
+  onMultiPull: () => void;
   onLevelUp: (allyId: string) => void;
 };
 
 export function TeamSelect({
   progress,
-  lastPull,
+  lastPulls,
   statsSource,
   speciesStats,
   dailyKey,
@@ -32,9 +33,11 @@ export function TeamSelect({
   onStart,
   onStartDaily,
   onPull,
+  onMultiPull,
   onLevelUp,
 }: TeamSelectProps) {
   const [selected, setSelected] = useState<string[]>([]);
+  const [revealOpen, setRevealOpen] = useState(false);
   const options = getAllyOptions(speciesStats ?? undefined);
 
   const toggle = (id: string) => {
@@ -59,17 +62,36 @@ export function TeamSelect({
 
       <section className="scout-bar" aria-label="Scout">
         <span className="gems-chip">💎 {progress.gems}</span>
-        <button className="scout-button" disabled={!canPull(progress)} onClick={onPull}>
+        <button
+          className="scout-button"
+          disabled={!canPull(progress)}
+          onClick={() => {
+            onPull();
+            setRevealOpen(true);
+          }}
+        >
           Scout ×1 — {PULL_COST} gems
+        </button>
+        <button
+          className="scout-button"
+          disabled={!canMultiPull(progress)}
+          onClick={() => {
+            onMultiPull();
+            setRevealOpen(true);
+          }}
+        >
+          Scout ×{MULTI_PULL_COUNT} — {MULTI_PULL_COST} gems
         </button>
         <button className="daily-button" disabled={selected.length !== TEAM_SIZE} onClick={() => onStartDaily(selected)}>
           Daily Challenge
         </button>
-        {lastPull ? (
-          <span className={`pull-banner ${lastPull.isNew ? "pull-banner-new" : ""}`}>
-            {lastPull.isNew
-              ? `NEW ${"★".repeat(lastPull.rarity)} ${lastPull.name}!`
-              : `${lastPull.name} → Lv ${lastPull.level}`}
+        {lastPulls && lastPulls.length > 0 ? (
+          <span className={`pull-banner ${lastPulls.some((pull) => pull.isNew) ? "pull-banner-new" : ""}`}>
+            {lastPulls.length === 1
+              ? lastPulls[0].isNew
+                ? `NEW ${"★".repeat(lastPulls[0].rarity)} ${lastPulls[0].name}!`
+                : `${lastPulls[0].name} → Lv ${lastPulls[0].level}`
+              : `×${lastPulls.length}: ${lastPulls.filter((pull) => pull.isNew).length} new, ${lastPulls.filter((pull) => !pull.isNew).length} level-ups`}
           </span>
         ) : (
           <span className="pull-banner pull-banner-hint">
@@ -160,6 +182,30 @@ export function TeamSelect({
           Start Battle
         </button>
       </footer>
+
+      {revealOpen && lastPulls && lastPulls.length > 0 ? (
+        <div className="reveal-overlay" role="dialog" aria-label="Scout results" onClick={() => setRevealOpen(false)}>
+          <div className="reveal-panel" onClick={(event) => event.stopPropagation()}>
+            <h2>{lastPulls.length > 1 ? `Scout ×${lastPulls.length}` : "Scout result"}</h2>
+            <div className="reveal-grid">
+              {lastPulls.map((pull, index) => (
+                <div
+                  key={`${pull.allyId}-${index}`}
+                  className={`reveal-card reveal-rarity-${pull.rarity} ${pull.isNew ? "reveal-card-new" : ""}`}
+                  style={{ animationDelay: `${index * 0.14}s` }}
+                >
+                  <span className="reveal-stars">{"★".repeat(pull.rarity)}</span>
+                  <strong>{pull.name}</strong>
+                  <small>{pull.isNew ? "NEW recruit!" : `Level up → Lv ${pull.level}`}</small>
+                </div>
+              ))}
+            </div>
+            <button className="start-button" onClick={() => setRevealOpen(false)}>
+              Close
+            </button>
+          </div>
+        </div>
+      ) : null}
     </main>
   );
 }
