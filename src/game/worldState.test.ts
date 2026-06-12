@@ -115,12 +115,11 @@ describe("world interactions", () => {
     expect(state.enteredBuilding).toBeNull();
   });
 
-  it("shows a message instead of entering the unopened shop", () => {
+  it("enters the shop through its door", () => {
     let state = standBelowFacing(findDoor("shop"));
 
     state = worldReducer(state, { type: "interact" });
-    expect(state.enteredBuilding).toBeNull();
-    expect(state.message).toContain("Opening soon");
+    expect(state.enteredBuilding).toBe("shop");
   });
 
   it("talks to NPCs and dismisses dialogue by walking away", () => {
@@ -136,7 +135,7 @@ describe("world interactions", () => {
     expect(state.message).toBeNull();
   });
 
-  it("teases the berry trees", () => {
+  it("raises a berry target for the screen layer to resolve", () => {
     const berry = (() => {
       for (let z = 0; z < VILLAGE_MAP.height; z += 1) {
         for (let x = 0; x < VILLAGE_MAP.width; x += 1) {
@@ -150,8 +149,13 @@ describe("world interactions", () => {
 
     let state = standBelowFacing(berry);
     state = worldReducer(state, { type: "interact" });
+    expect(state.berryTarget).toBe(tileKey(berry.x, berry.z));
 
-    expect(state.message).toContain("berries");
+    state = worldReducer(state, { type: "clearBerryTarget" });
+    expect(state.berryTarget).toBeNull();
+
+    state = worldReducer(state, { type: "showMessage", text: "You picked 2 × Oran Berry!" });
+    expect(state.message).toContain("Oran Berry");
   });
 
   it("keys door metadata by tile coordinates", () => {

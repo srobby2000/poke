@@ -8,16 +8,17 @@ import type { WorldState } from "../game/worldState";
 
 type WorldCanvasProps = {
   state: WorldState;
+  pickedBerries: string[];
 };
 
-export function WorldCanvas({ state }: WorldCanvasProps) {
+export function WorldCanvas({ state, pickedBerries }: WorldCanvasProps) {
   return (
     <Canvas className="battle-canvas" shadows camera={{ position: [state.x, 8.2, state.z + 7.4], fov: 50 }}>
       <color attach="background" args={["#0c1220"]} />
       <fog attach="fog" args={["#0c1220", 14, 30]} />
       <ambientLight intensity={0.75} />
       <directionalLight castShadow position={[-6, 12, 6]} intensity={1.9} shadow-mapSize={[2048, 2048]} />
-      <StaticVillage map={state.map} />
+      <StaticVillage map={state.map} pickedBerries={pickedBerries} />
       <Player state={state} />
       <CameraRig x={state.x} z={state.z} />
     </Canvas>
@@ -68,9 +69,9 @@ function Player({ state }: { state: WorldState }) {
   );
 }
 
-// The village geometry never changes, so this whole subtree renders once and
-// React.memo skips it on every movement tick.
-const StaticVillage = memo(function StaticVillage({ map }: { map: WorldMap }) {
+// The village geometry only changes when a berry tree is picked, so this
+// subtree renders rarely and React.memo skips it on every movement tick.
+const StaticVillage = memo(function StaticVillage({ map, pickedBerries }: { map: WorldMap; pickedBerries: string[] }) {
   const layout = useMemo(() => {
     const grass: [number, number][] = [];
     const trees: [number, number][] = [];
@@ -180,24 +181,29 @@ const StaticVillage = memo(function StaticVillage({ map }: { map: WorldMap }) {
         </mesh>
       ))}
 
-      {layout.berries.map(([x, z]) => (
-        <group key={`b${x},${z}`} position={[x, 0, z]}>
-          <mesh castShadow position={[0, 0.3, 0]}>
-            <cylinderGeometry args={[0.1, 0.14, 0.6, 6]} />
-            <meshStandardMaterial color="#5b4636" roughness={0.85} />
-          </mesh>
-          <mesh castShadow position={[0, 0.85, 0]}>
-            <sphereGeometry args={[0.45, 10, 8]} />
-            <meshStandardMaterial color="#3e7c4f" roughness={0.8} />
-          </mesh>
-          {[[-0.2, 0.95, 0.3], [0.25, 0.75, 0.28], [0.05, 1.1, -0.3]].map(([bx, by, bz], index) => (
-            <mesh key={index} position={[bx, by, bz]}>
-              <sphereGeometry args={[0.08, 8, 6]} />
-              <meshStandardMaterial color="#ef4444" emissive="#ef4444" emissiveIntensity={0.2} />
+      {layout.berries.map(([x, z]) => {
+        const picked = pickedBerries.includes(tileKey(x, z));
+        return (
+          <group key={`b${x},${z}`} position={[x, 0, z]}>
+            <mesh castShadow position={[0, 0.3, 0]}>
+              <cylinderGeometry args={[0.1, 0.14, 0.6, 6]} />
+              <meshStandardMaterial color="#5b4636" roughness={0.85} />
             </mesh>
-          ))}
-        </group>
-      ))}
+            <mesh castShadow position={[0, 0.85, 0]}>
+              <sphereGeometry args={[0.45, 10, 8]} />
+              <meshStandardMaterial color={picked ? "#33604a" : "#3e7c4f"} roughness={0.8} />
+            </mesh>
+            {picked
+              ? null
+              : [[-0.2, 0.95, 0.3], [0.25, 0.75, 0.28], [0.05, 1.1, -0.3]].map(([bx, by, bz], index) => (
+                  <mesh key={index} position={[bx, by, bz]}>
+                    <sphereGeometry args={[0.08, 8, 6]} />
+                    <meshStandardMaterial color="#ef4444" emissive="#ef4444" emissiveIntensity={0.2} />
+                  </mesh>
+                ))}
+          </group>
+        );
+      })}
 
       {layout.npcs.map((npc) => (
         <group key={`n${npc.x},${npc.z}`} position={[npc.x, 0, npc.z]}>

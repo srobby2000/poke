@@ -7,6 +7,7 @@ A real-time, Pokémon Masters-inspired 3v3 battle game built with React, TypeScr
 ## Features
 
 - **Overworld village** — walk around Rift Village (WASD/arrows, touch joystick on mobile), talk to NPCs, and enter the Arena to battle; your position is saved between sessions
+- **Berries & shop** — pick berries from village trees (they regrow daily) and trade at the Village Shop: sell berries, buy Poké Balls and potions for the wild routes to come
 - **Gacha scouting** — earn gems by clearing stages and spend them on pulls (×1 or discounted ×10) with an animated rarity reveal; new allies are guaranteed while any remain locked (weighted by ★ rarity), then pulls become level-ups
 - **Rotating rival squads** — four enemy teams rotate by stage, with a Boss Aura team every fifth stage, plus a once-per-day seeded Daily Challenge for bonus gems
 - **16-ally roster** — from 3★ starters to the 5★ chase units Dratini and Lapras, each with a distinct role, rarity, passive, and moveset
@@ -54,6 +55,8 @@ src/
 │   ├── battleState.test.ts  # Vitest suite for the battle simulation
 │   ├── maps.ts              # Overworld maps as editable ASCII grids
 │   ├── worldState.ts        # Overworld reducer: movement, collision, interactions
+│   ├── items.ts             # Item definitions, inventory, daily berry picking
+│   ├── shop.ts              # Buy/sell logic
 │   ├── pokeApi.ts           # Live PokeAPI stat fetching with localStorage cache
 │   ├── gacha.ts             # Pull, leveling, and gem-reward logic
 │   ├── sound.ts             # Synthesized WebAudio effects

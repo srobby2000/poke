@@ -12,8 +12,10 @@ const WorldCanvas = lazy(() => preloadWorldCanvas().then((module) => ({ default:
 
 type WorldScreenProps = {
   progress: PlayerProgress;
+  pickedBerries: string[];
   onEnterBuilding: (building: string) => void;
   onSavePosition: (position: { x: number; z: number }) => void;
+  onPickBerry: (tileKey: string) => string;
 };
 
 function promptFor(nearby: WorldInteraction): string {
@@ -26,7 +28,7 @@ function promptFor(nearby: WorldInteraction): string {
   return "Check berry tree";
 }
 
-export function WorldScreen({ progress, onEnterBuilding, onSavePosition }: WorldScreenProps) {
+export function WorldScreen({ progress, pickedBerries, onEnterBuilding, onSavePosition, onPickBerry }: WorldScreenProps) {
   const [world, dispatch] = useReducer(worldReducer, undefined, () =>
     createInitialWorldState(progress.worldPosition),
   );
@@ -110,6 +112,16 @@ export function WorldScreen({ progress, onEnterBuilding, onSavePosition }: World
     }
   }, [world.enteredBuilding, world.x, world.z, onEnterBuilding, onSavePosition]);
 
+  // Checking a berry tree resolves against the save file in App, which
+  // reports back what (if anything) was picked.
+  useEffect(() => {
+    if (world.berryTarget) {
+      const text = onPickBerry(world.berryTarget);
+      dispatch({ type: "clearBerryTarget" });
+      dispatch({ type: "showMessage", text });
+    }
+  }, [world.berryTarget, onPickBerry]);
+
   // Periodic position save so refreshes resume where you stood.
   useEffect(() => {
     const interval = setInterval(() => {
@@ -124,7 +136,7 @@ export function WorldScreen({ progress, onEnterBuilding, onSavePosition }: World
   return (
     <main className="app-shell">
       <Suspense fallback={<div className="canvas-loading">Loading village…</div>}>
-        <WorldCanvas state={world} />
+        <WorldCanvas state={world} pickedBerries={pickedBerries} />
       </Suspense>
 
       <div className="hud-layer world-hud">

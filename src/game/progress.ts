@@ -11,6 +11,8 @@ export type PlayerProgress = {
   dailyClearedDate: string | null;
   achievements: string[];
   worldPosition: { x: number; z: number } | null;
+  inventory: Record<string, number>;
+  berryPicks: { date: string; picked: string[] };
 };
 
 export function defaultProgress(): PlayerProgress {
@@ -22,6 +24,8 @@ export function defaultProgress(): PlayerProgress {
     dailyClearedDate: null,
     achievements: [],
     worldPosition: null,
+    inventory: {},
+    berryPicks: { date: "", picked: [] },
   };
 }
 
@@ -62,6 +66,21 @@ export function loadProgress(): PlayerProgress {
         parsed.worldPosition && typeof parsed.worldPosition.x === "number" && typeof parsed.worldPosition.z === "number"
           ? { x: parsed.worldPosition.x, z: parsed.worldPosition.z }
           : null,
+      inventory:
+        parsed.inventory && typeof parsed.inventory === "object"
+          ? Object.fromEntries(
+              Object.entries(parsed.inventory).filter(
+                (entry): entry is [string, number] => typeof entry[1] === "number" && entry[1] > 0,
+              ),
+            )
+          : {},
+      berryPicks:
+        parsed.berryPicks && typeof parsed.berryPicks.date === "string" && Array.isArray(parsed.berryPicks.picked)
+          ? {
+              date: parsed.berryPicks.date,
+              picked: parsed.berryPicks.picked.filter((key): key is string => typeof key === "string"),
+            }
+          : { date: "", picked: [] },
     };
   } catch {
     return defaultProgress();
