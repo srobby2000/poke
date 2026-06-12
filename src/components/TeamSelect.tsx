@@ -1,4 +1,6 @@
 import { useState } from "react";
+import type { AchievementDef } from "../game/achievements";
+import { ACHIEVEMENTS } from "../game/achievements";
 import type { PokemonBaseStats } from "../game/battleState";
 import { BALANCE, getAllyOptions } from "../game/battleState";
 import type { PullResult } from "../game/gacha";
@@ -10,6 +12,7 @@ const TEAM_SIZE = 3;
 type TeamSelectProps = {
   progress: PlayerProgress;
   lastPulls: PullResult[] | null;
+  recentAchievements: AchievementDef[] | null;
   statsSource: "live" | "bundled";
   speciesStats: Record<string, PokemonBaseStats> | null;
   dailyKey: string;
@@ -25,6 +28,7 @@ type TeamSelectProps = {
 export function TeamSelect({
   progress,
   lastPulls,
+  recentAchievements,
   statsSource,
   speciesStats,
   dailyKey,
@@ -103,6 +107,27 @@ export function TeamSelect({
         <span className={`pull-banner ${dailyCleared ? "" : "pull-banner-new"}`}>
           {dailyCleared ? `Daily ${dailyKey} claimed` : `Daily ${dailyKey}: +${dailyReward} gems`}
         </span>
+        {recentAchievements && recentAchievements.length > 0 ? (
+          <span className="pull-banner pull-banner-new">
+            🏆 {recentAchievements.map((achievement) => achievement.name).join(", ")} (+
+            {recentAchievements.reduce((sum, achievement) => sum + achievement.reward, 0)} 💎)
+          </span>
+        ) : null}
+      </section>
+
+      <section className="achievements-bar" aria-label="Achievements">
+        {ACHIEVEMENTS.map((achievement) => {
+          const earned = progress.achievements.includes(achievement.id);
+          return (
+            <div key={achievement.id} className={`achievement-chip ${earned ? "achievement-earned" : ""}`}>
+              <strong>
+                {earned ? "✓ " : ""}
+                {achievement.name}
+              </strong>
+              <small>{earned ? "Claimed" : `${achievement.description} · +${achievement.reward} 💎`}</small>
+            </div>
+          );
+        })}
       </section>
 
       <div className="select-grid">
