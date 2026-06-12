@@ -1,6 +1,7 @@
-import { Suspense, lazy, useEffect, useReducer, useRef, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { BattleHud } from "./components/BattleHud";
 import { TeamSelect } from "./components/TeamSelect";
+import { WorldScreen } from "./components/WorldScreen";
 import type { BattleMode, BattleState, PokemonBaseStats } from "./game/battleState";
 import { battleReducer, createInitialBattleState, dailyChallengeKey, dailyChallengeStage, isAlive, speciesNames, tickBattle } from "./game/battleState";
 import type { AchievementDef, BattleSummary } from "./game/achievements";
@@ -37,7 +38,12 @@ export default function App() {
   const [progress, setProgress] = useState(loadProgress);
   const [lastPulls, setLastPulls] = useState<PullResult[] | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const [screen, setScreen] = useState<"world" | "hub">("world");
   const todayKey = dailyChallengeKey();
+
+  const savePosition = useCallback((position: { x: number; z: number }) => {
+    setProgress((current) => ({ ...current, worldPosition: position }));
+  }, []);
   // Seeded lazily in the pull handler — impure calls are not allowed in render.
   const pullSeedRef = useRef<number | null>(null);
 
@@ -88,11 +94,26 @@ export default function App() {
     };
   }, []);
 
+  if (!session && screen === "world") {
+    return (
+      <WorldScreen
+        progress={progress}
+        onSavePosition={savePosition}
+        onEnterBuilding={(building) => {
+          if (building === "arena") {
+            setScreen("hub");
+          }
+        }}
+      />
+    );
+  }
+
   if (!session) {
     return (
       <TeamSelect
         progress={progress}
         lastPulls={lastPulls}
+        onBack={() => setScreen("world")}
         recentAchievements={recentAchievements}
         statsSource={speciesStats ? "live" : "bundled"}
         speciesStats={speciesStats}

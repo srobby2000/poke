@@ -10,6 +10,7 @@ export type PlayerProgress = {
   allyLevels: Record<string, number>;
   dailyClearedDate: string | null;
   achievements: string[];
+  worldPosition: { x: number; z: number } | null;
 };
 
 export function defaultProgress(): PlayerProgress {
@@ -20,6 +21,7 @@ export function defaultProgress(): PlayerProgress {
     allyLevels: {},
     dailyClearedDate: null,
     achievements: [],
+    worldPosition: null,
   };
 }
 
@@ -56,6 +58,10 @@ export function loadProgress(): PlayerProgress {
       achievements: Array.isArray(parsed.achievements)
         ? parsed.achievements.filter((id): id is string => typeof id === "string")
         : [],
+      worldPosition:
+        parsed.worldPosition && typeof parsed.worldPosition.x === "number" && typeof parsed.worldPosition.z === "number"
+          ? { x: parsed.worldPosition.x, z: parsed.worldPosition.z }
+          : null,
     };
   } catch {
     return defaultProgress();

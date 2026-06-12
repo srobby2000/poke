@@ -26,6 +26,7 @@ const baseProgress = (overrides: Partial<PlayerProgress> = {}): PlayerProgress =
   allyLevels: {},
   dailyClearedDate: null,
   achievements: [],
+  worldPosition: null,
   ...overrides,
 });
 

@@ -23,6 +23,7 @@ type TeamSelectProps = {
   onPull: () => void;
   onMultiPull: () => void;
   onLevelUp: (allyId: string) => void;
+  onBack?: () => void;
 };
 
 export function TeamSelect({
@@ -39,6 +40,7 @@ export function TeamSelect({
   onPull,
   onMultiPull,
   onLevelUp,
+  onBack,
 }: TeamSelectProps) {
   const [selected, setSelected] = useState<string[]>([]);
   const [revealOpen, setRevealOpen] = useState(false);
@@ -56,6 +58,11 @@ export function TeamSelect({
   return (
     <main className="app-shell select-screen">
       <header className="select-header">
+        {onBack ? (
+          <button className="back-button" onClick={onBack}>
+            ← Back to Village
+          </button>
+        ) : null}
         <h1>Creature Masters Battle</h1>
         <p>
           Pick three allies to challenge rotating rival squads.
