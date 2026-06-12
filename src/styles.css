@@ -53,6 +53,140 @@ button {
   text-transform: uppercase;
 }
 
+.world-hud .top-strip {
+  align-items: center;
+}
+
+.world-hint span {
+  align-self: center;
+  padding: 0 6px;
+  color: #94a3b8;
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.world-prompt {
+  position: absolute;
+  bottom: 120px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 16px;
+  border: 1px solid rgba(120, 225, 255, 0.45);
+  border-radius: 999px;
+  color: #e0f2fe;
+  font-size: 0.88rem;
+  font-weight: 800;
+  white-space: nowrap;
+  background: rgba(9, 17, 30, 0.82);
+  pointer-events: none;
+}
+
+.world-dialogue {
+  position: absolute;
+  bottom: 26px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: grid;
+  gap: 10px;
+  width: min(460px, calc(100vw - 32px));
+  padding: 14px 16px;
+  border: 1px solid rgba(224, 242, 254, 0.25);
+  border-radius: 10px;
+  background: rgba(9, 17, 30, 0.92);
+  pointer-events: auto;
+}
+
+.world-dialogue p {
+  margin: 0;
+  color: #e0f2fe;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.world-dialogue button {
+  justify-self: end;
+  min-height: 34px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 6px;
+  color: #06111f;
+  font-weight: 800;
+  background: #78e1ff;
+  cursor: pointer;
+}
+
+.world-joystick {
+  position: absolute;
+  bottom: 26px;
+  left: 22px;
+  display: none;
+  width: 118px;
+  height: 118px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  border-radius: 50%;
+  background: rgba(15, 23, 42, 0.45);
+  touch-action: none;
+  pointer-events: auto;
+}
+
+.world-joystick-knob {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 48px;
+  height: 48px;
+  margin: -24px 0 0 -24px;
+  border: 1px solid rgba(120, 225, 255, 0.5);
+  border-radius: 50%;
+  background: rgba(120, 225, 255, 0.28);
+  pointer-events: none;
+}
+
+.world-interact-button {
+  position: absolute;
+  right: 22px;
+  bottom: 40px;
+  display: none;
+  min-height: 56px;
+  padding: 0 20px;
+  border: 1px solid rgba(120, 225, 255, 0.6);
+  border-radius: 999px;
+  color: #06111f;
+  font-size: 0.9rem;
+  font-weight: 900;
+  background: #78e1ff;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+@media (pointer: coarse) {
+  .world-joystick {
+    display: block;
+  }
+
+  .world-interact-button {
+    display: block;
+  }
+
+  .world-hint {
+    display: none;
+  }
+}
+
+.back-button {
+  justify-self: center;
+  min-height: 34px;
+  margin-bottom: 8px;
+  padding: 0 16px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  border-radius: 999px;
+  color: #dbeafe;
+  font-size: 0.8rem;
+  font-weight: 800;
+  background: rgba(15, 23, 42, 0.8);
+  cursor: pointer;
+}
+
 .hud-layer {
   position: absolute;
   inset: 0;
