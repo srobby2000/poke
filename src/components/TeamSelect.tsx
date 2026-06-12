@@ -38,7 +38,7 @@ export function TeamSelect({
 }: TeamSelectProps) {
   const [selected, setSelected] = useState<string[]>([]);
   const [revealOpen, setRevealOpen] = useState(false);
-  const options = getAllyOptions(speciesStats ?? undefined);
+  const options = getAllyOptions(speciesStats ?? undefined, progress.allyLevels);
 
   const toggle = (id: string) => {
     setSelected((current) => {
@@ -155,7 +155,11 @@ export function TeamSelect({
               <span className="select-passive">{option.passive.name}</span>
               <span className="select-moves">{option.moveNames.join(" · ")}</span>
               <span className="select-level-line">
-                <em>Lv {level}{level > 1 ? ` (+${Math.round(BALANCE.allyLevelGrowth * (level - 1) * 100)}%)` : ""}</em>
+                <em>
+                  Lv {level}
+                  {level > 1 ? ` (+${Math.round(BALANCE.allyLevelGrowth * (level - 1) * 100)}%)` : ""}
+                  {option.nextEvolutionLevel ? ` · evolves Lv ${option.nextEvolutionLevel}` : ""}
+                </em>
                 {level < BALANCE.maxAllyLevel ? (
                   <button
                     className="level-button"

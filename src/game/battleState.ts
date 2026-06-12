@@ -209,6 +209,8 @@ export type BattleState = {
   status: BattleStatus;
   paused: boolean;
   timeScale: number;
+  // Total damage dealt per unit id, for the post-battle report.
+  damageDealt: Record<string, number>;
   log: string[];
   elapsed: number;
   rng: number;
@@ -295,7 +297,86 @@ const pokeApiBaseStats = {
   pikachu: { hp: 35, attack: 55, defense: 40, speed: 90 },
   snorlax: { hp: 160, attack: 110, defense: 65, speed: 30 },
   butterfree: { hp: 60, attack: 90, defense: 50, speed: 70 },
+  // Evolved forms reached through ally leveling.
+  wartortle: { hp: 59, attack: 65, defense: 80, speed: 58 },
+  blastoise: { hp: 79, attack: 85, defense: 100, speed: 78 },
+  ivysaur: { hp: 60, attack: 80, defense: 63, speed: 60 },
+  venusaur: { hp: 80, attack: 100, defense: 83, speed: 80 },
+  charmeleon: { hp: 58, attack: 80, defense: 58, speed: 80 },
+  charizard: { hp: 78, attack: 109, defense: 78, speed: 100 },
+  ninetales: { hp: 73, attack: 81, defense: 75, speed: 100 },
+  machoke: { hp: 80, attack: 100, defense: 70, speed: 45 },
+  machamp: { hp: 90, attack: 130, defense: 80, speed: 55 },
+  vaporeon: { hp: 130, attack: 110, defense: 60, speed: 65 },
+  kadabra: { hp: 40, attack: 120, defense: 30, speed: 105 },
+  alakazam: { hp: 55, attack: 135, defense: 45, speed: 120 },
+  graveler: { hp: 55, attack: 95, defense: 115, speed: 35 },
+  golem: { hp: 80, attack: 120, defense: 130, speed: 45 },
+  wigglytuff: { hp: 140, attack: 85, defense: 45, speed: 45 },
+  arcanine: { hp: 90, attack: 110, defense: 80, speed: 95 },
+  golduck: { hp: 80, attack: 95, defense: 78, speed: 85 },
+  persian: { hp: 65, attack: 70, defense: 60, speed: 115 },
+  marowak: { hp: 60, attack: 80, defense: 110, speed: 45 },
+  gengar: { hp: 60, attack: 130, defense: 60, speed: 110 },
+  dragonair: { hp: 61, attack: 84, defense: 65, speed: 70 },
+  dragonite: { hp: 91, attack: 134, defense: 95, speed: 80 },
 } satisfies Record<string, PokemonBaseStats>;
+
+type EvolutionStage = {
+  atLevel: number;
+  name: string;
+  sourcePokemon: keyof typeof pokeApiBaseStats;
+};
+
+// Allies evolve as they level up; evolved forms swap name and base stats
+// (and therefore derived HP/attack/defense) while keeping moves and types.
+const allyEvolutions: Record<string, EvolutionStage[]> = {
+  squirtle: [
+    { atLevel: 4, name: "Wartortle", sourcePokemon: "wartortle" },
+    { atLevel: 8, name: "Blastoise", sourcePokemon: "blastoise" },
+  ],
+  bulbasaur: [
+    { atLevel: 4, name: "Ivysaur", sourcePokemon: "ivysaur" },
+    { atLevel: 8, name: "Venusaur", sourcePokemon: "venusaur" },
+  ],
+  charmander: [
+    { atLevel: 4, name: "Charmeleon", sourcePokemon: "charmeleon" },
+    { atLevel: 8, name: "Charizard", sourcePokemon: "charizard" },
+  ],
+  vulpix: [{ atLevel: 6, name: "Ninetales", sourcePokemon: "ninetales" }],
+  machop: [
+    { atLevel: 4, name: "Machoke", sourcePokemon: "machoke" },
+    { atLevel: 8, name: "Machamp", sourcePokemon: "machamp" },
+  ],
+  eevee: [{ atLevel: 6, name: "Vaporeon", sourcePokemon: "vaporeon" }],
+  abra: [
+    { atLevel: 4, name: "Kadabra", sourcePokemon: "kadabra" },
+    { atLevel: 8, name: "Alakazam", sourcePokemon: "alakazam" },
+  ],
+  geodude: [
+    { atLevel: 4, name: "Graveler", sourcePokemon: "graveler" },
+    { atLevel: 8, name: "Golem", sourcePokemon: "golem" },
+  ],
+  jigglypuff: [{ atLevel: 6, name: "Wigglytuff", sourcePokemon: "wigglytuff" }],
+  growlithe: [{ atLevel: 6, name: "Arcanine", sourcePokemon: "arcanine" }],
+  psyduck: [{ atLevel: 6, name: "Golduck", sourcePokemon: "golduck" }],
+  meowth: [{ atLevel: 6, name: "Persian", sourcePokemon: "persian" }],
+  cubone: [{ atLevel: 6, name: "Marowak", sourcePokemon: "marowak" }],
+  haunter: [{ atLevel: 6, name: "Gengar", sourcePokemon: "gengar" }],
+  dratini: [
+    { atLevel: 4, name: "Dragonair", sourcePokemon: "dragonair" },
+    { atLevel: 8, name: "Dragonite", sourcePokemon: "dragonite" },
+  ],
+};
+
+export function allyFormForLevel(allyId: string, level: number): EvolutionStage | null {
+  const stages = allyEvolutions[allyId] ?? [];
+  return [...stages].reverse().find((stage) => level >= stage.atLevel) ?? null;
+}
+
+export function nextEvolutionLevel(allyId: string, level: number): number | undefined {
+  return (allyEvolutions[allyId] ?? []).find((stage) => stage.atLevel > level)?.atLevel;
+}
 
 export const speciesNames = Object.keys(pokeApiBaseStats);
 
@@ -1120,21 +1201,30 @@ export type AllyOption = {
   color: string;
   moveNames: string[];
   baseStats: PokemonBaseStats;
+  nextEvolutionLevel?: number;
 };
 
-export function getAllyOptions(speciesStats?: Record<string, PokemonBaseStats>): AllyOption[] {
+export function getAllyOptions(
+  speciesStats?: Record<string, PokemonBaseStats>,
+  allyLevels?: Record<string, number>,
+): AllyOption[] {
   const statsLookup: Record<string, PokemonBaseStats> = { ...pokeApiBaseStats, ...(speciesStats ?? {}) };
-  return allyTemplates.map((template) => ({
-    id: template.id,
-    name: template.name,
-    role: template.role,
-    rarity: template.rarity,
-    types: template.types,
-    passive: template.passive,
-    color: template.color,
-    moveNames: template.moves.map((move) => move.name),
-    baseStats: statsLookup[template.sourcePokemon],
-  }));
+  return allyTemplates.map((template) => {
+    const level = clamp(Math.floor(allyLevels?.[template.id] ?? 1), 1, BALANCE.maxAllyLevel);
+    const form = allyFormForLevel(template.id, level);
+    return {
+      id: template.id,
+      name: form?.name ?? template.name,
+      role: template.role,
+      rarity: template.rarity,
+      types: template.types,
+      passive: template.passive,
+      color: template.color,
+      moveNames: template.moves.map((move) => move.name),
+      baseStats: statsLookup[form?.sourcePokemon ?? template.sourcePokemon],
+      nextEvolutionLevel: nextEvolutionLevel(template.id, level),
+    };
+  });
 }
 
 export const createInitialBattleState = (seed?: number, config?: Partial<BattleConfig>): BattleState => {
@@ -1153,9 +1243,11 @@ export const createInitialBattleState = (seed?: number, config?: Partial<BattleC
   const allies = allyIds.map((allyId, index) => {
     const template = allyTemplates.find((candidate) => candidate.id === allyId) ?? allyTemplates[index];
     const level = clamp(Math.floor(config?.allyLevels?.[template.id] ?? 1), 1, BALANCE.maxAllyLevel);
+    const form = allyFormForLevel(template.id, level);
+    const effectiveTemplate = form ? { ...template, name: form.name, sourcePokemon: form.sourcePokemon } : template;
     const levelFactor = 1 + BALANCE.allyLevelGrowth * (level - 1);
     return makeUnit(
-      template,
+      effectiveTemplate,
       ALLY_SLOTS[index % ALLY_SLOTS.length],
       statsLookup,
       { hp: levelFactor, attack: levelFactor, defense: levelFactor },
@@ -1206,6 +1298,7 @@ export const createInitialBattleState = (seed?: number, config?: Partial<BattleC
     status: "playing",
     paused: false,
     timeScale: 1,
+    damageDealt: {},
     log: [
       battleMode === "daily"
         ? `Daily ${dailyKey ?? "challenge"} - ${enemyTeam.name} started.`
@@ -1923,7 +2016,14 @@ function applyAttack({
   const log = [`${prefix} for ${damage} damage.${critText}${effectText}${statusText}${koText}`, ...state.log].slice(0, BALANCE.logLimit);
   const feedback = makeAttackFeedback(state, target.id, damage, typeMultiplier, Boolean(sync), isCrit, move.statusEffect, statusApplied);
 
-  return normalizeBattle({ ...state, rng, units: nextUnits, log, feedback: [...feedback, ...state.feedback].slice(0, BALANCE.feedbackLimit) });
+  return normalizeBattle({
+    ...state,
+    rng,
+    units: nextUnits,
+    log,
+    feedback: [...feedback, ...state.feedback].slice(0, BALANCE.feedbackLimit),
+    damageDealt: { ...state.damageDealt, [actor.id]: (state.damageDealt[actor.id] ?? 0) + damage },
+  });
 }
 
 function applyStages(unit: Unit, statChange: StatChange): Unit {
@@ -2021,10 +2121,18 @@ function applyUnityAttack({
     ttl: 1.6,
   };
 
+  // Credit the combined damage evenly across the participating allies.
+  const damageDealt = { ...state.damageDealt };
+  const share = Math.round(damage / allies.length);
+  for (const ally of allies) {
+    damageDealt[ally.id] = (damageDealt[ally.id] ?? 0) + share;
+  }
+
   return normalizeBattle({
     ...state,
     rng,
     units,
+    damageDealt,
     log: [`The allied team unleashed ${move.name} for ${damage} damage.${koText}`, ...state.log].slice(0, BALANCE.logLimit),
     feedback: [feedback, ...state.feedback].slice(0, BALANCE.feedbackLimit),
   });

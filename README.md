@@ -9,7 +9,8 @@ A real-time, Pokémon Masters-inspired 3v3 battle game built with React, TypeScr
 - **Gacha scouting** — earn gems by clearing stages and spend them on pulls (×1 or discounted ×10) with an animated rarity reveal; new allies are guaranteed while any remain locked (weighted by ★ rarity), then pulls become level-ups
 - **Rotating rival squads** — four enemy teams rotate by stage, with a Boss Aura team every fifth stage, plus a once-per-day seeded Daily Challenge for bonus gems
 - **16-ally roster** — from 3★ starters to the 5★ chase units Dratini and Lapras, each with a distinct role, rarity, passive, and moveset
-- **Leveling** — raise allies with gems or duplicate pulls (+6% stats per level, cap 10); team, gems, and levels persist in a local save
+- **Leveling & evolution** — raise allies with gems or duplicate pulls (+6% stats per level, cap 10); allies evolve at level thresholds (Charmander → Charmeleon → Charizard) with real evolved-form stats
+- **Battle report** — the result screen shows damage dealt per ally, so you can judge team compositions
 - **Stage progression** — enemies grow stronger every stage, with a first-clear gem bonus; your best cleared stage is saved between sessions
 - **Live PokeAPI stats** — base stats are fetched from [pokeapi.co](https://pokeapi.co) (cached for 7 days) with identical bundled values as an offline fallback
 - **Real-time combat** — a shared move gauge fills over time; spend it on moves while enemies act on their own cooldowns
@@ -21,7 +22,7 @@ A real-time, Pokémon Masters-inspired 3v3 battle game built with React, TypeScr
 - **Rival trainer AI** — the enemy team's trainer heals weakened teammates and buffs attackers before sync moves
 - **Damage variance & crits** — seeded RNG (0.85–1.0× rolls, 1/16 crit chance) keeps battles deterministic in tests but varied in play
 - **Smart targeting** — auto mode picks the best matchup; manual mode honors your selected target
-- **Attack projectiles & sound** — moves fly as glowing orbs that land exactly when damage applies, with synthesized WebAudio effects (mutable)
+- **Attack projectiles & sound** — moves fly as type-shaped projectiles (flame shards, lightning bolts, spinning leaves, psychic rings, ice crystals) that land exactly when damage applies, with synthesized WebAudio effects (mutable)
 - **Keyboard shortcuts** — `1/2/3` moves, `Q/W/E` switch allies, `Space` sync, `T` trainer move, `U` unity, `M` target mode, `P` pause, `F` 2x speed
 - **Pause and fast-forward** — freeze the battle or run it at double speed
 

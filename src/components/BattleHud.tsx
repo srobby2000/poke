@@ -225,6 +225,16 @@ export function BattleHud({ state, dispatch, onNextStage, onRetry, onChangeTeam 
             {state.status === "won" && onNextStage ? (
               <button onClick={onNextStage}>Continue - Stage {state.config.stage + 1}</button>
             ) : null}
+            <div className="battle-report" aria-label="Damage report">
+              {[...allies]
+                .sort((left, right) => (state.damageDealt[right.id] ?? 0) - (state.damageDealt[left.id] ?? 0))
+                .map((unit) => (
+                  <span key={unit.id}>
+                    <i style={{ backgroundColor: unit.color }} />
+                    {unit.name} — {state.damageDealt[unit.id] ?? 0} dmg
+                  </span>
+                ))}
+            </div>
             {state.status === "lost" ? (
               onRetry ? (
                 <button onClick={onRetry}>{isDaily ? "Retry Daily" : `Retry Stage ${state.config.stage}`}</button>

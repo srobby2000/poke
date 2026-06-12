@@ -1,12 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
   BALANCE,
+  allyFormForLevel,
   battleReducer,
   createInitialBattleState,
   dailyChallengeStage,
   enemyTeamForStage,
   getAllyOptions,
   getTypeEffectiveness,
+  nextEvolutionLevel,
   previewPlayerMove,
   tickBattle,
 } from "./battleState";
@@ -648,6 +650,43 @@ describe("battle simulation", () => {
 
     expect(queued.actionQueue[0]?.totalDelay).toBe(BALANCE.playerAttackDelay);
     expect(queued.actionQueue[0]?.delay).toBe(queued.actionQueue[0]?.totalDelay);
+  });
+
+  it("evolves allies at level thresholds", () => {
+    expect(allyFormForLevel("charmander", 1)).toBeNull();
+    expect(allyFormForLevel("charmander", 4)?.name).toBe("Charmeleon");
+    expect(allyFormForLevel("charmander", 8)?.name).toBe("Charizard");
+    expect(nextEvolutionLevel("charmander", 4)).toBe(8);
+    expect(nextEvolutionLevel("lapras", 1)).toBeUndefined();
+
+    const evolved = createInitialBattleState(1, { allyLevels: { charmander: 8 } });
+    const base = createInitialBattleState(1);
+    const charizard = evolved.units.find((unit) => unit.id === "charmander");
+    const charmander = base.units.find((unit) => unit.id === "charmander");
+
+    expect(charizard?.name).toBe("Charizard");
+    expect(charizard?.maxHp ?? 0).toBeGreaterThan(charmander?.maxHp ?? 0);
+    expect(charizard?.attack ?? 0).toBeGreaterThan(charmander?.attack ?? 0);
+  });
+
+  it("shows evolved forms on the roster screen", () => {
+    const options = getAllyOptions(undefined, { squirtle: 4 });
+    const squirtle = options.find((option) => option.id === "squirtle");
+    const charmander = options.find((option) => option.id === "charmander");
+
+    expect(squirtle?.name).toBe("Wartortle");
+    expect(squirtle?.nextEvolutionLevel).toBe(8);
+    expect(charmander?.name).toBe("Charmander");
+    expect(charmander?.nextEvolutionLevel).toBe(4);
+  });
+
+  it("tracks damage dealt per unit for the battle report", () => {
+    let state = createInitialBattleState(1);
+    state = { ...state, moveGauge: 6 };
+
+    const resolved = resolveQueuedActions(battleReducer(state, { type: "useMove", moveId: "water-gun" }));
+
+    expect(resolved.damageDealt.squirtle ?? 0).toBeGreaterThan(0);
   });
 
   it("detects wins and losses", () => {

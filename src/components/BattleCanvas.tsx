@@ -4,7 +4,7 @@ import { memo, useMemo, useRef } from "react";
 import type { Dispatch } from "react";
 import type { Group } from "three";
 import { Color } from "three";
-import type { BattleAction, BattleFeedback, BattleState, Unit } from "../game/battleState";
+import type { BattleAction, BattleFeedback, BattleState, PokemonType, Unit } from "../game/battleState";
 import { isAlive } from "../game/battleState";
 
 type BattleCanvasProps = {
@@ -66,17 +66,16 @@ const ProjectileLayer = memo(function ProjectileLayer({ state }: { state: Battle
           return null;
         }
 
+        const kind = projectileKindFor(queued.move.type);
+        const jitter = kind === "bolt" ? Math.sin(progress * 46 + queued.id.length) * 0.12 : 0;
         const x = actor.position[0] + (target.position[0] - actor.position[0]) * progress;
-        const z = actor.position[2] + (target.position[2] - actor.position[2]) * progress;
-        const y = 1 + Math.sin(progress * Math.PI) * (queued.sync || queued.unity ? 1.15 : 0.75);
+        const z = actor.position[2] + (target.position[2] - actor.position[2]) * progress + jitter;
+        const y = 1 + Math.sin(progress * Math.PI) * (queued.sync || queued.unity ? 1.15 : 0.75) + jitter * 0.6;
         const size = queued.unity ? 0.3 : queued.sync ? 0.24 : 0.13;
 
         return (
           <group key={queued.id} position={[x, y, z]}>
-            <mesh>
-              <sphereGeometry args={[size, 12, 10]} />
-              <meshBasicMaterial color={queued.move.accent} toneMapped={false} />
-            </mesh>
+            <ProjectileShape kind={kind} accent={queued.move.accent} size={size} progress={progress} />
             <mesh>
               <sphereGeometry args={[size * 1.7, 10, 8]} />
               <meshBasicMaterial color={queued.move.accent} transparent opacity={0.22} toneMapped={false} />
@@ -88,6 +87,78 @@ const ProjectileLayer = memo(function ProjectileLayer({ state }: { state: Battle
     </>
   );
 });
+
+type ProjectileKind = "orb" | "shard" | "bolt" | "leaf" | "ring" | "crystal";
+
+function projectileKindFor(type: PokemonType): ProjectileKind {
+  if (type === "fire" || type === "dragon") {
+    return "shard";
+  }
+  if (type === "electric") {
+    return "bolt";
+  }
+  if (type === "grass" || type === "bug" || type === "fairy") {
+    return "leaf";
+  }
+  if (type === "psychic" || type === "ghost" || type === "dark") {
+    return "ring";
+  }
+  if (type === "ice" || type === "rock" || type === "steel") {
+    return "crystal";
+  }
+  return "orb";
+}
+
+function ProjectileShape({ kind, accent, size, progress }: { kind: ProjectileKind; accent: string; size: number; progress: number }) {
+  const material = <meshBasicMaterial color={accent} toneMapped={false} />;
+
+  if (kind === "shard") {
+    return (
+      <mesh rotation={[progress * 9, progress * 7, 0]}>
+        <tetrahedronGeometry args={[size * 1.25, 0]} />
+        {material}
+      </mesh>
+    );
+  }
+  if (kind === "bolt") {
+    return (
+      <mesh rotation={[0, 0, progress * 16]}>
+        <octahedronGeometry args={[size * 1.2, 0]} />
+        {material}
+      </mesh>
+    );
+  }
+  if (kind === "leaf") {
+    return (
+      <mesh rotation={[progress * 6, progress * 11, 0.5]}>
+        <boxGeometry args={[size * 2.3, size * 0.4, size * 1.4]} />
+        {material}
+      </mesh>
+    );
+  }
+  if (kind === "ring") {
+    return (
+      <mesh rotation={[Math.PI / 2 + progress * 2, progress * 5, 0]}>
+        <torusGeometry args={[size * 1.1, size * 0.38, 8, 18]} />
+        <meshBasicMaterial color={accent} transparent opacity={0.85} toneMapped={false} />
+      </mesh>
+    );
+  }
+  if (kind === "crystal") {
+    return (
+      <mesh rotation={[progress * 4, progress * 4, progress * 4]}>
+        <icosahedronGeometry args={[size * 1.05, 0]} />
+        {material}
+      </mesh>
+    );
+  }
+  return (
+    <mesh>
+      <sphereGeometry args={[size, 12, 10]} />
+      {material}
+    </mesh>
+  );
+}
 
 const BattleFeedbackLayer = memo(function BattleFeedbackLayer({ feedback, units }: { feedback: BattleFeedback[]; units: Unit[] }) {
   return (
