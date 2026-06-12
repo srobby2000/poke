@@ -8,6 +8,7 @@ export type PlayerProgress = {
   gems: number;
   unlockedAllies: string[];
   allyLevels: Record<string, number>;
+  dailyClearedDate: string | null;
 };
 
 export function defaultProgress(): PlayerProgress {
@@ -16,6 +17,7 @@ export function defaultProgress(): PlayerProgress {
     gems: 200,
     unlockedAllies: [...DEFAULT_ALLY_IDS],
     allyLevels: {},
+    dailyClearedDate: null,
   };
 }
 
@@ -48,6 +50,7 @@ export function loadProgress(): PlayerProgress {
           ? parsed.unlockedAllies.filter((id): id is string => typeof id === "string")
           : [...DEFAULT_ALLY_IDS],
       allyLevels: parsed.allyLevels && typeof parsed.allyLevels === "object" ? parsed.allyLevels : {},
+      dailyClearedDate: typeof parsed.dailyClearedDate === "string" ? parsed.dailyClearedDate : null,
     };
   } catch {
     return defaultProgress();

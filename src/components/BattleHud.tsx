@@ -20,14 +20,15 @@ export function BattleHud({ state, dispatch, onNextStage, onRetry, onChangeTeam 
   const selectedEnemy = enemies.find((unit) => unit.id === state.selectedEnemyId) ?? enemies[0];
   const gaugePercent = (state.moveGauge / state.maxMoveGauge) * 100;
   const unityPercent = (state.unityGauge / state.maxUnityGauge) * 100;
+  const isDaily = state.config.battleMode === "daily";
 
   return (
     <div className="hud-layer">
       {state.feedback.some((entry) => entry.kind === "sync") ? <div className="sync-flash" /> : null}
       <section className="top-strip" aria-label="Battle status">
         <div className="objective-chip">
-          <strong>Rift League · Stage {state.config.stage}</strong>
-          <span>Defeat the rival trio</span>
+          <strong>{isDaily ? `Daily ${state.config.dailyKey ?? ""}` : `Rift League - Stage ${state.config.stage}`}</strong>
+          <span>{state.config.enemyTeamName ?? "Defeat the rival trio"}</span>
         </div>
         <div className="gauge-panel">
           <span>Move Gauge</span>
@@ -214,15 +215,19 @@ export function BattleHud({ state, dispatch, onNextStage, onRetry, onChangeTeam 
             <span>{state.status === "won" ? "Victory" : "Defeat"}</span>
             <strong>
               {state.status === "won"
-                ? `Stage ${state.config.stage} cleared!`
-                : `Your team has fallen on stage ${state.config.stage}.`}
+                ? isDaily
+                  ? "Daily challenge cleared!"
+                  : `Stage ${state.config.stage} cleared!`
+                : isDaily
+                  ? "Your team has fallen in the daily challenge."
+                  : `Your team has fallen on stage ${state.config.stage}.`}
             </strong>
             {state.status === "won" && onNextStage ? (
-              <button onClick={onNextStage}>Continue — Stage {state.config.stage + 1}</button>
+              <button onClick={onNextStage}>Continue - Stage {state.config.stage + 1}</button>
             ) : null}
             {state.status === "lost" ? (
               onRetry ? (
-                <button onClick={onRetry}>Retry Stage {state.config.stage}</button>
+                <button onClick={onRetry}>{isDaily ? "Retry Daily" : `Retry Stage ${state.config.stage}`}</button>
               ) : (
                 <button onClick={() => dispatch({ type: "restart" })}>Restart Battle</button>
               )

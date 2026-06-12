@@ -12,12 +12,28 @@ type TeamSelectProps = {
   lastPull: PullResult | null;
   statsSource: "live" | "bundled";
   speciesStats: Record<string, PokemonBaseStats> | null;
+  dailyKey: string;
+  dailyReward: number;
+  dailyCleared: boolean;
   onStart: (allyIds: string[]) => void;
+  onStartDaily: (allyIds: string[]) => void;
   onPull: () => void;
   onLevelUp: (allyId: string) => void;
 };
 
-export function TeamSelect({ progress, lastPull, statsSource, speciesStats, onStart, onPull, onLevelUp }: TeamSelectProps) {
+export function TeamSelect({
+  progress,
+  lastPull,
+  statsSource,
+  speciesStats,
+  dailyKey,
+  dailyReward,
+  dailyCleared,
+  onStart,
+  onStartDaily,
+  onPull,
+  onLevelUp,
+}: TeamSelectProps) {
   const [selected, setSelected] = useState<string[]>([]);
   const options = getAllyOptions(speciesStats ?? undefined);
 
@@ -35,7 +51,7 @@ export function TeamSelect({ progress, lastPull, statsSource, speciesStats, onSt
       <header className="select-header">
         <h1>Creature Masters Battle</h1>
         <p>
-          Pick three allies to challenge the rival trio.
+          Pick three allies to challenge rotating rival squads.
           {progress.bestStage > 0 ? ` Best stage cleared: ${progress.bestStage}.` : " Clear stages to earn gems."}
         </p>
         <small>Base stats: {statsSource === "live" ? "live from PokeAPI" : "bundled"}</small>
@@ -45,6 +61,9 @@ export function TeamSelect({ progress, lastPull, statsSource, speciesStats, onSt
         <span className="gems-chip">💎 {progress.gems}</span>
         <button className="scout-button" disabled={!canPull(progress)} onClick={onPull}>
           Scout ×1 — {PULL_COST} gems
+        </button>
+        <button className="daily-button" disabled={selected.length !== TEAM_SIZE} onClick={() => onStartDaily(selected)}>
+          Daily Challenge
         </button>
         {lastPull ? (
           <span className={`pull-banner ${lastPull.isNew ? "pull-banner-new" : ""}`}>
@@ -59,6 +78,9 @@ export function TeamSelect({ progress, lastPull, statsSource, speciesStats, onSt
               : "All allies recruited — pulls now level them up"}
           </span>
         )}
+        <span className={`pull-banner ${dailyCleared ? "" : "pull-banner-new"}`}>
+          {dailyCleared ? `Daily ${dailyKey} claimed` : `Daily ${dailyKey}: +${dailyReward} gems`}
+        </span>
       </section>
 
       <div className="select-grid">

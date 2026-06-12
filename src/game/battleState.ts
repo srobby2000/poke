@@ -4,6 +4,8 @@ export type BattleStatus = "playing" | "won" | "lost";
 
 export type TargetMode = "auto" | "manual";
 
+export type BattleMode = "ladder" | "daily";
+
 export type StatusCondition = "burn" | "poison" | "paralysis";
 
 export type BattleRole = "strike" | "tech" | "support";
@@ -178,6 +180,10 @@ export type MovePreview = {
 export type BattleConfig = {
   allyIds: string[];
   stage: number;
+  battleMode?: BattleMode;
+  dailyKey?: string;
+  enemyTeamId?: string;
+  enemyTeamName?: string;
   speciesStats?: Record<string, PokemonBaseStats>;
   allyLevels?: Record<string, number>;
 };
@@ -903,6 +909,12 @@ const allyTemplates: UnitTemplate[] = [
   },
 ];
 
+const BOSS_AURA_PASSIVE: PassiveSkill = {
+  id: "boss-aura",
+  name: "Boss Aura",
+  description: "Deals more damage and takes less damage",
+};
+
 const enemyTemplates: UnitTemplate[] = [
   {
     id: "pikachu",
@@ -976,7 +988,107 @@ const enemyTemplates: UnitTemplate[] = [
     syncMove: { id: "sync-gale", name: "Sync Gale", type: "flying", cost: 0, power: 110, accent: "#c4b5fd" },
     trainerMove: null,
   },
+  enemyFromAlly("vulpix", { id: "enemy-vulpix", name: "Vulpix" }),
+  enemyFromAlly("machop", { id: "enemy-machop", name: "Machop" }),
+  enemyFromAlly("geodude", { id: "enemy-geodude", name: "Geodude" }),
+  enemyFromAlly("abra", { id: "enemy-abra", name: "Abra" }),
+  enemyFromAlly("haunter", { id: "enemy-haunter", name: "Haunter" }),
+  enemyFromAlly("jigglypuff", { id: "enemy-jigglypuff", name: "Jigglypuff" }),
+  enemyFromAlly("psyduck", { id: "enemy-psyduck", name: "Psyduck" }),
+  enemyFromAlly("meowth", { id: "enemy-meowth", name: "Meowth" }),
+  enemyFromAlly("cubone", { id: "enemy-cubone", name: "Cubone" }),
+  enemyFromAlly("dratini", { id: "boss-dratini", name: "Boss Dratini", passive: BOSS_AURA_PASSIVE }),
+  enemyFromAlly("lapras", { id: "boss-lapras", name: "Boss Lapras", passive: BOSS_AURA_PASSIVE }),
+  enemyFromAlly("machop", { id: "boss-machop", name: "Boss Machop", passive: BOSS_AURA_PASSIVE }),
 ];
+
+type EnemyTeamPreset = {
+  id: string;
+  name: string;
+  templateIds: [string, string, string];
+  boss?: boolean;
+};
+
+const regularEnemyTeams: EnemyTeamPreset[] = [
+  { id: "kanto-rivals", name: "Kanto Rival Trio", templateIds: ["pikachu", "snorlax", "butterfree"] },
+  { id: "ember-dojo", name: "Ember Dojo Squad", templateIds: ["enemy-vulpix", "enemy-machop", "enemy-geodude"] },
+  { id: "mind-garden", name: "Mind Garden Squad", templateIds: ["enemy-abra", "enemy-haunter", "enemy-jigglypuff"] },
+  { id: "shoreline-rogues", name: "Shoreline Rogue Squad", templateIds: ["enemy-psyduck", "enemy-meowth", "enemy-cubone"] },
+];
+
+const bossEnemyTeams: EnemyTeamPreset[] = [
+  { id: "aurora-boss", name: "Aurora Boss Team", templateIds: ["boss-dratini", "boss-lapras", "boss-machop"], boss: true },
+];
+
+const allEnemyTeams = [...regularEnemyTeams, ...bossEnemyTeams];
+
+export function enemyTeamForStage(stage: number): EnemyTeamPreset {
+  const normalizedStage = Math.max(1, Math.floor(stage));
+  if (normalizedStage % 5 === 0) {
+    return bossEnemyTeams[Math.floor(normalizedStage / 5 - 1) % bossEnemyTeams.length];
+  }
+  return regularEnemyTeams[(normalizedStage - 1) % regularEnemyTeams.length];
+}
+
+export function dailyChallengeKey(date = new Date()) {
+  return date.toISOString().slice(0, 10);
+}
+
+export function dailyChallengeStage(dateKey: string) {
+  return 4 + (hashBattleKey(dateKey) % 8);
+}
+
+export function enemyTeamForDaily(dateKey: string): EnemyTeamPreset {
+  return allEnemyTeams[hashBattleKey(`daily-team:${dateKey}`) % allEnemyTeams.length];
+}
+
+function findEnemyTeam(teamId: string | undefined, stage: number, battleMode: BattleMode, dailyKey: string | undefined) {
+  if (teamId) {
+    const found = allEnemyTeams.find((team) => team.id === teamId);
+    if (found) {
+      return found;
+    }
+  }
+  if (battleMode === "daily" && dailyKey) {
+    return enemyTeamForDaily(dailyKey);
+  }
+  return enemyTeamForStage(stage);
+}
+
+function templatesForEnemyTeam(team: EnemyTeamPreset) {
+  return team.templateIds.map((templateId) => {
+    const template = enemyTemplates.find((candidate) => candidate.id === templateId);
+    if (!template) {
+      throw new Error(`Missing enemy template: ${templateId}`);
+    }
+    return template;
+  });
+}
+
+function enemyFromAlly(sourceId: string, override: Partial<UnitTemplate> & { id: string }): UnitTemplate {
+  const base = allyTemplates.find((template) => template.id === sourceId);
+  if (!base) {
+    throw new Error(`Missing ally template for enemy: ${sourceId}`);
+  }
+  return {
+    ...base,
+    team: "enemy",
+    trainerMove: null,
+    position: undefined,
+    ...override,
+    id: override.id,
+    sourcePokemon: override.sourcePokemon ?? base.sourcePokemon,
+  };
+}
+
+function hashBattleKey(value: string) {
+  let hash = 2166136261;
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
 
 const UNITY_BURST_MOVE: Move = { id: "unity-burst", name: "Unity Burst", type: "normal", cost: 0, power: 0, accent: "#fef08a" };
 
@@ -988,6 +1100,12 @@ const ALLY_SLOTS: [number, number, number][] = [
   [-3.3, 0, 1.7],
   [-3.7, 0, 0],
   [-3.3, 0, -1.7],
+];
+
+const ENEMY_SLOTS: [number, number, number][] = [
+  [3.3, 0, 1.7],
+  [3.7, 0, 0],
+  [3.3, 0, -1.7],
 ];
 
 type StatScale = { hp: number; attack: number; defense: number };
@@ -1021,7 +1139,11 @@ export function getAllyOptions(speciesStats?: Record<string, PokemonBaseStats>):
 
 export const createInitialBattleState = (seed?: number, config?: Partial<BattleConfig>): BattleState => {
   const allyIds = config?.allyIds && config.allyIds.length > 0 ? config.allyIds.slice(0, ALLY_SLOTS.length) : DEFAULT_ALLY_IDS;
-  const stage = Math.max(1, Math.floor(config?.stage ?? 1));
+  const battleMode = config?.battleMode ?? "ladder";
+  const dailyKey = config?.dailyKey;
+  const stage = battleMode === "daily" && dailyKey ? dailyChallengeStage(dailyKey) : Math.max(1, Math.floor(config?.stage ?? 1));
+  const enemyTeam = findEnemyTeam(config?.enemyTeamId, stage, battleMode, dailyKey);
+  const activeEnemyTemplates = templatesForEnemyTeam(enemyTeam);
   const statsLookup: Record<string, PokemonBaseStats> = { ...pokeApiBaseStats, ...(config?.speciesStats ?? {}) };
   const enemyScale: StatScale = {
     hp: 1 + BALANCE.stageEnemyHpGrowth * (stage - 1),
@@ -1040,23 +1162,27 @@ export const createInitialBattleState = (seed?: number, config?: Partial<BattleC
       level,
     );
   });
-  const enemies = enemyTemplates.map((template) =>
-    makeUnit(template, template.position ?? [3.5, 0, 0], statsLookup, enemyScale, stage),
+  const enemies = activeEnemyTemplates.map((template, index) =>
+    makeUnit(template, template.position ?? ENEMY_SLOTS[index % ENEMY_SLOTS.length], statsLookup, enemyScale, stage),
   );
 
   return {
     units: [...allies, ...enemies],
     enemyCooldowns: Object.fromEntries(
-      enemyTemplates.map((template) => [template.id, initialEnemyCooldown(template, statsLookup)]),
+      activeEnemyTemplates.map((template) => [template.id, initialEnemyCooldown(template, statsLookup)]),
     ),
     config: {
       allyIds: allies.map((unit) => unit.id),
       stage,
+      battleMode,
+      dailyKey,
+      enemyTeamId: enemyTeam.id,
+      enemyTeamName: enemyTeam.name,
       speciesStats: config?.speciesStats,
       allyLevels: config?.allyLevels,
     },
     selectedAllyId: allies[0]?.id ?? DEFAULT_ALLY_IDS[0],
-    selectedEnemyId: "snorlax",
+    selectedEnemyId: enemies[1]?.id ?? enemies[0]?.id ?? "snorlax",
     targetMode: "auto",
     moveGauge: 2,
     maxMoveGauge: 6,
@@ -1080,7 +1206,11 @@ export const createInitialBattleState = (seed?: number, config?: Partial<BattleC
     status: "playing",
     paused: false,
     timeScale: 1,
-    log: [`Stage ${stage} — Kanto League skirmish started.`],
+    log: [
+      battleMode === "daily"
+        ? `Daily ${dailyKey ?? "challenge"} - ${enemyTeam.name} started.`
+        : `Stage ${stage} - ${enemyTeam.name} started.`,
+    ],
     elapsed: 0,
     rng: seed ?? Math.floor(Math.random() * 0xffffffff),
   };
@@ -1928,8 +2058,11 @@ function calculateDamage(state: BattleState, actor: Unit, target: Unit, move: Mo
       ? 1.18
       : actor.passive.id === "toxic-focus" && move.statusEffect && target.statusCondition
         ? 1.15
+        : actor.passive.id === "boss-aura"
+          ? 1.12
         : 1;
-  const passiveDamageReduction = target.passive.id === "thick-guard" && target.hp / target.maxHp > 0.5 ? 0.88 : 1;
+  const passiveDamageReduction =
+    target.passive.id === "thick-guard" && target.hp / target.maxHp > 0.5 ? 0.88 : target.passive.id === "boss-aura" ? 0.92 : 1;
   const attack = actor.attack * (1 + actor.attackStage * BALANCE.stageMultiplier) * burnPenalty;
   const defense = target.defense * (1 + target.defenseStage * BALANCE.stageMultiplier);
   const baseDamage = Math.max(8, move.power + attack * 0.6 - defense * 0.45);

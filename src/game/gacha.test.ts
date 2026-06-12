@@ -2,8 +2,11 @@ import { describe, expect, it } from "vitest";
 import { BALANCE, getAllyOptions } from "./battleState";
 import {
   PULL_COST,
+  DAILY_CHALLENGE_REWARD,
+  applyDailyChallengeClear,
   applyStageClear,
   canPull,
+  dailyChallengeReward,
   levelOf,
   levelUpCost,
   performLevelUp,
@@ -17,6 +20,7 @@ const baseProgress = (overrides: Partial<PlayerProgress> = {}): PlayerProgress =
   gems: 200,
   unlockedAllies: ["squirtle", "bulbasaur", "charmander"],
   allyLevels: {},
+  dailyClearedDate: null,
   ...overrides,
 });
 
@@ -112,5 +116,17 @@ describe("stage rewards", () => {
 
   it("adds a first-clear bonus only for new stages", () => {
     expect(stageClearReward(3, 2)).toBeGreaterThan(stageClearReward(3, 3));
+  });
+
+  it("pays the daily challenge reward once per date", () => {
+    const cleared = applyDailyChallengeClear(baseProgress(), "2026-06-11");
+    const repeated = applyDailyChallengeClear(cleared, "2026-06-11");
+    const nextDay = applyDailyChallengeClear(repeated, "2026-06-12");
+
+    expect(cleared.gems).toBe(200 + DAILY_CHALLENGE_REWARD);
+    expect(cleared.dailyClearedDate).toBe("2026-06-11");
+    expect(dailyChallengeReward(cleared, "2026-06-11")).toBe(0);
+    expect(repeated.gems).toBe(cleared.gems);
+    expect(nextDay.gems).toBe(cleared.gems + DAILY_CHALLENGE_REWARD);
   });
 });

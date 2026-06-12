@@ -3,6 +3,8 @@ import {
   BALANCE,
   battleReducer,
   createInitialBattleState,
+  dailyChallengeStage,
+  enemyTeamForStage,
   getAllyOptions,
   getTypeEffectiveness,
   previewPlayerMove,
@@ -527,17 +529,40 @@ describe("battle simulation", () => {
 
   it("scales enemy stats with the stage number", () => {
     const stageOne = createInitialBattleState(1, { stage: 1 });
-    const stageFour = createInitialBattleState(1, { stage: 4 });
+    const stageNine = createInitialBattleState(1, { stage: 9 });
 
     const snorlaxOne = stageOne.units.find((unit) => unit.id === "snorlax");
-    const snorlaxFour = stageFour.units.find((unit) => unit.id === "snorlax");
+    const snorlaxNine = stageNine.units.find((unit) => unit.id === "snorlax");
     const squirtleOne = stageOne.units.find((unit) => unit.id === "squirtle");
-    const squirtleFour = stageFour.units.find((unit) => unit.id === "squirtle");
+    const squirtleNine = stageNine.units.find((unit) => unit.id === "squirtle");
 
-    expect(snorlaxFour?.maxHp ?? 0).toBeGreaterThan(snorlaxOne?.maxHp ?? 0);
-    expect(snorlaxFour?.attack ?? 0).toBeGreaterThan(snorlaxOne?.attack ?? 0);
-    expect(squirtleFour?.maxHp).toBe(squirtleOne?.maxHp);
-    expect(stageFour.config.stage).toBe(4);
+    expect(snorlaxNine?.maxHp ?? 0).toBeGreaterThan(snorlaxOne?.maxHp ?? 0);
+    expect(snorlaxNine?.attack ?? 0).toBeGreaterThan(snorlaxOne?.attack ?? 0);
+    expect(squirtleNine?.maxHp).toBe(squirtleOne?.maxHp);
+    expect(stageNine.config.stage).toBe(9);
+  });
+
+  it("rotates enemy teams and uses boss passives every fifth stage", () => {
+    const stageOne = enemyTeamForStage(1);
+    const stageTwo = enemyTeamForStage(2);
+    const stageFive = createInitialBattleState(1, { stage: 5 });
+    const enemies = stageFive.units.filter((unit) => unit.team === "enemy");
+
+    expect(stageTwo.id).not.toBe(stageOne.id);
+    expect(stageFive.config.enemyTeamName).toBe("Aurora Boss Team");
+    expect(enemies.every((unit) => unit.passive.id === "boss-aura")).toBe(true);
+  });
+
+  it("builds deterministic daily challenge battles from the date key", () => {
+    const first = createInitialBattleState(1, { battleMode: "daily", dailyKey: "2026-06-11" });
+    const second = createInitialBattleState(99, { battleMode: "daily", dailyKey: "2026-06-11" });
+
+    expect(first.config.stage).toBe(dailyChallengeStage("2026-06-11"));
+    expect(second.config.stage).toBe(first.config.stage);
+    expect(second.config.enemyTeamId).toBe(first.config.enemyTeamId);
+    expect(second.units.filter((unit) => unit.team === "enemy").map((unit) => unit.id)).toEqual(
+      first.units.filter((unit) => unit.team === "enemy").map((unit) => unit.id),
+    );
   });
 
   it("preserves team and stage on restart", () => {

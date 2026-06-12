@@ -3,6 +3,7 @@ import { BALANCE, getAllyOptions } from "./battleState";
 import type { PlayerProgress } from "./progress";
 
 export const PULL_COST = 100;
+export const DAILY_CHALLENGE_REWARD = 180;
 
 // Progression-flavored gacha: while any ally is still locked, a pull is
 // guaranteed to unlock a NEW unit (weighted by rarity). Once everything is
@@ -126,5 +127,21 @@ export function applyStageClear(progress: PlayerProgress, stage: number): Player
     ...progress,
     gems: progress.gems + stageClearReward(stage, progress.bestStage),
     bestStage: Math.max(progress.bestStage, stage),
+  };
+}
+
+export function dailyChallengeReward(progress: PlayerProgress, dateKey: string): number {
+  return progress.dailyClearedDate === dateKey ? 0 : DAILY_CHALLENGE_REWARD;
+}
+
+export function applyDailyChallengeClear(progress: PlayerProgress, dateKey: string): PlayerProgress {
+  const reward = dailyChallengeReward(progress, dateKey);
+  if (reward === 0) {
+    return progress;
+  }
+  return {
+    ...progress,
+    gems: progress.gems + reward,
+    dailyClearedDate: dateKey,
   };
 }

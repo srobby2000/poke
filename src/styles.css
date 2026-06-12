@@ -747,7 +747,8 @@ kbd {
   background: rgba(9, 17, 30, 0.76);
 }
 
-.scout-button {
+.scout-button,
+.daily-button {
   min-height: 40px;
   padding: 0 18px;
   border: 1px solid rgba(192, 132, 252, 0.6);
@@ -759,7 +760,13 @@ kbd {
   cursor: pointer;
 }
 
-.scout-button:disabled {
+.daily-button {
+  border-color: rgba(56, 189, 248, 0.62);
+  background: linear-gradient(135deg, rgba(14, 116, 144, 0.92), rgba(21, 128, 61, 0.72));
+}
+
+.scout-button:disabled,
+.daily-button:disabled {
   color: #64748b;
   border-color: rgba(100, 116, 139, 0.4);
   background: rgba(30, 41, 59, 0.7);

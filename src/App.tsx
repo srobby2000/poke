@@ -1,10 +1,10 @@
 import { Suspense, lazy, useEffect, useReducer, useRef, useState } from "react";
 import { BattleHud } from "./components/BattleHud";
 import { TeamSelect } from "./components/TeamSelect";
-import type { BattleState, PokemonBaseStats } from "./game/battleState";
-import { battleReducer, createInitialBattleState, isAlive, speciesNames, tickBattle } from "./game/battleState";
+import type { BattleMode, BattleState, PokemonBaseStats } from "./game/battleState";
+import { battleReducer, createInitialBattleState, dailyChallengeKey, dailyChallengeStage, isAlive, speciesNames, tickBattle } from "./game/battleState";
 import type { PullResult } from "./game/gacha";
-import { applyStageClear, performLevelUp, performPull } from "./game/gacha";
+import { DAILY_CHALLENGE_REWARD, applyDailyChallengeClear, applyStageClear, performLevelUp, performPull } from "./game/gacha";
 import { fetchSpeciesStats } from "./game/pokeApi";
 import { loadProgress, saveProgress } from "./game/progress";
 import { playFeedbackSound, playKoSound } from "./game/sound";
@@ -21,13 +21,14 @@ const MAX_DELTA_SECONDS = 0.08;
 const preloadCanvas = () => import("./components/BattleCanvas");
 const BattleCanvas = lazy(() => preloadCanvas().then((module) => ({ default: module.BattleCanvas })));
 
-type Session = { allyIds: string[]; stage: number; runId: number };
+type Session = { allyIds: string[]; stage: number; runId: number; battleMode: BattleMode; dailyKey?: string };
 
 export default function App() {
   const [speciesStats, setSpeciesStats] = useState<Record<string, PokemonBaseStats> | null>(null);
   const [progress, setProgress] = useState(loadProgress);
   const [lastPull, setLastPull] = useState<PullResult | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const todayKey = dailyChallengeKey();
   // Seeded lazily in the pull handler — impure calls are not allowed in render.
   const pullSeedRef = useRef<number | null>(null);
 
@@ -59,7 +60,13 @@ export default function App() {
         lastPull={lastPull}
         statsSource={speciesStats ? "live" : "bundled"}
         speciesStats={speciesStats}
-        onStart={(allyIds) => setSession({ allyIds, stage: 1, runId: 1 })}
+        dailyKey={todayKey}
+        dailyReward={DAILY_CHALLENGE_REWARD}
+        dailyCleared={progress.dailyClearedDate === todayKey}
+        onStart={(allyIds) => setSession({ allyIds, stage: 1, runId: 1, battleMode: "ladder" })}
+        onStartDaily={(allyIds) =>
+          setSession({ allyIds, stage: dailyChallengeStage(todayKey), runId: 1, battleMode: "daily", dailyKey: todayKey })
+        }
         onPull={() => {
           const seed = pullSeedRef.current ?? (Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0;
           const outcome = performPull(progress, seed);
@@ -82,13 +89,25 @@ export default function App() {
 
   return (
     <Battle
-      key={`${session.runId}-${session.stage}`}
+      key={`${session.runId}-${session.battleMode}-${session.stage}-${session.dailyKey ?? "ladder"}`}
       allyIds={session.allyIds}
       stage={session.stage}
+      battleMode={session.battleMode}
+      dailyKey={session.dailyKey}
       speciesStats={speciesStats}
       allyLevels={progress.allyLevels}
-      onStageCleared={(stage) => setProgress((current) => applyStageClear(current, stage))}
-      onNextStage={() => setSession((current) => current && { ...current, stage: current.stage + 1, runId: current.runId + 1 })}
+      onBattleCleared={() =>
+        setProgress((current) =>
+          session.battleMode === "daily" && session.dailyKey
+            ? applyDailyChallengeClear(current, session.dailyKey)
+            : applyStageClear(current, session.stage),
+        )
+      }
+      onNextStage={
+        session.battleMode === "daily"
+          ? undefined
+          : () => setSession((current) => current && { ...current, stage: current.stage + 1, runId: current.runId + 1 })
+      }
       onRetry={() => setSession((current) => current && { ...current, runId: current.runId + 1 })}
       onChangeTeam={() => setSession(null)}
     />
@@ -98,17 +117,19 @@ export default function App() {
 type BattleProps = {
   allyIds: string[];
   stage: number;
+  battleMode: BattleMode;
+  dailyKey?: string;
   speciesStats: Record<string, PokemonBaseStats> | null;
   allyLevels: Record<string, number>;
-  onStageCleared: (stage: number) => void;
-  onNextStage: () => void;
+  onBattleCleared: () => void;
+  onNextStage?: () => void;
   onRetry: () => void;
   onChangeTeam: () => void;
 };
 
-function Battle({ allyIds, stage, speciesStats, allyLevels, onStageCleared, onNextStage, onRetry, onChangeTeam }: BattleProps) {
+function Battle({ allyIds, stage, battleMode, dailyKey, speciesStats, allyLevels, onBattleCleared, onNextStage, onRetry, onChangeTeam }: BattleProps) {
   const [battle, dispatch] = useReducer(battleReducer, undefined, () =>
-    createInitialBattleState(undefined, { allyIds, stage, speciesStats: speciesStats ?? undefined, allyLevels }),
+    createInitialBattleState(undefined, { allyIds, stage, battleMode, dailyKey, speciesStats: speciesStats ?? undefined, allyLevels }),
   );
 
   useBattleSounds(battle);
@@ -193,9 +214,9 @@ function Battle({ allyIds, stage, speciesStats, allyLevels, onStageCleared, onNe
   useEffect(() => {
     if (won && !rewardedRef.current) {
       rewardedRef.current = true;
-      onStageCleared(stage);
+      onBattleCleared();
     }
-  }, [won, stage, onStageCleared]);
+  }, [won, onBattleCleared]);
 
   return (
     <main className="app-shell">
