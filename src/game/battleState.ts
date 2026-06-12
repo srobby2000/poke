@@ -1,10 +1,10 @@
 export type Team = "ally" | "enemy";
 
-export type BattleStatus = "playing" | "won" | "lost";
+export type BattleStatus = "playing" | "won" | "lost" | "captured" | "fled";
 
 export type TargetMode = "auto" | "manual";
 
-export type BattleMode = "ladder" | "daily";
+export type BattleMode = "ladder" | "daily" | "wild";
 
 export type StatusCondition = "burn" | "poison" | "paralysis";
 
@@ -133,6 +133,8 @@ type UnitTemplate = {
   sourcePokemon: keyof typeof pokeApiBaseStats;
   role: BattleRole;
   rarity: Rarity;
+  // How the player obtains this ally; "wild" allies never appear in gacha.
+  source?: "gacha" | "wild";
   passive: PassiveSkill;
   types: PokemonType[];
   // Allies are positioned by team-slot at battle start; enemies set this explicitly.
@@ -177,6 +179,12 @@ export type MovePreview = {
   statChangeLabel?: string;
 };
 
+export type WildConfig = {
+  speciesId: string;
+  level: number;
+  balls: Record<string, number>;
+};
+
 export type BattleConfig = {
   allyIds: string[];
   stage: number;
@@ -184,6 +192,7 @@ export type BattleConfig = {
   dailyKey?: string;
   enemyTeamId?: string;
   enemyTeamName?: string;
+  wild?: WildConfig;
   speciesStats?: Record<string, PokemonBaseStats>;
   allyLevels?: Record<string, number>;
 };
@@ -207,6 +216,9 @@ export type BattleState = {
   syncBoosts: Record<Team, number>;
   statusTickTimer: number;
   status: BattleStatus;
+  // Balls available to throw in wild battles; the app reconciles usage
+  // against the save when the battle ends.
+  balls: Record<string, number>;
   paused: boolean;
   timeScale: number;
   // Total damage dealt per unit id, for the post-battle report.
@@ -225,6 +237,8 @@ export type BattleAction =
   | { type: "useTrainerMove" }
   | { type: "useSyncMove" }
   | { type: "useUnityAttack" }
+  | { type: "throwBall"; ballId: string }
+  | { type: "flee" }
   | { type: "togglePause" }
   | { type: "cycleTimeScale" }
   | { type: "restart" };
@@ -270,6 +284,15 @@ export const BALANCE = {
   stageEnemyDefenseGrowth: 0.08,
   allyLevelGrowth: 0.06,
   maxAllyLevel: 10,
+  // Wild battles: one creature vs the team, so it gets a big HP pool.
+  wildHpBase: 2.4,
+  wildHpGrowth: 0.12,
+  wildStatGrowth: 0.07,
+  ballPower: { "poke-ball": 0.35, "great-ball": 0.6 } as Record<string, number>,
+  captureHpWeight: 0.7,
+  captureStatusBonus: 1.3,
+  captureMinChance: 0.05,
+  captureMaxChance: 0.95,
   logLimit: 6,
   feedbackLimit: 10,
 } as const;
@@ -297,6 +320,10 @@ const pokeApiBaseStats = {
   pikachu: { hp: 35, attack: 55, defense: 40, speed: 90 },
   snorlax: { hp: 160, attack: 110, defense: 65, speed: 30 },
   butterfree: { hp: 60, attack: 90, defense: 50, speed: 70 },
+  // Wild-route species, obtainable only by capture.
+  pidgey: { hp: 40, attack: 45, defense: 40, speed: 56 },
+  rattata: { hp: 30, attack: 56, defense: 35, speed: 72 },
+  oddish: { hp: 45, attack: 75, defense: 55, speed: 30 },
   // Evolved forms reached through ally leveling.
   wartortle: { hp: 59, attack: 65, defense: 80, speed: 58 },
   blastoise: { hp: 79, attack: 85, defense: 100, speed: 78 },
@@ -988,6 +1015,104 @@ const allyTemplates: UnitTemplate[] = [
       description: "Heal the weakest ally",
     },
   },
+  {
+    id: "pidgey",
+    name: "Pidgey",
+    team: "ally",
+    sourcePokemon: "pidgey",
+    role: "support",
+    rarity: 3,
+    source: "wild",
+    passive: {
+      id: "team-first-aid",
+      name: "Keen Eye",
+      description: "Potion heals a little extra",
+    },
+    types: ["normal", "flying"],
+    color: "#d6bfa0",
+    accent: "#fcd9a8",
+    shape: "wing",
+    moves: [
+      { id: "pidgey-tackle", name: "Tackle", type: "normal", cost: 2, power: 40, accent: "#fef9c3" },
+      { id: "pidgey-gust", name: "Gust", type: "flying", cost: 3, power: 55, accent: "#c7d2fe" },
+    ],
+    syncMove: { id: "sync-sky-dive", name: "Sync Sky Dive", type: "flying", cost: 0, power: 112, accent: "#c7d2fe" },
+    trainerMove: {
+      id: "potion",
+      name: "Potion",
+      kind: "heal",
+      uses: 2,
+      maxUses: 2,
+      amount: 45,
+      description: "Heal the weakest ally",
+    },
+  },
+  {
+    id: "rattata",
+    name: "Rattata",
+    team: "ally",
+    sourcePokemon: "rattata",
+    role: "strike",
+    rarity: 3,
+    source: "wild",
+    passive: {
+      id: "power-reserves",
+      name: "Guts",
+      description: "Deals more damage below half HP",
+    },
+    types: ["normal"],
+    color: "#b48ead",
+    accent: "#e9d8f2",
+    shape: "horn",
+    moves: [
+      { id: "rattata-quick-attack", name: "Quick Attack", type: "normal", cost: 2, power: 42, accent: "#fef9c3" },
+      { id: "hyper-fang", name: "Hyper Fang", type: "normal", cost: 3, power: 60, accent: "#fda4af" },
+    ],
+    syncMove: { id: "sync-super-fang", name: "Sync Super Fang", type: "normal", cost: 0, power: 114, accent: "#fda4af" },
+    trainerMove: {
+      id: "x-attack",
+      name: "X Attack",
+      kind: "attackBuff",
+      uses: 2,
+      maxUses: 2,
+      stages: 2,
+      target: "self",
+      description: "Raise own Attack",
+    },
+  },
+  {
+    id: "oddish",
+    name: "Oddish",
+    team: "ally",
+    sourcePokemon: "oddish",
+    role: "tech",
+    rarity: 3,
+    source: "wild",
+    passive: {
+      id: "toxic-focus",
+      name: "Potent Pollen",
+      description: "Status moves hit harder against afflicted targets",
+    },
+    types: ["grass", "poison"],
+    color: "#5d8aa8",
+    accent: "#9be29b",
+    shape: "bloom",
+    moves: [
+      { id: "absorb", name: "Absorb", type: "grass", cost: 2, power: 40, accent: "#8be66f" },
+      { id: "acid", name: "Acid", type: "poison", cost: 2, power: 38, accent: "#d8b4fe", statusEffect: "poison" },
+    ],
+    syncMove: { id: "sync-petal-storm", name: "Sync Petal Storm", type: "grass", cost: 0, power: 112, accent: "#9be29b" },
+    trainerMove: {
+      id: "x-defense-all",
+      name: "X Defense All",
+      kind: "defenseBuff",
+      uses: 2,
+      maxUses: 2,
+      stages: 1,
+      target: "allAllies",
+      description: "Raise allied Defense",
+    },
+  },
 ];
 
 const BOSS_AURA_PASSIVE: PassiveSkill = {
@@ -1146,6 +1271,11 @@ function templatesForEnemyTeam(team: EnemyTeamPreset) {
   });
 }
 
+function wildEnemyTemplate(speciesId: string): UnitTemplate {
+  const base = allyTemplates.find((template) => template.id === speciesId) ?? allyTemplates[0];
+  return enemyFromAlly(base.id, { id: `wild-${base.id}`, name: `Wild ${base.name}` });
+}
+
 function enemyFromAlly(sourceId: string, override: Partial<UnitTemplate> & { id: string }): UnitTemplate {
   const base = allyTemplates.find((template) => template.id === sourceId);
   if (!base) {
@@ -1196,6 +1326,7 @@ export type AllyOption = {
   name: string;
   role: BattleRole;
   rarity: Rarity;
+  source: "gacha" | "wild";
   types: PokemonType[];
   passive: PassiveSkill;
   color: string;
@@ -1217,6 +1348,7 @@ export function getAllyOptions(
       name: form?.name ?? template.name,
       role: template.role,
       rarity: template.rarity,
+      source: template.source ?? "gacha",
       types: template.types,
       passive: template.passive,
       color: template.color,
@@ -1231,15 +1363,26 @@ export const createInitialBattleState = (seed?: number, config?: Partial<BattleC
   const allyIds = config?.allyIds && config.allyIds.length > 0 ? config.allyIds.slice(0, ALLY_SLOTS.length) : DEFAULT_ALLY_IDS;
   const battleMode = config?.battleMode ?? "ladder";
   const dailyKey = config?.dailyKey;
-  const stage = battleMode === "daily" && dailyKey ? dailyChallengeStage(dailyKey) : Math.max(1, Math.floor(config?.stage ?? 1));
-  const enemyTeam = findEnemyTeam(config?.enemyTeamId, stage, battleMode, dailyKey);
-  const activeEnemyTemplates = templatesForEnemyTeam(enemyTeam);
+  const wild = battleMode === "wild" ? config?.wild ?? null : null;
+  const stage = wild
+    ? Math.max(1, Math.floor(wild.level))
+    : battleMode === "daily" && dailyKey
+      ? dailyChallengeStage(dailyKey)
+      : Math.max(1, Math.floor(config?.stage ?? 1));
+  const enemyTeam = wild ? null : findEnemyTeam(config?.enemyTeamId, stage, battleMode, dailyKey);
+  const activeEnemyTemplates = wild ? [wildEnemyTemplate(wild.speciesId)] : templatesForEnemyTeam(enemyTeam!);
   const statsLookup: Record<string, PokemonBaseStats> = { ...pokeApiBaseStats, ...(config?.speciesStats ?? {}) };
-  const enemyScale: StatScale = {
-    hp: 1 + BALANCE.stageEnemyHpGrowth * (stage - 1),
-    attack: 1 + BALANCE.stageEnemyAttackGrowth * (stage - 1),
-    defense: 1 + BALANCE.stageEnemyDefenseGrowth * (stage - 1),
-  };
+  const enemyScale: StatScale = wild
+    ? {
+        hp: BALANCE.wildHpBase + BALANCE.wildHpGrowth * (stage - 1),
+        attack: 1 + BALANCE.wildStatGrowth * (stage - 1),
+        defense: 1 + BALANCE.wildStatGrowth * (stage - 1),
+      }
+    : {
+        hp: 1 + BALANCE.stageEnemyHpGrowth * (stage - 1),
+        attack: 1 + BALANCE.stageEnemyAttackGrowth * (stage - 1),
+        defense: 1 + BALANCE.stageEnemyDefenseGrowth * (stage - 1),
+      };
   const allies = allyIds.map((allyId, index) => {
     const template = allyTemplates.find((candidate) => candidate.id === allyId) ?? allyTemplates[index];
     const level = clamp(Math.floor(config?.allyLevels?.[template.id] ?? 1), 1, BALANCE.maxAllyLevel);
@@ -1268,8 +1411,9 @@ export const createInitialBattleState = (seed?: number, config?: Partial<BattleC
       stage,
       battleMode,
       dailyKey,
-      enemyTeamId: enemyTeam.id,
-      enemyTeamName: enemyTeam.name,
+      enemyTeamId: enemyTeam?.id,
+      enemyTeamName: wild ? activeEnemyTemplates[0].name : enemyTeam?.name,
+      wild: wild ?? undefined,
       speciesStats: config?.speciesStats,
       allyLevels: config?.allyLevels,
     },
@@ -1282,27 +1426,32 @@ export const createInitialBattleState = (seed?: number, config?: Partial<BattleC
     maxUnityGauge: 3,
     enemySyncCountdown: 3,
     maxEnemySyncCountdown: 3,
-    enemyTrainer: {
-      name: "Rival Trainer",
-      healUses: 2,
-      maxHealUses: 2,
-      healAmount: 55,
-      buffUses: 1,
-      maxBuffUses: 1,
-      buffStages: 1,
-    },
+    enemyTrainer: wild
+      ? { name: "Wild", healUses: 0, maxHealUses: 0, healAmount: 0, buffUses: 0, maxBuffUses: 0, buffStages: 0 }
+      : {
+          name: "Rival Trainer",
+          healUses: 2,
+          maxHealUses: 2,
+          healAmount: 55,
+          buffUses: 1,
+          maxBuffUses: 1,
+          buffStages: 1,
+        },
     actionQueue: [],
     feedback: [],
     syncBoosts: { ally: 0, enemy: 0 },
     statusTickTimer: BALANCE.statusTickInterval,
     status: "playing",
+    balls: wild ? { ...wild.balls } : {},
     paused: false,
     timeScale: 1,
     damageDealt: {},
     log: [
-      battleMode === "daily"
-        ? `Daily ${dailyKey ?? "challenge"} - ${enemyTeam.name} started.`
-        : `Stage ${stage} - ${enemyTeam.name} started.`,
+      wild
+        ? `A ${activeEnemyTemplates[0].name} (Lv ${stage}) appeared!`
+        : battleMode === "daily"
+          ? `Daily ${dailyKey ?? "challenge"} - ${enemyTeam?.name} started.`
+          : `Stage ${stage} - ${enemyTeam?.name} started.`,
     ],
     elapsed: 0,
     rng: seed ?? Math.floor(Math.random() * 0xffffffff),
@@ -1430,11 +1579,61 @@ export function battleReducer(state: BattleState, action: BattleAction): BattleS
     return performUnityAttack(state);
   }
 
+  if (action.type === "throwBall") {
+    return performThrowBall(state, action.ballId);
+  }
+
+  if (action.type === "flee") {
+    if (state.config.battleMode !== "wild") {
+      return state;
+    }
+    return { ...state, status: "fled", log: ["You fled from the wild battle.", ...state.log].slice(0, BALANCE.logLimit) };
+  }
+
   if (action.type === "tick") {
     return tickPlayingBattle(state, action.deltaSeconds * state.timeScale);
   }
 
   return state;
+}
+
+// Classic capture roll: weaker and statused wilds are easier to catch.
+function performThrowBall(state: BattleState, ballId: string): BattleState {
+  if (state.config.battleMode !== "wild") {
+    return state;
+  }
+  const count = state.balls[ballId] ?? 0;
+  if (count <= 0) {
+    return state;
+  }
+  const wild = state.units.find((unit) => unit.team === "enemy" && isAlive(unit));
+  if (!wild) {
+    return state;
+  }
+
+  const ballPower = BALANCE.ballPower[ballId] ?? 0.3;
+  const hpFactor = 1 - (wild.hp / wild.maxHp) * BALANCE.captureHpWeight;
+  const statusFactor = wild.statusCondition ? BALANCE.captureStatusBonus : 1;
+  const chance = clamp(ballPower * hpFactor * statusFactor, BALANCE.captureMinChance, BALANCE.captureMaxChance);
+  const [roll, rng] = nextRandom(state.rng);
+  const balls = { ...state.balls, [ballId]: count - 1 };
+
+  if (roll < chance) {
+    return {
+      ...state,
+      rng,
+      balls,
+      status: "captured",
+      log: [`Gotcha! ${wild.name} was caught!`, ...state.log].slice(0, BALANCE.logLimit),
+    };
+  }
+
+  return {
+    ...state,
+    rng,
+    balls,
+    log: [`${wild.name} broke free!`, ...state.log].slice(0, BALANCE.logLimit),
+  };
 }
 
 function tickPlayingBattle(state: BattleState, deltaSeconds: number): BattleState {
@@ -2371,6 +2570,10 @@ export function previewPlayerMove(state: BattleState, moveId: string): MovePrevi
 }
 
 function normalizeBattle(state: BattleState): BattleState {
+  // Capture and flee are terminal outcomes set explicitly; don't recompute.
+  if (state.status === "captured" || state.status === "fled") {
+    return state;
+  }
   const firstAlly = firstLivingUnit(state, "ally");
   const firstEnemy = firstLivingUnit(state, "enemy");
   const selectedAlly = findLivingUnit(state, state.selectedAllyId, "ally") ?? firstAlly;

@@ -5,6 +5,7 @@ import {
   MULTI_PULL_COST,
   MULTI_PULL_COUNT,
   PULL_COST,
+  applyCapture,
   applyDailyChallengeClear,
   applyStageClear,
   canMultiPull,
@@ -16,6 +17,7 @@ import {
   performMultiPull,
   performPull,
   stageClearReward,
+  wildVictoryReward,
 } from "./gacha";
 import type { PlayerProgress } from "./progress";
 
@@ -136,6 +138,45 @@ describe("multi pulls", () => {
     expect(outcome?.results).toHaveLength(1);
     expect(outcome?.results[0].allyId).toBe("squirtle");
     expect(outcome?.progress.gems).toBe(1000 - MULTI_PULL_COST + perPull * (MULTI_PULL_COUNT - 1));
+  });
+});
+
+describe("captures", () => {
+  it("never pulls wild-source allies from the gacha", () => {
+    let progress = baseProgress({ gems: 100000 });
+    for (let index = 0; index < 16; index += 1) {
+      const outcome = performPull(progress, (index + 1) * 104729);
+      if (!outcome) {
+        break;
+      }
+      progress = outcome.progress;
+    }
+
+    expect(progress.unlockedAllies).toHaveLength(16);
+    expect(progress.unlockedAllies).not.toContain("pidgey");
+    expect(progress.unlockedAllies).not.toContain("rattata");
+    expect(progress.unlockedAllies).not.toContain("oddish");
+  });
+
+  it("applies captures as unlocks, levels, or gem consolation", () => {
+    const unlocked = applyCapture(baseProgress(), "pidgey");
+    expect(unlocked.result).toBe("unlocked");
+    expect(unlocked.progress.unlockedAllies).toContain("pidgey");
+
+    const leveled = applyCapture(unlocked.progress, "pidgey");
+    expect(leveled.result).toBe("leveled");
+    expect(leveled.progress.allyLevels.pidgey).toBe(2);
+
+    const maxed = applyCapture(
+      baseProgress({ unlockedAllies: ["pidgey"], allyLevels: { pidgey: BALANCE.maxAllyLevel } }),
+      "pidgey",
+    );
+    expect(maxed.result).toBe("maxed");
+    expect(maxed.progress.gems).toBe(200 + 25);
+  });
+
+  it("pays larger rewards for higher-level wild victories", () => {
+    expect(wildVictoryReward(4)).toBeGreaterThan(wildVictoryReward(1));
   });
 });
 

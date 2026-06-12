@@ -163,3 +163,45 @@ describe("world interactions", () => {
     expect(VILLAGE_MAP.doors[tileKey(arena.x, arena.z)].label).toBe("Arena");
   });
 });
+
+describe("wild encounters", () => {
+  it("connects the village to Route 1 through the east gate", () => {
+    expect(isWalkableTile(tileAt(VILLAGE_MAP, 23, 9))).toBe(true);
+    expect(VILLAGE_MAP.tiles.flat()).toContain("tallgrass");
+    expect(VILLAGE_MAP.encounters.length).toBeGreaterThan(0);
+  });
+
+  it("rolls encounters while walking in tall grass and pauses the world", () => {
+    let state = createInitialWorldState({ x: 28, z: 3 }, 7);
+    state = worldReducer(state, { type: "setMoveInput", x: 1, z: 0 });
+
+    for (let step = 0; step < 30 * 12 && !state.encounter; step += 1) {
+      state = tick(state);
+      // Pace back and forth through the grass strip.
+      if (step === 30 * 4) {
+        state = worldReducer(state, { type: "setMoveInput", x: -1, z: 0 });
+      }
+      if (step === 30 * 8) {
+        state = worldReducer(state, { type: "setMoveInput", x: 1, z: 0 });
+      }
+    }
+
+    expect(state.encounter).not.toBeNull();
+    const entry = VILLAGE_MAP.encounters.find((candidate) => candidate.speciesId === state.encounter?.speciesId);
+    expect(entry).toBeDefined();
+    expect(state.encounter!.level).toBeGreaterThanOrEqual(entry!.minLevel);
+    expect(state.encounter!.level).toBeLessThanOrEqual(entry!.maxLevel);
+
+    // The world freezes until the encounter is consumed.
+    expect(tick(state)).toBe(state);
+    expect(worldReducer(state, { type: "clearEncounter" }).encounter).toBeNull();
+  });
+
+  it("never rolls encounters on plain paths", () => {
+    let state = createInitialWorldState(undefined, 7);
+    state = worldReducer(state, { type: "setMoveInput", x: 1, z: 0 });
+    state = tickFor(state, 3);
+
+    expect(state.encounter).toBeNull();
+  });
+});

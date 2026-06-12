@@ -789,6 +789,55 @@ kbd {
   font-weight: 800;
 }
 
+.wild-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.ball-button,
+.flee-button {
+  display: grid;
+  gap: 4px;
+  min-height: 50px;
+  padding: 8px 12px;
+  border: 1px solid rgba(248, 113, 113, 0.6);
+  border-radius: 7px;
+  color: #f8fafc;
+  text-align: left;
+  background: linear-gradient(135deg, rgba(153, 27, 27, 0.85), rgba(190, 18, 60, 0.6));
+  cursor: pointer;
+}
+
+.flee-button {
+  border-color: rgba(148, 163, 184, 0.5);
+  background: rgba(30, 41, 59, 0.85);
+}
+
+.ball-button span,
+.flee-button span {
+  font-weight: 900;
+}
+
+.ball-button strong,
+.flee-button strong {
+  color: #fecaca;
+  font-size: 0.76rem;
+}
+
+.flee-button strong {
+  color: #94a3b8;
+}
+
+.ball-button:disabled,
+.flee-button:disabled {
+  color: #94a3b8;
+  border-color: rgba(148, 163, 184, 0.28) !important;
+  background: rgba(30, 41, 59, 0.72);
+  cursor: not-allowed;
+}
+
 .battle-log {
   position: absolute;
   bottom: 18px;

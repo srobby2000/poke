@@ -1,6 +1,6 @@
 import { Suspense, lazy, useEffect, useReducer, useRef, useState } from "react";
 import type { PlayerProgress } from "../game/progress";
-import type { WorldInteraction } from "../game/worldState";
+import type { WildEncounter, WorldInteraction } from "../game/worldState";
 import { createInitialWorldState, worldReducer } from "../game/worldState";
 
 const LOGIC_STEP_SECONDS = 1 / 30;
@@ -16,6 +16,7 @@ type WorldScreenProps = {
   onEnterBuilding: (building: string) => void;
   onSavePosition: (position: { x: number; z: number }) => void;
   onPickBerry: (tileKey: string) => string;
+  onStartWild: (encounter: WildEncounter) => void;
 };
 
 function promptFor(nearby: WorldInteraction): string {
@@ -28,7 +29,14 @@ function promptFor(nearby: WorldInteraction): string {
   return "Check berry tree";
 }
 
-export function WorldScreen({ progress, pickedBerries, onEnterBuilding, onSavePosition, onPickBerry }: WorldScreenProps) {
+export function WorldScreen({
+  progress,
+  pickedBerries,
+  onEnterBuilding,
+  onSavePosition,
+  onPickBerry,
+  onStartWild,
+}: WorldScreenProps) {
   const [world, dispatch] = useReducer(worldReducer, undefined, () =>
     createInitialWorldState(progress.worldPosition),
   );
@@ -121,6 +129,16 @@ export function WorldScreen({ progress, pickedBerries, onEnterBuilding, onSavePo
       dispatch({ type: "showMessage", text });
     }
   }, [world.berryTarget, onPickBerry]);
+
+  // A rolled encounter pauses the world and launches a wild battle.
+  const encounterStartedRef = useRef(false);
+  useEffect(() => {
+    if (world.encounter && !encounterStartedRef.current) {
+      encounterStartedRef.current = true;
+      onSavePosition({ x: world.x, z: world.z });
+      onStartWild(world.encounter);
+    }
+  }, [world.encounter, world.x, world.z, onSavePosition, onStartWild]);
 
   // Periodic position save so refreshes resume where you stood.
   useEffect(() => {

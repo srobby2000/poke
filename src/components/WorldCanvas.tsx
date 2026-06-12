@@ -74,6 +74,7 @@ function Player({ state }: { state: WorldState }) {
 const StaticVillage = memo(function StaticVillage({ map, pickedBerries }: { map: WorldMap; pickedBerries: string[] }) {
   const layout = useMemo(() => {
     const grass: [number, number][] = [];
+    const tallgrass: [number, number][] = [];
     const trees: [number, number][] = [];
     const water: [number, number][] = [];
     const walls: [number, number][] = [];
@@ -85,6 +86,7 @@ const StaticVillage = memo(function StaticVillage({ map, pickedBerries }: { map:
     map.tiles.forEach((row, z) => {
       row.forEach((kind, x) => {
         if (kind === "grass") grass.push([x, z]);
+        else if (kind === "tallgrass") tallgrass.push([x, z]);
         else if (kind === "tree") trees.push([x, z]);
         else if (kind === "water") water.push([x, z]);
         else if (kind === "wall") walls.push([x, z]);
@@ -98,7 +100,7 @@ const StaticVillage = memo(function StaticVillage({ map, pickedBerries }: { map:
       });
     });
 
-    return { grass, trees, water, walls, fences, berries, doors, npcs };
+    return { grass, tallgrass, trees, water, walls, fences, berries, doors, npcs };
   }, [map]);
 
   const centerX = (map.width - 1) / 2;
@@ -118,6 +120,32 @@ const StaticVillage = memo(function StaticVillage({ map, pickedBerries }: { map:
           <Instance key={`g${x},${z}`} position={[x, 0.005, z]} rotation={[-Math.PI / 2, 0, 0]} />
         ))}
       </Instances>
+
+      {layout.tallgrass.length > 0 ? (
+        <>
+          <Instances limit={layout.tallgrass.length} range={layout.tallgrass.length}>
+            <planeGeometry args={[0.98, 0.98]} />
+            <meshStandardMaterial color="#1f5c3c" roughness={0.95} />
+            {layout.tallgrass.map(([x, z]) => (
+              <Instance key={`tg${x},${z}`} position={[x, 0.006, z]} rotation={[-Math.PI / 2, 0, 0]} />
+            ))}
+          </Instances>
+          <Instances limit={layout.tallgrass.length * 2} range={layout.tallgrass.length * 2}>
+            <coneGeometry args={[0.1, 0.5, 4]} />
+            <meshStandardMaterial color="#2c7a4f" roughness={0.9} />
+            {layout.tallgrass.flatMap(([x, z]) => [
+              <Instance
+                key={`tg1${x},${z}`}
+                position={[x + (((x * 7 + z * 13) % 5) - 2) * 0.12, 0.25, z + (((x * 3 + z * 11) % 5) - 2) * 0.12]}
+              />,
+              <Instance
+                key={`tg2${x},${z}`}
+                position={[x + (((x * 5 + z * 17) % 5) - 2) * 0.14, 0.25, z + (((x * 13 + z * 7) % 5) - 2) * 0.14]}
+              />,
+            ])}
+          </Instances>
+        </>
+      ) : null}
 
       <Instances limit={layout.trees.length} range={layout.trees.length} castShadow>
         <coneGeometry args={[0.55, 1.25, 7]} />

@@ -154,7 +154,9 @@ export function TeamSelect({
                   <b className="rarity-stars">{"★".repeat(option.rarity)}</b>
                 </span>
                 <span className="select-types">{option.types.join(" / ")}</span>
-                <span className="select-locked-hint">Locked — scout to recruit</span>
+                <span className="select-locked-hint">
+                  {option.source === "wild" ? "Locked — found in the wild on Route 1" : "Locked — scout to recruit"}
+                </span>
               </div>
             );
           }
