@@ -2,6 +2,7 @@ import { memo, useState } from "react";
 import type { Dispatch } from "react";
 import type { BattleAction, BattleState, Unit } from "../game/battleState";
 import { isAlive, previewPlayerMove, teamUnits } from "../game/battleState";
+import { ITEMS } from "../game/items";
 import { isSoundMuted, setSoundMuted } from "../game/sound";
 
 type BattleHudProps = {
@@ -10,9 +11,10 @@ type BattleHudProps = {
   onNextStage?: () => void;
   onRetry?: () => void;
   onChangeTeam?: () => void;
+  onReturnToWorld?: () => void;
 };
 
-export function BattleHud({ state, dispatch, onNextStage, onRetry, onChangeTeam }: BattleHudProps) {
+export function BattleHud({ state, dispatch, onNextStage, onRetry, onChangeTeam, onReturnToWorld }: BattleHudProps) {
   const [muted, setMuted] = useState(isSoundMuted);
   const allies = teamUnits(state, "ally");
   const enemies = teamUnits(state, "enemy");
@@ -21,14 +23,21 @@ export function BattleHud({ state, dispatch, onNextStage, onRetry, onChangeTeam 
   const gaugePercent = (state.moveGauge / state.maxMoveGauge) * 100;
   const unityPercent = (state.unityGauge / state.maxUnityGauge) * 100;
   const isDaily = state.config.battleMode === "daily";
+  const isWild = state.config.battleMode === "wild";
 
   return (
     <div className="hud-layer">
       {state.feedback.some((entry) => entry.kind === "sync") ? <div className="sync-flash" /> : null}
       <section className="top-strip" aria-label="Battle status">
         <div className="objective-chip">
-          <strong>{isDaily ? `Daily ${state.config.dailyKey ?? ""}` : `Rift League - Stage ${state.config.stage}`}</strong>
-          <span>{state.config.enemyTeamName ?? "Defeat the rival trio"}</span>
+          <strong>
+            {isWild
+              ? `Wild encounter · Lv ${state.config.stage}`
+              : isDaily
+                ? `Daily ${state.config.dailyKey ?? ""}`
+                : `Rift League - Stage ${state.config.stage}`}
+          </strong>
+          <span>{isWild ? "Weaken it, then throw a ball!" : state.config.enemyTeamName ?? "Defeat the rival trio"}</span>
         </div>
         <div className="gauge-panel">
           <span>Move Gauge</span>
@@ -157,6 +166,29 @@ export function BattleHud({ state, dispatch, onNextStage, onRetry, onChangeTeam 
             );
           })}
         </div>
+        {isWild ? (
+          <div className="wild-grid" aria-label="Capture actions">
+            {Object.entries(state.balls).map(([ballId, count]) => (
+              <button
+                key={ballId}
+                className="ball-button"
+                disabled={state.status !== "playing" || state.paused || count <= 0 || !enemies.some(isAlive)}
+                onClick={() => dispatch({ type: "throwBall", ballId })}
+              >
+                <span>{ITEMS[ballId]?.name ?? ballId}</span>
+                <strong>×{count}</strong>
+              </button>
+            ))}
+            <button
+              className="flee-button"
+              disabled={state.status !== "playing" || state.paused}
+              onClick={() => dispatch({ type: "flee" })}
+            >
+              <span>Flee</span>
+              <strong>run away</strong>
+            </button>
+          </div>
+        ) : null}
         {selectedAlly ? (
           <div className="special-grid">
             {selectedAlly.trainerMove ? (
@@ -212,17 +244,34 @@ export function BattleHud({ state, dispatch, onNextStage, onRetry, onChangeTeam 
       {state.status !== "playing" ? (
         <div className="result-overlay" role="dialog" aria-live="polite">
           <div className="result-panel">
-            <span>{state.status === "won" ? "Victory" : "Defeat"}</span>
+            <span>
+              {state.status === "captured"
+                ? "Caught!"
+                : state.status === "fled"
+                  ? "Escaped"
+                  : state.status === "won"
+                    ? "Victory"
+                    : "Defeat"}
+            </span>
             <strong>
-              {state.status === "won"
-                ? isDaily
-                  ? "Daily challenge cleared!"
-                  : `Stage ${state.config.stage} cleared!`
-                : isDaily
-                  ? "Your team has fallen in the daily challenge."
-                  : `Your team has fallen on stage ${state.config.stage}.`}
+              {state.status === "captured"
+                ? `${state.config.enemyTeamName ?? "The wild creature"} joined your roster!`
+                : state.status === "fled"
+                  ? "You got away safely."
+                  : state.status === "won"
+                    ? isWild
+                      ? "The wild creature fainted."
+                      : isDaily
+                        ? "Daily challenge cleared!"
+                        : `Stage ${state.config.stage} cleared!`
+                    : isWild
+                      ? "Your team has fallen. The wild creature wanders off."
+                      : isDaily
+                        ? "Your team has fallen in the daily challenge."
+                        : `Your team has fallen on stage ${state.config.stage}.`}
             </strong>
-            {state.status === "won" && onNextStage ? (
+            {isWild && onReturnToWorld ? <button onClick={onReturnToWorld}>Return to Village</button> : null}
+            {!isWild && state.status === "won" && onNextStage ? (
               <button onClick={onNextStage}>Continue - Stage {state.config.stage + 1}</button>
             ) : null}
             <div className="battle-report" aria-label="Damage report">
@@ -235,7 +284,7 @@ export function BattleHud({ state, dispatch, onNextStage, onRetry, onChangeTeam 
                   </span>
                 ))}
             </div>
-            {state.status === "lost" ? (
+            {!isWild && state.status === "lost" ? (
               onRetry ? (
                 <button onClick={onRetry}>{isDaily ? "Retry Daily" : `Retry Stage ${state.config.stage}`}</button>
               ) : (

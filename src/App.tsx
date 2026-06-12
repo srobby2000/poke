@@ -10,13 +10,15 @@ import { evaluateAchievements } from "./game/achievements";
 import type { PullResult } from "./game/gacha";
 import {
   DAILY_CHALLENGE_REWARD,
+  applyCapture,
   applyDailyChallengeClear,
   applyStageClear,
   performLevelUp,
   performMultiPull,
   performPull,
+  wildVictoryReward,
 } from "./game/gacha";
-import { ITEMS, pickBerry, pickedBerryTiles } from "./game/items";
+import { ITEMS, addItem, itemCount, pickBerry, pickedBerryTiles } from "./game/items";
 import { fetchSpeciesStats } from "./game/pokeApi";
 import { loadProgress, saveProgress } from "./game/progress";
 import { buyItem, sellItem } from "./game/shop";
@@ -34,7 +36,23 @@ const MAX_DELTA_SECONDS = 0.08;
 const preloadCanvas = () => import("./components/BattleCanvas");
 const BattleCanvas = lazy(() => preloadCanvas().then((module) => ({ default: module.BattleCanvas })));
 
-type Session = { allyIds: string[]; stage: number; runId: number; battleMode: BattleMode; dailyKey?: string };
+type WildSession = { speciesId: string; level: number; balls: Record<string, number> };
+
+type Session = {
+  allyIds: string[];
+  stage: number;
+  runId: number;
+  battleMode: BattleMode;
+  dailyKey?: string;
+  wild?: WildSession;
+};
+
+const BALL_ITEM_IDS = ["poke-ball", "great-ball"];
+
+export type WildEndSummary = {
+  outcome: "won" | "lost" | "captured" | "fled";
+  ballsRemaining: Record<string, number>;
+};
 
 export default function App() {
   const [speciesStats, setSpeciesStats] = useState<Record<string, PokemonBaseStats> | null>(null);
@@ -47,6 +65,10 @@ export default function App() {
   const savePosition = useCallback((position: { x: number; z: number }) => {
     setProgress((current) => ({ ...current, worldPosition: position }));
   }, []);
+
+  // The team used for wild encounters: the last arena team, or the first
+  // three unlocked allies as a fallback.
+  const lastTeamRef = useRef<string[] | null>(null);
   // Seeded lazily in the pull handler — impure calls are not allowed in render.
   const pullSeedRef = useRef<number | null>(null);
 
@@ -119,6 +141,17 @@ export default function App() {
           const item = ITEMS[result.itemId];
           return `You picked ${result.quantity} × ${item?.name ?? result.itemId}! Sell them at the shop.`;
         }}
+        onStartWild={(encounter) => {
+          const balls = Object.fromEntries(BALL_ITEM_IDS.map((id) => [id, itemCount(progress, id)]));
+          const team = lastTeamRef.current?.filter((id) => progress.unlockedAllies.includes(id));
+          setSession({
+            allyIds: team && team.length === 3 ? team : progress.unlockedAllies.slice(0, 3),
+            stage: encounter.level,
+            runId: 1,
+            battleMode: "wild",
+            wild: { speciesId: encounter.speciesId, level: encounter.level, balls },
+          });
+        }}
       />
     );
   }
@@ -156,10 +189,14 @@ export default function App() {
         dailyKey={todayKey}
         dailyReward={DAILY_CHALLENGE_REWARD}
         dailyCleared={progress.dailyClearedDate === todayKey}
-        onStart={(allyIds) => setSession({ allyIds, stage: 1, runId: 1, battleMode: "ladder" })}
-        onStartDaily={(allyIds) =>
-          setSession({ allyIds, stage: dailyChallengeStage(todayKey), runId: 1, battleMode: "daily", dailyKey: todayKey })
-        }
+        onStart={(allyIds) => {
+          lastTeamRef.current = allyIds;
+          setSession({ allyIds, stage: 1, runId: 1, battleMode: "ladder" });
+        }}
+        onStartDaily={(allyIds) => {
+          lastTeamRef.current = allyIds;
+          setSession({ allyIds, stage: dailyChallengeStage(todayKey), runId: 1, battleMode: "daily", dailyKey: todayKey });
+        }}
         onPull={() => {
           const outcome = performPull(progress, nextPullSeed());
           if (!outcome) {
@@ -190,13 +227,36 @@ export default function App() {
 
   return (
     <Battle
-      key={`${session.runId}-${session.battleMode}-${session.stage}-${session.dailyKey ?? "ladder"}`}
+      key={`${session.runId}-${session.battleMode}-${session.stage}-${session.dailyKey ?? session.wild?.speciesId ?? "ladder"}`}
       allyIds={session.allyIds}
       stage={session.stage}
       battleMode={session.battleMode}
       dailyKey={session.dailyKey}
+      wild={session.wild}
       speciesStats={speciesStats}
       allyLevels={progress.allyLevels}
+      onWildEnd={(summary) => {
+        const wild = session.wild;
+        if (!wild) {
+          return;
+        }
+        let next = progress;
+        // Deduct the balls thrown during the battle.
+        for (const ballId of BALL_ITEM_IDS) {
+          const used = (wild.balls[ballId] ?? 0) - (summary.ballsRemaining[ballId] ?? 0);
+          if (used > 0) {
+            next = addItem(next, ballId, -used);
+          }
+        }
+        if (summary.outcome === "captured") {
+          next = applyCapture(next, wild.speciesId).progress;
+        } else if (summary.outcome === "won") {
+          next = { ...next, gems: next.gems + wildVictoryReward(wild.level) };
+        }
+        commitProgress(next);
+        setSession(null);
+        setScreen("world");
+      }}
       onBattleCleared={(summary) => {
         const rewarded =
           session.battleMode === "daily" && session.dailyKey
@@ -220,17 +280,40 @@ type BattleProps = {
   stage: number;
   battleMode: BattleMode;
   dailyKey?: string;
+  wild?: WildSession;
   speciesStats: Record<string, PokemonBaseStats> | null;
   allyLevels: Record<string, number>;
   onBattleCleared: (summary: BattleSummary) => void;
+  onWildEnd?: (summary: WildEndSummary) => void;
   onNextStage?: () => void;
   onRetry: () => void;
   onChangeTeam: () => void;
 };
 
-function Battle({ allyIds, stage, battleMode, dailyKey, speciesStats, allyLevels, onBattleCleared, onNextStage, onRetry, onChangeTeam }: BattleProps) {
+function Battle({
+  allyIds,
+  stage,
+  battleMode,
+  dailyKey,
+  wild,
+  speciesStats,
+  allyLevels,
+  onBattleCleared,
+  onWildEnd,
+  onNextStage,
+  onRetry,
+  onChangeTeam,
+}: BattleProps) {
   const [battle, dispatch] = useReducer(battleReducer, undefined, () =>
-    createInitialBattleState(undefined, { allyIds, stage, battleMode, dailyKey, speciesStats: speciesStats ?? undefined, allyLevels }),
+    createInitialBattleState(undefined, {
+      allyIds,
+      stage,
+      battleMode,
+      dailyKey,
+      wild,
+      speciesStats: speciesStats ?? undefined,
+      allyLevels,
+    }),
   );
 
   useBattleSounds(battle);
@@ -310,7 +393,9 @@ function Battle({ allyIds, stage, battleMode, dailyKey, speciesStats, allyLevels
 
   // Gems and best-stage are awarded exactly once per battle, even though the
   // status stays "won" and the callback identity changes across renders.
-  const won = battle.status === "won";
+  // Wild battles settle through onWildEnd when the player returns to the
+  // village; ladder/daily battles pay out the moment they're won.
+  const won = battle.status === "won" && battleMode !== "wild";
   const rewardedRef = useRef(false);
   useEffect(() => {
     if (won && !rewardedRef.current) {
@@ -324,6 +409,18 @@ function Battle({ allyIds, stage, battleMode, dailyKey, speciesStats, allyLevels
     }
   }, [won, onBattleCleared]);
 
+  const handleReturnToWorld =
+    battleMode === "wild" && onWildEnd
+      ? () => {
+          const current = battleRef.current;
+          const outcome =
+            current.status === "captured" || current.status === "fled" || current.status === "won" || current.status === "lost"
+              ? current.status
+              : "fled";
+          onWildEnd({ outcome, ballsRemaining: current.balls });
+        }
+      : undefined;
+
   return (
     <main className="app-shell">
       <Suspense fallback={<div className="canvas-loading">Loading arena…</div>}>
@@ -334,7 +431,8 @@ function Battle({ allyIds, stage, battleMode, dailyKey, speciesStats, allyLevels
         dispatch={dispatch}
         onNextStage={onNextStage}
         onRetry={onRetry}
-        onChangeTeam={onChangeTeam}
+        onChangeTeam={battleMode === "wild" ? undefined : onChangeTeam}
+        onReturnToWorld={handleReturnToWorld}
       />
     </main>
   );

@@ -592,12 +592,75 @@ describe("battle simulation", () => {
   it("exposes the full ally roster for team selection", () => {
     const options = getAllyOptions();
 
-    expect(options).toHaveLength(16);
+    expect(options).toHaveLength(19);
     expect(options.map((option) => option.id)).toContain("jigglypuff");
     expect(options.map((option) => option.id)).toContain("dratini");
     expect(options.every((option) => option.baseStats.hp > 0)).toBe(true);
     expect(options.filter((option) => option.role === "strike").length).toBeGreaterThanOrEqual(3);
     expect(options.filter((option) => option.rarity === 5).map((option) => option.id)).toEqual(["dratini", "lapras"]);
+    expect(options.find((option) => option.id === "pidgey")?.source).toBe("wild");
+    expect(options.find((option) => option.id === "squirtle")?.source).toBe("gacha");
+  });
+
+  it("builds a wild battle with a single scaled enemy and ball inventory", () => {
+    const state = createInitialBattleState(1, {
+      battleMode: "wild",
+      wild: { speciesId: "pidgey", level: 3, balls: { "poke-ball": 5, "great-ball": 1 } },
+    });
+    const enemies = state.units.filter((unit) => unit.team === "enemy");
+
+    expect(enemies).toHaveLength(1);
+    expect(enemies[0].name).toBe("Wild Pidgey");
+    expect(state.config.enemyTeamName).toBe("Wild Pidgey");
+    expect(state.config.stage).toBe(3);
+    expect(state.balls["poke-ball"]).toBe(5);
+    // The lone wild creature gets a boss-sized HP pool.
+    expect(enemies[0].maxHp).toBeGreaterThan(200);
+    expect(state.enemyTrainer.healUses).toBe(0);
+  });
+
+  it("throws balls that consume inventory and can capture a weakened wild", () => {
+    let state = createInitialBattleState(123, {
+      battleMode: "wild",
+      wild: { speciesId: "rattata", level: 1, balls: { "great-ball": 10 } },
+    });
+    state = { ...state, units: state.units.map((unit) => (unit.team === "enemy" ? { ...unit, hp: 1 } : unit)) };
+
+    let throws = 0;
+    while (state.status !== "captured" && throws < 10) {
+      state = battleReducer(state, { type: "throwBall", ballId: "great-ball" });
+      throws += 1;
+    }
+
+    expect(state.status).toBe("captured");
+    expect(state.balls["great-ball"]).toBe(10 - throws);
+    expect(state.log.some((entry) => entry.includes("caught"))).toBe(true);
+    // The battle is over: ticking changes nothing.
+    expect(battleReducer(state, tickBattle(1))).toBe(state);
+  });
+
+  it("refuses ball throws outside wild battles or without balls", () => {
+    const ladder = createInitialBattleState(1);
+    expect(battleReducer(ladder, { type: "throwBall", ballId: "poke-ball" })).toBe(ladder);
+
+    const wild = createInitialBattleState(1, {
+      battleMode: "wild",
+      wild: { speciesId: "pidgey", level: 1, balls: {} },
+    });
+    expect(battleReducer(wild, { type: "throwBall", ballId: "poke-ball" })).toBe(wild);
+  });
+
+  it("flees wild battles only", () => {
+    const wild = createInitialBattleState(1, {
+      battleMode: "wild",
+      wild: { speciesId: "pidgey", level: 1, balls: {} },
+    });
+    const fled = battleReducer(wild, { type: "flee" });
+
+    expect(fled.status).toBe("fled");
+    expect(battleReducer(fled, tickBattle(1))).toBe(fled);
+    const ladder = createInitialBattleState(1);
+    expect(battleReducer(ladder, { type: "flee" })).toBe(ladder);
   });
 
   it("scales ally stats with their saved level", () => {

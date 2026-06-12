@@ -5,7 +5,16 @@ export const WORLD_BALANCE = {
   moveSpeed: 3.6,
   playerRadius: 0.3,
   interactRange: 0.9,
+  // Chance of a wild encounter per tile of distance walked in tall grass.
+  encounterChancePerTile: 0.14,
 } as const;
+
+export type WildEncounter = { speciesId: string; level: number };
+
+function nextRandom(seed: number): [value: number, nextSeed: number] {
+  const nextSeed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+  return [nextSeed / 0x100000000, nextSeed];
+}
 
 // Buildings the player can actually enter; the rest respond with a message
 // so doors never feel dead.
@@ -32,7 +41,12 @@ export type WorldState = {
   // Tile key of a berry tree the player just checked; the screen layer
   // resolves it against the save file and reports back via showMessage.
   berryTarget: string | null;
+  // A wild encounter rolled while walking in tall grass; the screen layer
+  // launches the battle and clears it.
+  encounter: WildEncounter | null;
   message: string | null;
+  grassProgress: number;
+  rng: number;
   elapsed: number;
 };
 
@@ -42,10 +56,11 @@ export type WorldAction =
   | { type: "interact" }
   | { type: "clearEntry" }
   | { type: "clearBerryTarget" }
+  | { type: "clearEncounter" }
   | { type: "showMessage"; text: string }
   | { type: "dismissMessage" };
 
-export function createInitialWorldState(position?: { x: number; z: number } | null): WorldState {
+export function createInitialWorldState(position?: { x: number; z: number } | null, seed?: number): WorldState {
   const map = VILLAGE_MAP;
   const requested = position ?? map.spawn;
   const start = canStandAt(map, requested.x, requested.z) ? requested : map.spawn;
@@ -62,7 +77,10 @@ export function createInitialWorldState(position?: { x: number; z: number } | nu
     nearby: null,
     enteredBuilding: null,
     berryTarget: null,
+    encounter: null,
     message: null,
+    grassProgress: 0,
+    rng: seed ?? Math.floor(Math.random() * 0xffffffff),
     elapsed: 0,
   };
 }
@@ -135,6 +153,10 @@ export function worldReducer(state: WorldState, action: WorldAction): WorldState
     return state.berryTarget ? { ...state, berryTarget: null } : state;
   }
 
+  if (action.type === "clearEncounter") {
+    return state.encounter ? { ...state, encounter: null } : state;
+  }
+
   if (action.type === "showMessage") {
     return { ...state, message: action.text };
   }
@@ -144,11 +166,19 @@ export function worldReducer(state: WorldState, action: WorldAction): WorldState
   }
 
   if (action.type === "tick") {
+    // The world pauses while an encounter waits to be launched.
+    if (state.encounter) {
+      return state;
+    }
+
     const moving = Math.hypot(state.inputX, state.inputZ) > 0.01;
     let { x, z, facingX, facingZ } = state;
+    let distanceMoved = 0;
 
     if (moving) {
       const step = WORLD_BALANCE.moveSpeed * action.deltaSeconds;
+      const beforeX = x;
+      const beforeZ = z;
       // Move per axis so the player slides along walls instead of sticking.
       const nextX = x + state.inputX * step;
       if (canStandAt(state.map, nextX, z)) {
@@ -160,6 +190,26 @@ export function worldReducer(state: WorldState, action: WorldAction): WorldState
       }
       facingX = state.inputX;
       facingZ = state.inputZ;
+      distanceMoved = Math.hypot(x - beforeX, z - beforeZ);
+    }
+
+    // Wild encounters roll once per tile of distance walked in tall grass.
+    let { grassProgress, rng } = state;
+    let encounter: WildEncounter | null = null;
+    if (distanceMoved > 0 && tileAt(state.map, x, z) === "tallgrass" && state.map.encounters.length > 0) {
+      grassProgress += distanceMoved;
+      while (grassProgress >= 1 && !encounter) {
+        grassProgress -= 1;
+        const [roll, nextSeed] = nextRandom(rng);
+        rng = nextSeed;
+        if (roll < WORLD_BALANCE.encounterChancePerTile) {
+          const rolled = rollEncounter(state.map.encounters, rng);
+          encounter = rolled.encounter;
+          rng = rolled.nextSeed;
+        }
+      }
+    } else if (distanceMoved > 0) {
+      grassProgress = 0;
     }
 
     const next: WorldState = {
@@ -169,6 +219,9 @@ export function worldReducer(state: WorldState, action: WorldAction): WorldState
       facingX,
       facingZ,
       moving,
+      grassProgress,
+      rng,
+      encounter,
       elapsed: state.elapsed + action.deltaSeconds,
       // Walking away from a conversation closes it.
       message: moving ? null : state.message,
@@ -177,4 +230,26 @@ export function worldReducer(state: WorldState, action: WorldAction): WorldState
   }
 
   return state;
+}
+
+function rollEncounter(
+  entries: { speciesId: string; weight: number; minLevel: number; maxLevel: number }[],
+  seed: number,
+): { encounter: WildEncounter; nextSeed: number } {
+  const [speciesRoll, seedAfterSpecies] = nextRandom(seed);
+  const [levelRoll, nextSeed] = nextRandom(seedAfterSpecies);
+
+  const totalWeight = entries.reduce((sum, entry) => sum + entry.weight, 0);
+  let cursor = speciesRoll * totalWeight;
+  let chosen = entries[entries.length - 1];
+  for (const entry of entries) {
+    cursor -= entry.weight;
+    if (cursor <= 0) {
+      chosen = entry;
+      break;
+    }
+  }
+
+  const level = chosen.minLevel + Math.floor(levelRoll * (chosen.maxLevel - chosen.minLevel + 1));
+  return { encounter: { speciesId: chosen.speciesId, level }, nextSeed };
 }

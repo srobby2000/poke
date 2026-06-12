@@ -1,6 +1,7 @@
 export type TileKind =
   | "path"
   | "grass"
+  | "tallgrass"
   | "tree"
   | "water"
   | "wall"
@@ -12,6 +13,13 @@ export type TileKind =
 export type DoorMeta = { building: string; label: string };
 export type NpcMeta = { name: string; dialogue: string };
 
+export type EncounterEntry = {
+  speciesId: string;
+  weight: number;
+  minLevel: number;
+  maxLevel: number;
+};
+
 export type WorldMap = {
   id: string;
   width: number;
@@ -20,17 +28,21 @@ export type WorldMap = {
   doors: Record<string, DoorMeta>; // keyed "x,z"
   npcs: Record<string, NpcMeta>; // keyed "x,z"
   spawn: { x: number; z: number };
+  // What can appear in this map's tall grass.
+  encounters: EncounterEntry[];
 };
 
 type MapLegend = {
   doors: Record<string, DoorMeta>;
   npcs: Record<string, NpcMeta>;
+  encounters?: EncounterEntry[];
 };
 
 const TILE_CHARS: Record<string, TileKind> = {
   "#": "tree",
   ".": "path",
   ",": "grass",
+  "%": "tallgrass",
   "~": "water",
   H: "wall",
   F: "fence",
@@ -80,7 +92,7 @@ function parseMap(id: string, layout: string[], legend: MapLegend): WorldMap {
     throw new Error(`Map ${id} has no spawn point (P)`);
   }
 
-  return { id, width, height, tiles, doors, npcs, spawn };
+  return { id, width, height, tiles, doors, npcs, spawn, encounters: legend.encounters ?? [] };
 }
 
 export function tileAt(map: WorldMap, worldX: number, worldZ: number): TileKind {
@@ -93,30 +105,30 @@ export function tileAt(map: WorldMap, worldX: number, worldZ: number): TileKind 
 }
 
 export function isWalkableTile(kind: TileKind): boolean {
-  return kind === "path" || kind === "grass";
+  return kind === "path" || kind === "grass" || kind === "tallgrass";
 }
 
-// Rift Village: arena hall up north, the (soon-to-open) shop to its west,
-// a pond in the south-east, and berry trees waiting for Phase 2.
+// Rift Village (west) and Route 1 (east): the gate in the middle rows leads
+// to tall grass (%) where wild creatures lurk. Berry trees on both sides.
 const VILLAGE_LAYOUT = [
-  "########################",
-  "#,,,,,,.......,,,,,,,,,#",
-  "#,,HHHH,,,,HHHHH,,,,,,,#",
-  "#,,HHHH....HHHHH....,,,#",
-  "#,,HSHH....HHAHH....,,,#",
-  "#......................#",
-  "#..F................F..#",
-  "#..F.....1..........F..#",
-  "#......................#",
-  "#.........P............#",
-  "#......................#",
-  "#,,B...................#",
-  "#,,,....2......~~~~,,,,#",
-  "#,,,,..........~~~~,,,,#",
-  "#,,B,..........~~~~,,,,#",
-  "#,,,,,.......,,,,,,,,,,#",
-  "#,,,,,,,,,,,,,,,,,,,,,,#",
-  "########################",
+  "########################################",
+  "#,,,,,,.......,,,,,,,,,###,,,%%%%%,,,###",
+  "#,,HHHH,,,,HHHHH,,,,,,,#,,%%%%%%%%%%%,,#",
+  "#,,HHHH....HHHHH....,,,#,%%%%%%%%%%%%%,#",
+  "#,,HSHH....HHAHH....,,,#,%%%%,,,,,%%%%,#",
+  "#......................#,%%%,,...,,%%%,#",
+  "#..F................F..#,%%,,..#..,,%%,#",
+  "#..F.....1..........F..#,%%,......3,%%,#",
+  "#.......................................",
+  "#.........P.............................",
+  "#.......................................",
+  "#,,B....................#,%%%,......,%%#",
+  "#,,,....2......~~~~,,,,,#,%%%%,....,%%%#",
+  "#,,,,..........~~~~,,,,,#,%%%%%,..,%%%%#",
+  "#,,B,..........~~~~,,,,,#,%%%%%%,B,%%%%#",
+  "#,,,,,.......,,,,,,,,,,,#,,%%%%%%,,%%%,#",
+  "#,,,,,,,,,,,,,,,,,,,,,,,##,,,%%%%,,%%,,#",
+  "########################################",
 ];
 
 export const VILLAGE_MAP = parseMap("village", VILLAGE_LAYOUT, {
@@ -131,7 +143,19 @@ export const VILLAGE_MAP = parseMap("village", VILLAGE_LAYOUT, {
     },
     "2": {
       name: "Theo",
-      dialogue: "Wild creatures rustle in the grass beyond the village... they say the path opens soon.",
+      dialogue: "The gate east of the plaza leads to Route 1. Mind the tall grass!",
+    },
+    "3": {
+      name: "Ranger Lila",
+      dialogue: "Tall grass hides wild creatures. Weaken them in battle, then throw a Poké Ball to catch them!",
     },
   },
+  encounters: [
+    { speciesId: "pidgey", weight: 30, minLevel: 1, maxLevel: 3 },
+    { speciesId: "rattata", weight: 30, minLevel: 1, maxLevel: 3 },
+    { speciesId: "oddish", weight: 18, minLevel: 2, maxLevel: 4 },
+    { speciesId: "machop", weight: 12, minLevel: 2, maxLevel: 4 },
+    { speciesId: "abra", weight: 7, minLevel: 3, maxLevel: 5 },
+    { speciesId: "dratini", weight: 3, minLevel: 4, maxLevel: 6 },
+  ],
 });

@@ -41,8 +41,13 @@ export function levelUpCost(currentLevel: number): number {
   return 40 * Math.max(1, currentLevel);
 }
 
+// Wild-source allies are capture-only; the scout machine never dispenses them.
+function gachaPool(): AllyOption[] {
+  return getAllyOptions().filter((option) => option.source !== "wild");
+}
+
 function hasPullTargets(progress: PlayerProgress): boolean {
-  const roster = getAllyOptions();
+  const roster = gachaPool();
   if (roster.some((option) => !progress.unlockedAllies.includes(option.id))) {
     return true;
   }
@@ -63,7 +68,7 @@ function pullOnce(progress: PlayerProgress, seed: number): PullOutcome | null {
     return null;
   }
 
-  const roster = getAllyOptions();
+  const roster = gachaPool();
   const locked = roster.filter((option) => !progress.unlockedAllies.includes(option.id));
   const [roll, nextSeed] = nextRandom(seed);
 
@@ -172,6 +177,34 @@ export function applyStageClear(progress: PlayerProgress, stage: number): Player
     gems: progress.gems + stageClearReward(stage, progress.bestStage),
     bestStage: Math.max(progress.bestStage, stage),
   };
+}
+
+export type CaptureOutcome = {
+  progress: PlayerProgress;
+  result: "unlocked" | "leveled" | "maxed";
+};
+
+// Capturing a wild creature is the exploration counterpart of a gacha pull:
+// new species join the roster, duplicates level up, capped dupes pay gems.
+export function applyCapture(progress: PlayerProgress, allyId: string): CaptureOutcome {
+  if (!progress.unlockedAllies.includes(allyId)) {
+    return {
+      progress: { ...progress, unlockedAllies: [...progress.unlockedAllies, allyId] },
+      result: "unlocked",
+    };
+  }
+  const level = levelOf(progress, allyId);
+  if (level >= BALANCE.maxAllyLevel) {
+    return { progress: { ...progress, gems: progress.gems + 25 }, result: "maxed" };
+  }
+  return {
+    progress: { ...progress, allyLevels: { ...progress.allyLevels, [allyId]: level + 1 } },
+    result: "leveled",
+  };
+}
+
+export function wildVictoryReward(level: number): number {
+  return 25 + 8 * Math.max(1, level);
 }
 
 export function dailyChallengeReward(progress: PlayerProgress, dateKey: string): number {
