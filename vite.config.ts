@@ -2,6 +2,8 @@ import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 
 export default defineConfig({
+  // GitHub Pages serves the app from /poke/; the deploy workflow sets this.
+  base: process.env.DEPLOY_BASE ?? "/",
   plugins: [react()],
   build: {
     // three.js is ~1MB minified; it lives in the lazily-imported BattleCanvas
