@@ -249,7 +249,8 @@ export default function App() {
           }
         }
         if (summary.outcome === "captured") {
-          next = applyCapture(next, wild.speciesId).progress;
+          const captured = applyCapture(next, wild.speciesId).progress;
+          next = { ...captured, captures: captured.captures + 1 };
         } else if (summary.outcome === "won") {
           next = { ...next, gems: next.gems + wildVictoryReward(wild.level) };
         }
@@ -438,10 +439,11 @@ function Battle({
   );
 }
 
-// Plays a sound for each new feedback entry and for KOs, by diffing state.
+// Plays a sound for each new feedback entry, for KOs, and a capture fanfare.
 function useBattleSounds(state: BattleState) {
   const seenFeedback = useRef<Set<string>>(new Set());
   const aliveById = useRef<Map<string, boolean>>(new Map());
+  const previousStatus = useRef(state.status);
 
   useEffect(() => {
     for (const entry of state.feedback) {
@@ -458,5 +460,9 @@ function useBattleSounds(state: BattleState) {
       }
       aliveById.current.set(unit.id, aliveNow);
     }
+    if (previousStatus.current !== state.status && state.status === "captured") {
+      playFeedbackSound("unity");
+    }
+    previousStatus.current = state.status;
   }, [state]);
 }

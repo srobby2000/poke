@@ -347,6 +347,11 @@ const pokeApiBaseStats = {
   gengar: { hp: 60, attack: 130, defense: 60, speed: 110 },
   dragonair: { hp: 61, attack: 84, defense: 65, speed: 70 },
   dragonite: { hp: 91, attack: 134, defense: 95, speed: 80 },
+  pidgeotto: { hp: 63, attack: 60, defense: 55, speed: 71 },
+  pidgeot: { hp: 83, attack: 80, defense: 75, speed: 101 },
+  raticate: { hp: 55, attack: 81, defense: 60, speed: 97 },
+  gloom: { hp: 60, attack: 85, defense: 70, speed: 40 },
+  vileplume: { hp: 75, attack: 110, defense: 85, speed: 50 },
 } satisfies Record<string, PokemonBaseStats>;
 
 type EvolutionStage = {
@@ -393,6 +398,15 @@ const allyEvolutions: Record<string, EvolutionStage[]> = {
   dratini: [
     { atLevel: 4, name: "Dragonair", sourcePokemon: "dragonair" },
     { atLevel: 8, name: "Dragonite", sourcePokemon: "dragonite" },
+  ],
+  pidgey: [
+    { atLevel: 4, name: "Pidgeotto", sourcePokemon: "pidgeotto" },
+    { atLevel: 8, name: "Pidgeot", sourcePokemon: "pidgeot" },
+  ],
+  rattata: [{ atLevel: 6, name: "Raticate", sourcePokemon: "raticate" }],
+  oddish: [
+    { atLevel: 4, name: "Gloom", sourcePokemon: "gloom" },
+    { atLevel: 8, name: "Vileplume", sourcePokemon: "vileplume" },
   ],
 };
 

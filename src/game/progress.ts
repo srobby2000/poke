@@ -13,6 +13,7 @@ export type PlayerProgress = {
   worldPosition: { x: number; z: number } | null;
   inventory: Record<string, number>;
   berryPicks: { date: string; picked: string[] };
+  captures: number;
 };
 
 export function defaultProgress(): PlayerProgress {
@@ -26,6 +27,7 @@ export function defaultProgress(): PlayerProgress {
     worldPosition: null,
     inventory: {},
     berryPicks: { date: "", picked: [] },
+    captures: 0,
   };
 }
 
@@ -81,6 +83,7 @@ export function loadProgress(): PlayerProgress {
               picked: parsed.berryPicks.picked.filter((key): key is string => typeof key === "string"),
             }
           : { date: "", picked: [] },
+      captures: typeof parsed.captures === "number" && parsed.captures > 0 ? Math.floor(parsed.captures) : 0,
     };
   } catch {
     return defaultProgress();

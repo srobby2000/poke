@@ -8,7 +8,8 @@ A real-time, Pokémon Masters-inspired 3v3 battle game built with React, TypeScr
 
 - **Overworld village** — walk around Rift Village (WASD/arrows, touch joystick on mobile), talk to NPCs, and enter the Arena to battle; your position is saved between sessions
 - **Berries & shop** — pick berries from village trees (they regrow daily) and trade at the Village Shop: sell berries, buy Poké Balls and potions
-- **Wild encounters & capture** — Route 1's tall grass hides wild creatures (Pidgey, Rattata, Oddish, and rare roster species up to Dratini); weaken them in battle, throw balls to capture, and recruit them — duplicates level up like gacha dupes
+- **Wild encounters & capture** — Route 1's tall grass hides wild creatures (Pidgey, Rattata, Oddish, and rare roster species up to Dratini); weaken them in battle, throw balls to capture, and recruit them — duplicates level up like gacha dupes. The deep grass further east hides stronger spawns including wild Growlithe and Eevee. Wild species evolve too (Pidgey → Pidgeotto → Pidgeot, etc.)
+- **Minimap & capture achievements** — an in-world minimap tracks your position; capture milestones (Gotcha!, Seasoned Catcher, Route Researcher) pay gem rewards
 - **Gacha scouting** — earn gems by clearing stages and spend them on pulls (×1 or discounted ×10) with an animated rarity reveal; new allies are guaranteed while any remain locked (weighted by ★ rarity), then pulls become level-ups
 - **Rotating rival squads** — four enemy teams rotate by stage, with a Boss Aura team every fifth stage, plus a once-per-day seeded Daily Challenge for bonus gems
 - **16-ally roster** — from 3★ starters to the 5★ chase units Dratini and Lapras, each with a distinct role, rarity, passive, and moveset

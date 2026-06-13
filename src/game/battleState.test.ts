@@ -732,6 +732,14 @@ describe("battle simulation", () => {
     expect(charizard?.attack ?? 0).toBeGreaterThan(charmander?.attack ?? 0);
   });
 
+  it("evolves the wild-route species too", () => {
+    expect(allyFormForLevel("pidgey", 4)?.name).toBe("Pidgeotto");
+    expect(allyFormForLevel("pidgey", 8)?.name).toBe("Pidgeot");
+    expect(allyFormForLevel("rattata", 6)?.name).toBe("Raticate");
+    expect(allyFormForLevel("oddish", 8)?.name).toBe("Vileplume");
+    expect(nextEvolutionLevel("oddish", 4)).toBe(8);
+  });
+
   it("shows evolved forms on the roster screen", () => {
     const options = getAllyOptions(undefined, { squirtle: 4 });
     const squirtle = options.find((option) => option.id === "squirtle");

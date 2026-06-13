@@ -76,6 +76,30 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     reward: 150,
     earnedBy: (progress) => Object.values(progress.allyLevels).some((level) => level >= BALANCE.maxAllyLevel),
   },
+  {
+    id: "first-capture",
+    name: "Gotcha!",
+    description: "Capture a wild creature",
+    reward: 100,
+    earnedBy: (progress) => progress.captures >= 1,
+  },
+  {
+    id: "seasoned-catcher",
+    name: "Seasoned Catcher",
+    description: "Capture 5 wild creatures",
+    reward: 150,
+    earnedBy: (progress) => progress.captures >= 5,
+  },
+  {
+    id: "wild-roster",
+    name: "Route Researcher",
+    description: "Recruit every wild-only species",
+    reward: 150,
+    earnedBy: (progress) =>
+      getAllyOptions()
+        .filter((option) => option.source === "wild")
+        .every((option) => progress.unlockedAllies.includes(option.id)),
+  },
 ];
 
 export type AchievementEvaluation = {

@@ -20,6 +20,14 @@ export type EncounterEntry = {
   maxLevel: number;
 };
 
+export type EncounterZone = {
+  minX: number;
+  maxX: number;
+  minZ: number;
+  maxZ: number;
+  encounters: EncounterEntry[];
+};
+
 export type WorldMap = {
   id: string;
   width: number;
@@ -30,12 +38,15 @@ export type WorldMap = {
   spawn: { x: number; z: number };
   // What can appear in this map's tall grass.
   encounters: EncounterEntry[];
+  // Regions with their own (usually tougher) encounter tables.
+  encounterZones: EncounterZone[];
 };
 
 type MapLegend = {
   doors: Record<string, DoorMeta>;
   npcs: Record<string, NpcMeta>;
   encounters?: EncounterEntry[];
+  encounterZones?: EncounterZone[];
 };
 
 const TILE_CHARS: Record<string, TileKind> = {
@@ -92,7 +103,28 @@ function parseMap(id: string, layout: string[], legend: MapLegend): WorldMap {
     throw new Error(`Map ${id} has no spawn point (P)`);
   }
 
-  return { id, width, height, tiles, doors, npcs, spawn, encounters: legend.encounters ?? [] };
+  return {
+    id,
+    width,
+    height,
+    tiles,
+    doors,
+    npcs,
+    spawn,
+    encounters: legend.encounters ?? [],
+    encounterZones: legend.encounterZones ?? [],
+  };
+}
+
+// The encounter table at a position: the first matching zone wins, otherwise
+// the map default applies.
+export function encountersAt(map: WorldMap, worldX: number, worldZ: number): EncounterEntry[] {
+  const x = Math.round(worldX);
+  const z = Math.round(worldZ);
+  const zone = map.encounterZones.find(
+    (candidate) => x >= candidate.minX && x <= candidate.maxX && z >= candidate.minZ && z <= candidate.maxZ,
+  );
+  return zone?.encounters ?? map.encounters;
 }
 
 export function tileAt(map: WorldMap, worldX: number, worldZ: number): TileKind {
@@ -147,7 +179,8 @@ export const VILLAGE_MAP = parseMap("village", VILLAGE_LAYOUT, {
     },
     "3": {
       name: "Ranger Lila",
-      dialogue: "Tall grass hides wild creatures. Weaken them in battle, then throw a Poké Ball to catch them!",
+      dialogue:
+        "Tall grass hides wild creatures — weaken them, then throw a Poké Ball! The deep grass further east hides much stronger ones.",
     },
   },
   encounters: [
@@ -157,5 +190,23 @@ export const VILLAGE_MAP = parseMap("village", VILLAGE_LAYOUT, {
     { speciesId: "machop", weight: 12, minLevel: 2, maxLevel: 4 },
     { speciesId: "abra", weight: 7, minLevel: 3, maxLevel: 5 },
     { speciesId: "dratini", weight: 3, minLevel: 4, maxLevel: 6 },
+  ],
+  // The eastern third of Route 1 is deep grass: stronger spawns, better odds
+  // at the chase species, and wild Growlithe/Eevee for capture hunters.
+  encounterZones: [
+    {
+      minX: 32,
+      maxX: 39,
+      minZ: 1,
+      maxZ: 16,
+      encounters: [
+        { speciesId: "oddish", weight: 20, minLevel: 4, maxLevel: 6 },
+        { speciesId: "machop", weight: 22, minLevel: 4, maxLevel: 6 },
+        { speciesId: "growlithe", weight: 20, minLevel: 4, maxLevel: 6 },
+        { speciesId: "abra", weight: 18, minLevel: 4, maxLevel: 7 },
+        { speciesId: "eevee", weight: 10, minLevel: 4, maxLevel: 6 },
+        { speciesId: "dratini", weight: 10, minLevel: 5, maxLevel: 8 },
+      ],
+    },
   ],
 });

@@ -31,6 +31,7 @@ const baseProgress = (overrides: Partial<PlayerProgress> = {}): PlayerProgress =
   worldPosition: null,
   inventory: {},
   berryPicks: { date: "", picked: [] },
+  captures: 0,
   ...overrides,
 });
 
