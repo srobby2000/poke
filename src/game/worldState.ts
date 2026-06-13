@@ -1,5 +1,5 @@
 import type { WorldMap } from "./maps";
-import { VILLAGE_MAP, isWalkableTile, tileAt, tileKey } from "./maps";
+import { VILLAGE_MAP, encountersAt, isWalkableTile, tileAt, tileKey } from "./maps";
 
 export const WORLD_BALANCE = {
   moveSpeed: 3.6,
@@ -196,14 +196,15 @@ export function worldReducer(state: WorldState, action: WorldAction): WorldState
     // Wild encounters roll once per tile of distance walked in tall grass.
     let { grassProgress, rng } = state;
     let encounter: WildEncounter | null = null;
-    if (distanceMoved > 0 && tileAt(state.map, x, z) === "tallgrass" && state.map.encounters.length > 0) {
+    const localEncounters = encountersAt(state.map, x, z);
+    if (distanceMoved > 0 && tileAt(state.map, x, z) === "tallgrass" && localEncounters.length > 0) {
       grassProgress += distanceMoved;
       while (grassProgress >= 1 && !encounter) {
         grassProgress -= 1;
         const [roll, nextSeed] = nextRandom(rng);
         rng = nextSeed;
         if (roll < WORLD_BALANCE.encounterChancePerTile) {
-          const rolled = rollEncounter(state.map.encounters, rng);
+          const rolled = rollEncounter(localEncounters, rng);
           encounter = rolled.encounter;
           rng = rolled.nextSeed;
         }

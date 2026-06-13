@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { VILLAGE_MAP, isWalkableTile, tileAt, tileKey } from "./maps";
+import { VILLAGE_MAP, encountersAt, isWalkableTile, tileAt, tileKey } from "./maps";
 import type { WorldState } from "./worldState";
 import { WORLD_BALANCE, createInitialWorldState, worldReducer } from "./worldState";
 
@@ -187,7 +187,10 @@ describe("wild encounters", () => {
     }
 
     expect(state.encounter).not.toBeNull();
-    const entry = VILLAGE_MAP.encounters.find((candidate) => candidate.speciesId === state.encounter?.speciesId);
+    // The pacing route crosses the deep-grass zone, so look the species up in
+    // the table that applies where the encounter rolled.
+    const table = encountersAt(VILLAGE_MAP, state.x, state.z);
+    const entry = table.find((candidate) => candidate.speciesId === state.encounter?.speciesId);
     expect(entry).toBeDefined();
     expect(state.encounter!.level).toBeGreaterThanOrEqual(entry!.minLevel);
     expect(state.encounter!.level).toBeLessThanOrEqual(entry!.maxLevel);
@@ -203,5 +206,19 @@ describe("wild encounters", () => {
     state = tickFor(state, 3);
 
     expect(state.encounter).toBeNull();
+  });
+
+  it("serves the deep-grass table in the eastern zone", () => {
+    const western = encountersAt(VILLAGE_MAP, 28, 3);
+    const deep = encountersAt(VILLAGE_MAP, 35, 3);
+
+    expect(western).toBe(VILLAGE_MAP.encounters);
+    expect(deep).not.toBe(VILLAGE_MAP.encounters);
+    expect(deep.some((entry) => entry.speciesId === "growlithe")).toBe(true);
+    expect(deep.some((entry) => entry.speciesId === "eevee")).toBe(true);
+    // Deeper grass spawns stronger creatures across the board.
+    expect(Math.min(...deep.map((entry) => entry.minLevel))).toBeGreaterThanOrEqual(4);
+    const dratini = deep.find((entry) => entry.speciesId === "dratini");
+    expect(dratini?.maxLevel).toBe(8);
   });
 });

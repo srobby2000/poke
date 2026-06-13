@@ -13,6 +13,7 @@ const baseProgress = (overrides: Partial<PlayerProgress> = {}): PlayerProgress =
   worldPosition: null,
   inventory: {},
   berryPicks: { date: "", picked: [] },
+  captures: 0,
   ...overrides,
 });
 
@@ -79,5 +80,31 @@ describe("achievements", () => {
     const { earned } = evaluateAchievements(baseProgress({ allyLevels: { charmander: 3 } }));
 
     expect(earned.map((achievement) => achievement.id)).not.toContain("first-evolution");
+  });
+
+  it("awards capture achievements from the captures counter", () => {
+    const none = evaluateAchievements(baseProgress());
+    expect(none.earned.map((achievement) => achievement.id)).not.toContain("first-capture");
+
+    const first = evaluateAchievements(baseProgress({ captures: 1 }));
+    expect(first.earned.map((achievement) => achievement.id)).toContain("first-capture");
+    expect(first.earned.map((achievement) => achievement.id)).not.toContain("seasoned-catcher");
+
+    const seasoned = evaluateAchievements(baseProgress({ captures: 5 }));
+    expect(seasoned.earned.map((achievement) => achievement.id)).toContain("seasoned-catcher");
+  });
+
+  it("awards the wild roster achievement once all wild species are recruited", () => {
+    const wildIds = getAllyOptions()
+      .filter((option) => option.source === "wild")
+      .map((option) => option.id);
+
+    const partial = evaluateAchievements(
+      baseProgress({ unlockedAllies: ["squirtle", ...wildIds.slice(0, wildIds.length - 1)] }),
+    );
+    expect(partial.earned.map((achievement) => achievement.id)).not.toContain("wild-roster");
+
+    const complete = evaluateAchievements(baseProgress({ unlockedAllies: ["squirtle", ...wildIds] }));
+    expect(complete.earned.map((achievement) => achievement.id)).toContain("wild-roster");
   });
 });

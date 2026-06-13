@@ -1,4 +1,5 @@
 import { Suspense, lazy, useEffect, useReducer, useRef, useState } from "react";
+import type { TileKind, WorldMap } from "../game/maps";
 import type { PlayerProgress } from "../game/progress";
 import type { WildEncounter, WorldInteraction } from "../game/worldState";
 import { createInitialWorldState, worldReducer } from "../game/worldState";
@@ -169,6 +170,8 @@ export function WorldScreen({
           </div>
         </section>
 
+        <Minimap map={world.map} x={world.x} z={world.z} />
+
         {world.nearby && !world.message ? (
           <div className="world-prompt">
             <kbd>E</kbd> {promptFor(world.nearby)}
@@ -191,6 +194,54 @@ export function WorldScreen({
         ) : null}
       </div>
     </main>
+  );
+}
+
+const MINIMAP_SCALE = 4;
+
+const MINIMAP_COLORS: Record<TileKind, string> = {
+  path: "#5a6b80",
+  grass: "#2f6e4f",
+  tallgrass: "#1f5c3c",
+  tree: "#16241d",
+  water: "#1d5f8a",
+  wall: "#8c5b5b",
+  door: "#d9a066",
+  fence: "#7c5f46",
+  berry: "#b91c1c",
+  npc: "#fbbf24",
+};
+
+function Minimap({ map, x, z }: { map: WorldMap; x: number; z: number }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const context = canvas?.getContext("2d");
+    if (!canvas || !context) {
+      return;
+    }
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    map.tiles.forEach((row, tileZ) => {
+      row.forEach((kind, tileX) => {
+        context.fillStyle = MINIMAP_COLORS[kind];
+        context.fillRect(tileX * MINIMAP_SCALE, tileZ * MINIMAP_SCALE, MINIMAP_SCALE, MINIMAP_SCALE);
+      });
+    });
+    context.fillStyle = "#78e1ff";
+    context.beginPath();
+    context.arc(x * MINIMAP_SCALE + MINIMAP_SCALE / 2, z * MINIMAP_SCALE + MINIMAP_SCALE / 2, MINIMAP_SCALE * 1.1, 0, Math.PI * 2);
+    context.fill();
+  }, [map, x, z]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="world-minimap"
+      width={map.width * MINIMAP_SCALE}
+      height={map.height * MINIMAP_SCALE}
+      aria-label="Minimap"
+    />
   );
 }
 

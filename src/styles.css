@@ -65,6 +65,28 @@ button {
   font-weight: 800;
 }
 
+.world-minimap {
+  position: absolute;
+  top: 86px;
+  right: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  border-radius: 6px;
+  background: rgba(9, 17, 30, 0.8);
+  image-rendering: pixelated;
+  opacity: 0.92;
+  pointer-events: none;
+}
+
+@media (max-width: 760px), (pointer: coarse) {
+  .world-minimap {
+    top: auto;
+    bottom: 160px;
+    right: 10px;
+    transform: scale(0.7);
+    transform-origin: bottom right;
+  }
+}
+
 .world-prompt {
   position: absolute;
   bottom: 120px;
