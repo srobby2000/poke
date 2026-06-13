@@ -4,14 +4,15 @@ import type { PlayerProgress } from "../game/progress";
 
 type ShopScreenProps = {
   progress: PlayerProgress;
-  onBuy: (itemId: string) => void;
-  onSell: (itemId: string) => void;
+  onBuy: (itemId: string, quantity: number) => void;
+  onSell: (itemId: string, quantity: number) => void;
   onBack: () => void;
 };
 
 export function ShopScreen({ progress, onBuy, onSell, onBack }: ShopScreenProps) {
   const sellable = sellableItems(progress);
   const ownedItems = Object.entries(progress.inventory).filter(([, count]) => count > 0);
+  const bagValue = ownedItems.reduce((sum, [id, count]) => sum + (ITEMS[id]?.sellPrice ?? 0) * count, 0);
 
   return (
     <main className="app-shell select-screen shop-screen">
@@ -32,13 +33,22 @@ export function ShopScreen({ progress, onBuy, onSell, onBack }: ShopScreenProps)
               <strong>{item.name}</strong>
               <small>{item.description}</small>
               <span className="shop-owned">Owned: {itemCount(progress, item.id)}</span>
-              <button
-                className="shop-buy-button"
-                disabled={progress.gems < (item.buyPrice ?? 0)}
-                onClick={() => onBuy(item.id)}
-              >
-                Buy — {item.buyPrice} 💎
-              </button>
+              <div className="shop-actions">
+                <button
+                  className="shop-buy-button"
+                  disabled={progress.gems < (item.buyPrice ?? 0)}
+                  onClick={() => onBuy(item.id, 1)}
+                >
+                  Buy 1 - {item.buyPrice} gems
+                </button>
+                <button
+                  className="shop-buy-button"
+                  disabled={progress.gems < (item.buyPrice ?? 0) * 5}
+                  onClick={() => onBuy(item.id, 5)}
+                >
+                  Buy 5 - {(item.buyPrice ?? 0) * 5} gems
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -57,9 +67,14 @@ export function ShopScreen({ progress, onBuy, onSell, onBack }: ShopScreenProps)
                 <strong>{item.name}</strong>
                 <small>{item.description}</small>
                 <span className="shop-owned">Owned: {itemCount(progress, item.id)}</span>
-                <button className="shop-sell-button" onClick={() => onSell(item.id)}>
-                  Sell — {item.sellPrice} 💎
-                </button>
+                <div className="shop-actions">
+                  <button className="shop-sell-button" onClick={() => onSell(item.id, 1)}>
+                    Sell 1 - {item.sellPrice} gems
+                  </button>
+                  <button className="shop-sell-button" onClick={() => onSell(item.id, itemCount(progress, item.id))}>
+                    Sell all - {(item.sellPrice ?? 0) * itemCount(progress, item.id)} gems
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -73,6 +88,7 @@ export function ShopScreen({ progress, onBuy, onSell, onBack }: ShopScreenProps)
             ? "empty"
             : ownedItems.map(([id, count]) => `${ITEMS[id]?.name ?? id} ×${count}`).join(" · ")}
         </span>
+        <span>Sell value: {bagValue} gems</span>
       </footer>
     </main>
   );

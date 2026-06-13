@@ -35,7 +35,7 @@ A real-time, Pokémon Masters-inspired 3v3 battle game built with React, TypeScr
 
 ```bash
 npm install
-npm run dev      # start dev server at http://127.0.0.1:5173
+npm run dev      # start dev server at http://127.0.0.1:7173
 ```
 
 ## Scripts

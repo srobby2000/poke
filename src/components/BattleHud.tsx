@@ -1,7 +1,8 @@
 import { memo, useState } from "react";
 import type { Dispatch } from "react";
 import type { BattleAction, BattleState, Unit } from "../game/battleState";
-import { isAlive, previewPlayerMove, teamUnits } from "../game/battleState";
+import { captureChanceFor, isAlive, previewEnemyIntents, previewPlayerMove, teamUnits } from "../game/battleState";
+import { battleItemEffect, isBattleItem } from "../game/battleItems";
 import { ITEMS } from "../game/items";
 import { isSoundMuted, setSoundMuted } from "../game/sound";
 
@@ -24,6 +25,26 @@ export function BattleHud({ state, dispatch, onNextStage, onRetry, onChangeTeam,
   const unityPercent = (state.unityGauge / state.maxUnityGauge) * 100;
   const isDaily = state.config.battleMode === "daily";
   const isWild = state.config.battleMode === "wild";
+  const usableItems = Object.entries(state.items).filter(([itemId, count]) => count > 0 && isBattleItem(itemId));
+  const hasDamagedAlly = allies.some((unit) => isAlive(unit) && unit.hp < unit.maxHp);
+  const wildTarget = isWild ? enemies.find(isAlive) : undefined;
+  const enemyIntent = previewEnemyIntents(state)[0];
+  const bestBall = wildTarget
+    ? Object.entries(state.balls)
+        .filter(([, count]) => count > 0)
+        .sort((left, right) => captureChanceFor(wildTarget, right[0]) - captureChanceFor(wildTarget, left[0]))[0]?.[0]
+    : undefined;
+  const availableBalls = Object.entries(state.balls).filter(([, count]) => count > 0);
+  const canUseItem = (itemId: string) => {
+    const effect = battleItemEffect(itemId);
+    if (!effect) {
+      return false;
+    }
+    if (effect.kind === "heal") {
+      return hasDamagedAlly;
+    }
+    return allies.some((unit) => isAlive(unit) && unit.statusCondition === effect.status);
+  };
 
   return (
     <div className="hud-layer">
@@ -65,6 +86,17 @@ export function BattleHud({ state, dispatch, onNextStage, onRetry, onChangeTeam,
             <em>Trainer items x{state.enemyTrainer.healUses + state.enemyTrainer.buffUses}</em>
           ) : null}
         </div>
+        {enemyIntent ? (
+          <div className="intent-chip" aria-label="Enemy intent">
+            <span>Next</span>
+            <strong>
+              {enemyIntent.unitName}: {enemyIntent.moveName}
+            </strong>
+            <em>
+              vs {enemyIntent.targetName} in {enemyIntent.secondsUntilReady.toFixed(1)}s{enemyIntent.sync ? " | sync" : ""}
+            </em>
+          </div>
+        ) : null}
         <div className="unity-chip">
           <span>Unity</span>
           <div className="unity-track">
@@ -120,12 +152,14 @@ export function BattleHud({ state, dispatch, onNextStage, onRetry, onChangeTeam,
         <div className="target-mode" aria-label="Target mode">
           <button
             className={state.targetMode === "auto" ? "target-mode-active" : ""}
+            aria-pressed={state.targetMode === "auto"}
             onClick={() => dispatch({ type: "setTargetMode", mode: "auto" })}
           >
             Auto
           </button>
           <button
             className={state.targetMode === "manual" ? "target-mode-active" : ""}
+            aria-pressed={state.targetMode === "manual"}
             onClick={() => dispatch({ type: "setTargetMode", mode: "manual" })}
           >
             Manual
@@ -158,7 +192,7 @@ export function BattleHud({ state, dispatch, onNextStage, onRetry, onChangeTeam,
                   <small>
                     {preview.statChangeLabel
                       ? `${preview.targetName} | ${preview.statChangeLabel}`
-                      : `${preview.targetName} | ${preview.effectivenessLabel} | ~${preview.estimatedDamage}`}
+                      : `${preview.targetName} | ${preview.effectivenessLabel} | ~${preview.estimatedDamage}${preview.willKo ? " | KO risk" : ""}`}
                     {preview.statusEffect ? ` | ${preview.statusEffect}` : ""}
                   </small>
                 ) : null}
@@ -168,6 +202,13 @@ export function BattleHud({ state, dispatch, onNextStage, onRetry, onChangeTeam,
         </div>
         {isWild ? (
           <div className="wild-grid" aria-label="Capture actions">
+            {wildTarget ? (
+              <small className="wild-hint">
+                Lower HP and status raise catch odds. Current HP {wildTarget.hp} / {wildTarget.maxHp}
+                {wildTarget.statusCondition ? ` | ${wildTarget.statusCondition}` : ""}
+                {wildTarget.hp / wildTarget.maxHp <= 0.25 ? " | Low HP: consider a ball." : ""}
+              </small>
+            ) : null}
             {Object.entries(state.balls).map(([ballId, count]) => (
               <button
                 key={ballId}
@@ -176,9 +217,28 @@ export function BattleHud({ state, dispatch, onNextStage, onRetry, onChangeTeam,
                 onClick={() => dispatch({ type: "throwBall", ballId })}
               >
                 <span>{ITEMS[ballId]?.name ?? ballId}</span>
-                <strong>×{count}</strong>
+                <strong>
+                  ×{count}
+                  {wildTarget ? ` | ${Math.round(captureChanceFor(wildTarget, ballId) * 100)}%` : ""}
+                </strong>
               </button>
             ))}
+            <button
+              className="hold-button"
+              disabled={state.status !== "playing" || state.paused || state.moveGauge < 1 || !wildTarget || wildTarget.hp <= 1}
+              onClick={() => dispatch({ type: "holdBack" })}
+            >
+              <span>Hold Back</span>
+              <strong>safe hit | 1 gauge</strong>
+            </button>
+            <button
+              className="ball-button"
+              disabled={state.status !== "playing" || state.paused || !bestBall || !wildTarget}
+              onClick={() => bestBall && dispatch({ type: "throwBall", ballId: bestBall })}
+            >
+              <span>Best Ball</span>
+              <strong>{bestBall ? ITEMS[bestBall]?.name ?? bestBall : "none"}</strong>
+            </button>
             <button
               className="flee-button"
               disabled={state.status !== "playing" || state.paused}
@@ -187,6 +247,21 @@ export function BattleHud({ state, dispatch, onNextStage, onRetry, onChangeTeam,
               <span>Flee</span>
               <strong>run away</strong>
             </button>
+          </div>
+        ) : null}
+        {usableItems.length > 0 ? (
+          <div className="item-grid" aria-label="Bag items">
+            {usableItems.map(([itemId, count]) => (
+              <button
+                key={itemId}
+                className="item-button"
+                disabled={state.status !== "playing" || state.paused || !canUseItem(itemId)}
+                onClick={() => dispatch({ type: "useItem", itemId })}
+              >
+                <span>{ITEMS[itemId]?.name ?? itemId}</span>
+                <strong>×{count}</strong>
+              </button>
+            ))}
           </div>
         ) : null}
         {selectedAlly ? (
@@ -271,6 +346,21 @@ export function BattleHud({ state, dispatch, onNextStage, onRetry, onChangeTeam,
                         : `Your team has fallen on stage ${state.config.stage}.`}
             </strong>
             {isWild && onReturnToWorld ? <button onClick={onReturnToWorld}>Return to Village</button> : null}
+            {isWild && state.status === "won" && availableBalls.length > 0 ? (
+              <div className="last-chance-grid" aria-label="Last chance capture">
+                <small>Last chance throw before it gets away</small>
+                {availableBalls.map(([ballId, count]) => (
+                  <button key={ballId} onClick={() => dispatch({ type: "lastChanceBall", ballId })}>
+                    {ITEMS[ballId]?.name ?? ballId} x{count}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+            {isWild && state.status === "won" && state.droppedItem ? (
+              <small className="drop-line">
+                Found {state.droppedItem.quantity} x {ITEMS[state.droppedItem.itemId]?.name ?? state.droppedItem.itemId}
+              </small>
+            ) : null}
             {!isWild && state.status === "won" && onNextStage ? (
               <button onClick={onNextStage}>Continue - Stage {state.config.stage + 1}</button>
             ) : null}
@@ -321,6 +411,7 @@ const UnitButton = memo(function UnitButton({
     <button
       className={`unit-button ${selected ? "unit-button-selected" : ""}`}
       disabled={!isAlive(unit)}
+      aria-pressed={selected}
       onClick={() => dispatch({ type: unit.team === "ally" ? "selectAlly" : "selectEnemy", unitId: unit.id })}
     >
       <span className="unit-name">

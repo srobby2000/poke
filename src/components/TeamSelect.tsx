@@ -9,6 +9,10 @@ import type { PlayerProgress } from "../game/progress";
 
 const TEAM_SIZE = 3;
 
+type RosterFilter = "all" | "unlocked" | "locked";
+type RoleFilter = "all" | "strike" | "tech" | "support";
+type SortMode = "rarity" | "level" | "name";
+
 type TeamSelectProps = {
   progress: PlayerProgress;
   lastPulls: PullResult[] | null;
@@ -23,6 +27,9 @@ type TeamSelectProps = {
   onPull: () => void;
   onMultiPull: () => void;
   onLevelUp: (allyId: string) => void;
+  onResetSave: () => void;
+  onExportSave: () => string;
+  onImportSave: (raw: string) => boolean;
   onBack?: () => void;
 };
 
@@ -40,11 +47,35 @@ export function TeamSelect({
   onPull,
   onMultiPull,
   onLevelUp,
+  onResetSave,
+  onExportSave,
+  onImportSave,
   onBack,
 }: TeamSelectProps) {
   const [selected, setSelected] = useState<string[]>([]);
   const [revealOpen, setRevealOpen] = useState(false);
+  const [saveText, setSaveText] = useState("");
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [rosterFilter, setRosterFilter] = useState<RosterFilter>("all");
+  const [roleFilter, setRoleFilter] = useState<RoleFilter>("all");
+  const [sortMode, setSortMode] = useState<SortMode>("rarity");
   const options = getAllyOptions(speciesStats ?? undefined, progress.allyLevels);
+  const visibleOptions = options
+    .filter((option) => {
+      const unlocked = progress.unlockedAllies.includes(option.id);
+      const rosterMatch = rosterFilter === "all" || (rosterFilter === "unlocked" ? unlocked : !unlocked);
+      const roleMatch = roleFilter === "all" || option.role === roleFilter;
+      return rosterMatch && roleMatch;
+    })
+    .sort((left, right) => {
+      if (sortMode === "name") {
+        return left.name.localeCompare(right.name);
+      }
+      if (sortMode === "level") {
+        return levelOf(progress, right.id) - levelOf(progress, left.id) || right.rarity - left.rarity;
+      }
+      return right.rarity - left.rarity || left.name.localeCompare(right.name);
+    });
 
   const toggle = (id: string) => {
     setSelected((current) => {
@@ -137,8 +168,76 @@ export function TeamSelect({
         })}
       </section>
 
+      <section className="save-tools" aria-label="Save tools">
+        <div className="save-actions">
+          <button
+            className="secondary-tool-button"
+            onClick={() => {
+              setSaveText(onExportSave());
+              setSaveMessage("Save exported.");
+            }}
+          >
+            Export Save
+          </button>
+          <button
+            className="secondary-tool-button"
+            onClick={() => {
+              const ok = onImportSave(saveText);
+              setSaveMessage(ok ? "Save imported." : "Import failed.");
+            }}
+          >
+            Import Save
+          </button>
+          <button
+            className="danger-tool-button"
+            onClick={() => {
+              onResetSave();
+              setSaveText("");
+              setSaveMessage("Save reset.");
+            }}
+          >
+            Reset Save
+          </button>
+        </div>
+        <textarea
+          aria-label="Save import export text"
+          value={saveText}
+          onChange={(event) => setSaveText(event.target.value)}
+          placeholder="Exported save JSON appears here. Paste save JSON here to import."
+        />
+        {saveMessage ? <small>{saveMessage}</small> : null}
+      </section>
+
+      <section className="roster-tools" aria-label="Roster filters">
+        <label>
+          Roster
+          <select value={rosterFilter} onChange={(event) => setRosterFilter(event.target.value as RosterFilter)}>
+            <option value="all">All</option>
+            <option value="unlocked">Unlocked</option>
+            <option value="locked">Locked</option>
+          </select>
+        </label>
+        <label>
+          Role
+          <select value={roleFilter} onChange={(event) => setRoleFilter(event.target.value as RoleFilter)}>
+            <option value="all">All</option>
+            <option value="strike">Strike</option>
+            <option value="tech">Tech</option>
+            <option value="support">Support</option>
+          </select>
+        </label>
+        <label>
+          Sort
+          <select value={sortMode} onChange={(event) => setSortMode(event.target.value as SortMode)}>
+            <option value="rarity">Rarity</option>
+            <option value="level">Level</option>
+            <option value="name">Name</option>
+          </select>
+        </label>
+      </section>
+
       <div className="select-grid">
-        {options.map((option) => {
+        {visibleOptions.map((option) => {
           const unlocked = progress.unlockedAllies.includes(option.id);
           const level = levelOf(progress, option.id);
           const cost = levelUpCost(level);
@@ -166,6 +265,7 @@ export function TeamSelect({
               key={option.id}
               role="button"
               tabIndex={0}
+              aria-pressed={isSelected}
               className={`select-card ${isSelected ? "select-card-active" : ""}`}
               onClick={() => toggle(option.id)}
               onKeyDown={(event) => {
@@ -222,7 +322,7 @@ export function TeamSelect({
       </footer>
 
       {revealOpen && lastPulls && lastPulls.length > 0 ? (
-        <div className="reveal-overlay" role="dialog" aria-label="Scout results" onClick={() => setRevealOpen(false)}>
+        <div className="reveal-overlay" role="dialog" aria-modal="true" aria-label="Scout results" onClick={() => setRevealOpen(false)}>
           <div className="reveal-panel" onClick={(event) => event.stopPropagation()}>
             <h2>{lastPulls.length > 1 ? `Scout ×${lastPulls.length}` : "Scout result"}</h2>
             <div className="reveal-grid">

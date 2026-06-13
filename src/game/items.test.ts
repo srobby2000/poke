@@ -68,6 +68,13 @@ describe("shop", () => {
     expect(itemCount(next!, "poke-ball")).toBe(1);
   });
 
+  it("buys item stacks for the combined price", () => {
+    const next = buyItem(baseProgress({ gems: 500 }), "poke-ball", 5);
+
+    expect(next?.gems).toBe(500 - (ITEMS["poke-ball"].buyPrice ?? 0) * 5);
+    expect(itemCount(next!, "poke-ball")).toBe(5);
+  });
+
   it("refuses purchases without enough gems or for unstocked items", () => {
     expect(buyItem(baseProgress({ gems: 10 }), "poke-ball")).toBeNull();
     expect(buyItem(baseProgress(), "oran-berry")).toBeNull();
@@ -82,12 +89,28 @@ describe("shop", () => {
     expect(itemCount(next!, "oran-berry")).toBe(2);
   });
 
+  it("sells item stacks for the combined price", () => {
+    const stocked = addItem(baseProgress(), "oran-berry", 3);
+    const next = sellItem(stocked, "oran-berry", 3);
+
+    expect(next?.gems).toBe(200 + (ITEMS["oran-berry"].sellPrice ?? 0) * 3);
+    expect(itemCount(next!, "oran-berry")).toBe(0);
+  });
+
   it("refuses to sell items the player does not own", () => {
     expect(sellItem(baseProgress(), "oran-berry")).toBeNull();
   });
 
   it("lists shop stock and sellable inventory", () => {
-    expect(SHOP_STOCK.map((item) => item.id)).toEqual(["poke-ball", "great-ball", "potion-item"]);
+    expect(SHOP_STOCK.map((item) => item.id)).toEqual([
+      "poke-ball",
+      "great-ball",
+      "potion-item",
+      "super-potion-item",
+      "antidote",
+      "burn-heal",
+      "paralyze-heal",
+    ]);
 
     const stocked = addItem(baseProgress(), "sitrus-berry", 1);
     expect(sellableItems(baseProgress())).toHaveLength(0);

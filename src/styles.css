@@ -26,6 +26,13 @@ button {
   font: inherit;
 }
 
+button:focus-visible,
+[role="button"]:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #fef08a;
+  outline-offset: 3px;
+}
+
 .app-shell {
   position: relative;
   width: 100vw;
@@ -264,6 +271,12 @@ button {
   font-weight: 800;
 }
 
+.shop-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
 .shop-buy-button,
 .shop-sell-button {
   min-height: 36px;
@@ -416,6 +429,37 @@ button {
 .unity-chip strong {
   color: #f8fafc;
   font-size: 0.78rem;
+}
+
+.intent-chip {
+  display: grid;
+  gap: 2px;
+  min-width: 160px;
+  padding: 10px 12px;
+  border: 1px solid rgba(251, 113, 133, 0.32);
+  border-radius: 8px;
+  color: #fecaca;
+  background: rgba(9, 17, 30, 0.76);
+  backdrop-filter: blur(14px);
+}
+
+.intent-chip span {
+  color: #fb7185;
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.intent-chip strong {
+  color: #f8fafc;
+  font-size: 0.78rem;
+}
+
+.intent-chip em {
+  color: #fca5a5;
+  font-size: 0.68rem;
+  font-style: normal;
+  font-weight: 800;
 }
 
 .gauge-panel span,
@@ -811,7 +855,8 @@ kbd {
   font-weight: 800;
 }
 
-.wild-grid {
+.wild-grid,
+.item-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
@@ -819,6 +864,8 @@ kbd {
 }
 
 .ball-button,
+.item-button,
+.hold-button,
 .flee-button {
   display: grid;
   gap: 4px;
@@ -832,20 +879,49 @@ kbd {
   cursor: pointer;
 }
 
+.wild-hint {
+  grid-column: 1 / -1;
+  color: #fecaca;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.item-button {
+  border-color: rgba(134, 239, 172, 0.72);
+  background: linear-gradient(135deg, rgba(20, 83, 45, 0.88), rgba(21, 128, 61, 0.58));
+}
+
+.hold-button {
+  border-color: rgba(253, 224, 71, 0.72);
+  background: linear-gradient(135deg, rgba(113, 63, 18, 0.88), rgba(21, 94, 117, 0.58));
+}
+
 .flee-button {
   border-color: rgba(148, 163, 184, 0.5);
   background: rgba(30, 41, 59, 0.85);
 }
 
 .ball-button span,
+.item-button span,
+.hold-button span,
 .flee-button span {
   font-weight: 900;
 }
 
 .ball-button strong,
+.item-button strong,
+.hold-button strong,
 .flee-button strong {
   color: #fecaca;
   font-size: 0.76rem;
+}
+
+.hold-button strong {
+  color: #fef08a;
+}
+
+.item-button strong {
+  color: #bbf7d0;
 }
 
 .flee-button strong {
@@ -853,6 +929,8 @@ kbd {
 }
 
 .ball-button:disabled,
+.item-button:disabled,
+.hold-button:disabled,
 .flee-button:disabled {
   color: #94a3b8;
   border-color: rgba(148, 163, 184, 0.28) !important;
@@ -955,6 +1033,99 @@ kbd {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
   gap: 8px;
+}
+
+.last-chance-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.last-chance-grid small,
+.drop-line {
+  grid-column: 1 / -1;
+  color: #fef3c7;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.save-tools {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.58);
+}
+
+.save-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.secondary-tool-button,
+.danger-tool-button {
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid rgba(148, 163, 184, 0.38);
+  border-radius: 6px;
+  color: #dbeafe;
+  font-size: 0.76rem;
+  font-weight: 800;
+  background: rgba(30, 41, 59, 0.82);
+  cursor: pointer;
+}
+
+.danger-tool-button {
+  border-color: rgba(248, 113, 113, 0.48);
+  color: #fecaca;
+  background: rgba(127, 29, 29, 0.52);
+}
+
+.save-tools textarea {
+  width: 100%;
+  min-height: 72px;
+  resize: vertical;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 6px;
+  color: #dbeafe;
+  font: inherit;
+  font-size: 0.76rem;
+  background: rgba(9, 17, 30, 0.74);
+}
+
+.save-tools small {
+  color: #a7f3d0;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.roster-tools {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.roster-tools label {
+  display: grid;
+  gap: 4px;
+  min-width: 130px;
+  color: #94a3b8;
+  font-size: 0.7rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.roster-tools select {
+  min-height: 34px;
+  border: 1px solid rgba(148, 163, 184, 0.34);
+  border-radius: 6px;
+  color: #dbeafe;
+  font: inherit;
+  font-size: 0.8rem;
+  background: rgba(9, 17, 30, 0.84);
 }
 
 .achievement-chip {
@@ -1491,6 +1662,10 @@ kbd {
     display: none;
   }
 
+  .intent-chip {
+    display: none;
+  }
+
   .unity-chip {
     display: none;
   }
@@ -1548,6 +1723,8 @@ kbd {
 
   .command-panel {
     bottom: 10px;
+    max-height: 48vh;
+    overflow-y: auto;
     padding: 8px;
   }
 
@@ -1565,8 +1742,15 @@ kbd {
   }
 
   .move-grid,
+  .item-grid,
+  .wild-grid,
   .special-grid {
     gap: 6px;
+  }
+
+  .wild-grid,
+  .item-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .move-button {
@@ -1610,5 +1794,16 @@ kbd {
 
   .select-moves {
     display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

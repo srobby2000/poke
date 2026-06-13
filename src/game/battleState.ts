@@ -1,3 +1,10 @@
+import { BALANCE } from "./battleBalance";
+import { battleItemEffect } from "./battleItems";
+import { getTypeEffectiveness } from "./battleTypeChart";
+
+export { BALANCE };
+export { getTypeEffectiveness };
+
 export type Team = "ally" | "enemy";
 
 export type BattleStatus = "playing" | "won" | "lost" | "captured" | "fled";
@@ -173,10 +180,20 @@ export type MovePreview = {
   type: PokemonType;
   cost: number;
   estimatedDamage: number;
+  willKo: boolean;
   effectiveness: number;
   effectivenessLabel: string;
   statusEffect?: StatusCondition;
   statChangeLabel?: string;
+};
+
+export type EnemyIntent = {
+  unitId: string;
+  unitName: string;
+  moveName: string;
+  targetName: string;
+  secondsUntilReady: number;
+  sync: boolean;
 };
 
 export type WildConfig = {
@@ -195,6 +212,7 @@ export type BattleConfig = {
   wild?: WildConfig;
   speciesStats?: Record<string, PokemonBaseStats>;
   allyLevels?: Record<string, number>;
+  items?: Record<string, number>;
 };
 
 export type BattleState = {
@@ -216,9 +234,12 @@ export type BattleState = {
   syncBoosts: Record<Team, number>;
   statusTickTimer: number;
   status: BattleStatus;
+  droppedItem: { itemId: string; quantity: number } | null;
   // Balls available to throw in wild battles; the app reconciles usage
   // against the save when the battle ends.
   balls: Record<string, number>;
+  // Battle-usable bag items, consumed immediately by the app when used.
+  items: Record<string, number>;
   paused: boolean;
   timeScale: number;
   // Total damage dealt per unit id, for the post-battle report.
@@ -237,65 +258,14 @@ export type BattleAction =
   | { type: "useTrainerMove" }
   | { type: "useSyncMove" }
   | { type: "useUnityAttack" }
+  | { type: "holdBack" }
+  | { type: "useItem"; itemId: string }
   | { type: "throwBall"; ballId: string }
+  | { type: "lastChanceBall"; ballId: string }
   | { type: "flee" }
   | { type: "togglePause" }
   | { type: "cycleTimeScale" }
   | { type: "restart" };
-
-// Every tunable battle number lives here so balancing is a one-file job.
-export const BALANCE = {
-  gaugeFillRate: 0.9,
-  paralysisGaugePenaltyPerAlly: 0.2,
-  minParalysisGaugeFactor: 0.4,
-  paralysisCooldownFactor: 0.55,
-  playerAttackDelay: 0.45,
-  playerSyncDelay: 0.7,
-  unityAttackDelay: 0.82,
-  enemyAttackDelay: 0.55,
-  enemySyncDelay: 0.75,
-  enemyCooldownBase: 2.4,
-  enemySyncCooldownBase: 3.1,
-  enemyCooldownSpeedFactor: 1.6,
-  stageMultiplier: 0.25,
-  sameTypeBonus: 1.2,
-  burnAttackPenalty: 0.82,
-  syncBoostStacks: 4,
-  syncBoostPerStack: 0.12,
-  strikeRoleBonus: 1.12,
-  techStatusBonus: 1.05,
-  supportDamageReduction: 0.9,
-  unityDamageScale: 0.62,
-  unityPower: { strike: 42, tech: 34, support: 30 } as Record<BattleRole, number>,
-  burnTickDamage: 5,
-  poisonTickDamage: 7,
-  baseStatusDuration: 5,
-  techStatusDuration: 7,
-  statusTickInterval: 1,
-  varianceMin: 0.85,
-  critChance: 1 / 16,
-  critMultiplier: 1.5,
-  syncCountdownMax: 3,
-  paralysisBlockChance: 0.2,
-  enemyHealThreshold: 0.45,
-  enemyTrainerActionCooldown: 1.5,
-  stageEnemyHpGrowth: 0.16,
-  stageEnemyAttackGrowth: 0.1,
-  stageEnemyDefenseGrowth: 0.08,
-  allyLevelGrowth: 0.06,
-  maxAllyLevel: 10,
-  // Wild battles: one creature vs the team, so it gets a big HP pool.
-  wildHpBase: 2.4,
-  wildHpGrowth: 0.12,
-  wildStatGrowth: 0.07,
-  ballPower: { "poke-ball": 0.35, "great-ball": 0.6 } as Record<string, number>,
-  captureHpWeight: 0.7,
-  captureStatusBonus: 1.3,
-  captureMinChance: 0.05,
-  captureMaxChance: 0.95,
-  logLimit: 6,
-  feedbackLimit: 10,
-} as const;
 
 // Bundled fallback stats, identical to live PokeAPI values. The battle model
 // has a single offensive stat, so `attack` is max(Attack, Sp. Atk) — this is
@@ -420,95 +390,6 @@ export function nextEvolutionLevel(allyId: string, level: number): number | unde
 }
 
 export const speciesNames = Object.keys(pokeApiBaseStats);
-
-type TypeRelation = {
-  doubleDamageTo?: PokemonType[];
-  halfDamageTo?: PokemonType[];
-  noDamageTo?: PokemonType[];
-};
-
-// Full main-series attacking type chart (gen 6+).
-const typeRelations: Record<PokemonType, TypeRelation> = {
-  normal: {
-    halfDamageTo: ["rock", "steel"],
-    noDamageTo: ["ghost"],
-  },
-  fire: {
-    doubleDamageTo: ["grass", "ice", "bug", "steel"],
-    halfDamageTo: ["fire", "water", "rock", "dragon"],
-  },
-  water: {
-    doubleDamageTo: ["fire", "ground", "rock"],
-    halfDamageTo: ["water", "grass", "dragon"],
-  },
-  electric: {
-    doubleDamageTo: ["water", "flying"],
-    halfDamageTo: ["electric", "grass", "dragon"],
-    noDamageTo: ["ground"],
-  },
-  grass: {
-    doubleDamageTo: ["water", "ground", "rock"],
-    halfDamageTo: ["fire", "grass", "poison", "flying", "bug", "dragon", "steel"],
-  },
-  ice: {
-    doubleDamageTo: ["grass", "ground", "flying", "dragon"],
-    halfDamageTo: ["fire", "water", "ice", "steel"],
-  },
-  fighting: {
-    doubleDamageTo: ["normal", "ice", "rock", "dark", "steel"],
-    halfDamageTo: ["poison", "flying", "psychic", "bug", "fairy"],
-    noDamageTo: ["ghost"],
-  },
-  poison: {
-    doubleDamageTo: ["grass", "fairy"],
-    halfDamageTo: ["poison", "ground", "rock", "ghost"],
-    noDamageTo: ["steel"],
-  },
-  ground: {
-    doubleDamageTo: ["fire", "electric", "poison", "rock", "steel"],
-    halfDamageTo: ["grass", "bug"],
-    noDamageTo: ["flying"],
-  },
-  flying: {
-    doubleDamageTo: ["grass", "fighting", "bug"],
-    halfDamageTo: ["electric", "rock", "steel"],
-  },
-  psychic: {
-    doubleDamageTo: ["fighting", "poison"],
-    halfDamageTo: ["psychic", "steel"],
-    noDamageTo: ["dark"],
-  },
-  bug: {
-    doubleDamageTo: ["grass", "psychic", "dark"],
-    halfDamageTo: ["fire", "fighting", "poison", "flying", "ghost", "steel", "fairy"],
-  },
-  rock: {
-    doubleDamageTo: ["fire", "ice", "flying", "bug"],
-    halfDamageTo: ["fighting", "ground", "steel"],
-  },
-  ghost: {
-    doubleDamageTo: ["psychic", "ghost"],
-    halfDamageTo: ["dark"],
-    noDamageTo: ["normal"],
-  },
-  dragon: {
-    doubleDamageTo: ["dragon"],
-    halfDamageTo: ["steel"],
-    noDamageTo: ["fairy"],
-  },
-  dark: {
-    doubleDamageTo: ["psychic", "ghost"],
-    halfDamageTo: ["fighting", "dark", "fairy"],
-  },
-  steel: {
-    doubleDamageTo: ["ice", "rock", "fairy"],
-    halfDamageTo: ["fire", "water", "electric", "steel"],
-  },
-  fairy: {
-    doubleDamageTo: ["fighting", "dragon", "dark"],
-    halfDamageTo: ["fire", "poison", "steel"],
-  },
-};
 
 const allyTemplates: UnitTemplate[] = [
   {
@@ -1250,8 +1131,12 @@ export function enemyTeamForStage(stage: number): EnemyTeamPreset {
   return regularEnemyTeams[(normalizedStage - 1) % regularEnemyTeams.length];
 }
 
+function padDatePart(value: number) {
+  return String(value).padStart(2, "0");
+}
+
 export function dailyChallengeKey(date = new Date()) {
-  return date.toISOString().slice(0, 10);
+  return `${date.getFullYear()}-${padDatePart(date.getMonth() + 1)}-${padDatePart(date.getDate())}`;
 }
 
 export function dailyChallengeStage(dateKey: string) {
@@ -1456,7 +1341,9 @@ export const createInitialBattleState = (seed?: number, config?: Partial<BattleC
     syncBoosts: { ally: 0, enemy: 0 },
     statusTickTimer: BALANCE.statusTickInterval,
     status: "playing",
+    droppedItem: null,
     balls: wild ? { ...wild.balls } : {},
+    items: { ...(config?.items ?? {}) },
     paused: false,
     timeScale: 1,
     damageDealt: {},
@@ -1569,6 +1456,10 @@ export function battleReducer(state: BattleState, action: BattleAction): BattleS
     return { ...state, timeScale: state.timeScale >= 2 ? 1 : 2 };
   }
 
+  if (action.type === "lastChanceBall") {
+    return performLastChanceBall(state, action.ballId);
+  }
+
   if (state.status !== "playing") {
     return state;
   }
@@ -1593,6 +1484,14 @@ export function battleReducer(state: BattleState, action: BattleAction): BattleS
     return performUnityAttack(state);
   }
 
+  if (action.type === "holdBack") {
+    return performHoldBack(state);
+  }
+
+  if (action.type === "useItem") {
+    return performUseItem(state, action.itemId);
+  }
+
   if (action.type === "throwBall") {
     return performThrowBall(state, action.ballId);
   }
@@ -1611,6 +1510,113 @@ export function battleReducer(state: BattleState, action: BattleAction): BattleS
   return state;
 }
 
+function performUseItem(state: BattleState, itemId: string): BattleState {
+  const effect = battleItemEffect(itemId);
+  if (!effect) {
+    return state;
+  }
+  const count = state.items[itemId] ?? 0;
+  if (count <= 0) {
+    return state;
+  }
+
+  const items = { ...state.items, [itemId]: count - 1 };
+  if (effect.kind === "heal") {
+    const target = teamUnits(state, "ally")
+      .filter((unit) => isAlive(unit) && unit.hp < unit.maxHp)
+      .sort((left, right) => left.hp / left.maxHp - right.hp / right.maxHp)[0];
+    if (!target) {
+      return state;
+    }
+
+    const healedHp = clamp(target.hp + effect.amount, 0, target.maxHp);
+    return normalizeBattle({
+      ...state,
+      items,
+      config: { ...state.config, items },
+      units: state.units.map((unit) => (unit.id === target.id ? { ...unit, hp: healedHp, hitFlash: 0.7 } : unit)),
+      log: [`Used ${effect.name}. ${target.name} recovered ${healedHp - target.hp} HP.`, ...state.log].slice(0, BALANCE.logLimit),
+      feedback: [
+        {
+          id: makeFeedbackId(state, target.id, itemId),
+          unitId: target.id,
+          text: `+${healedHp - target.hp}`,
+          kind: "status" as const,
+          ttl: 1.15,
+        },
+        ...state.feedback,
+      ].slice(0, BALANCE.feedbackLimit),
+    });
+  }
+
+  const selected = findLivingUnit(state, state.selectedAllyId, "ally");
+  const target =
+    selected?.statusCondition === effect.status
+      ? selected
+      : teamUnits(state, "ally").find((unit) => isAlive(unit) && unit.statusCondition === effect.status);
+  if (!target) {
+    return state;
+  }
+
+  return normalizeBattle({
+    ...state,
+    items,
+    config: { ...state.config, items },
+    units: state.units.map((unit) =>
+      unit.id === target.id ? { ...unit, statusCondition: null, statusTimer: 0, hitFlash: 0.7 } : unit,
+    ),
+    log: [`Used ${effect.name}. ${target.name} was cured.`, ...state.log].slice(0, BALANCE.logLimit),
+    feedback: [
+      {
+        id: makeFeedbackId(state, target.id, itemId),
+        unitId: target.id,
+        text: "cured",
+        kind: "status" as const,
+        ttl: 1.15,
+      },
+      ...state.feedback,
+    ].slice(0, BALANCE.feedbackLimit),
+  });
+}
+
+function performHoldBack(state: BattleState): BattleState {
+  if (state.config.battleMode !== "wild" || state.moveGauge < BALANCE.holdBackCost) {
+    return state;
+  }
+  const actor = resolvePlayerActor(state);
+  const target = teamUnits(state, "enemy").find(isAlive);
+  if (!actor || !target || !isAlive(actor) || target.hp <= 1) {
+    return state;
+  }
+
+  const damage = Math.min(Math.max(1, Math.round(target.maxHp * BALANCE.holdBackHpFraction)), target.hp - 1);
+  return normalizeBattle({
+    ...state,
+    moveGauge: state.moveGauge - BALANCE.holdBackCost,
+    units: state.units.map((unit) => {
+      if (unit.id === actor.id) {
+        return { ...unit, actionPulse: 1 };
+      }
+      if (unit.id === target.id) {
+        return { ...unit, hp: target.hp - damage, hitFlash: 1 };
+      }
+      return unit;
+    }),
+    damageDealt: { ...state.damageDealt, [actor.id]: (state.damageDealt[actor.id] ?? 0) + damage },
+    log: [`${actor.name} held back for ${damage} damage. ${target.name} endured with 1 HP.`, ...state.log].slice(0, BALANCE.logLimit),
+    feedback: [
+      {
+        id: makeFeedbackId(state, target.id, "hold-back"),
+        unitId: target.id,
+        text: `-${damage} safe`,
+        kind: "status" as const,
+        ttl: 1.2,
+      },
+      ...state.feedback,
+    ].slice(0, BALANCE.feedbackLimit),
+  });
+}
+
 // Classic capture roll: weaker and statused wilds are easier to catch.
 function performThrowBall(state: BattleState, ballId: string): BattleState {
   if (state.config.battleMode !== "wild") {
@@ -1625,10 +1631,7 @@ function performThrowBall(state: BattleState, ballId: string): BattleState {
     return state;
   }
 
-  const ballPower = BALANCE.ballPower[ballId] ?? 0.3;
-  const hpFactor = 1 - (wild.hp / wild.maxHp) * BALANCE.captureHpWeight;
-  const statusFactor = wild.statusCondition ? BALANCE.captureStatusBonus : 1;
-  const chance = clamp(ballPower * hpFactor * statusFactor, BALANCE.captureMinChance, BALANCE.captureMaxChance);
+  const chance = captureChanceFor(wild, ballId);
   const [roll, rng] = nextRandom(state.rng);
   const balls = { ...state.balls, [ballId]: count - 1 };
 
@@ -1648,6 +1651,47 @@ function performThrowBall(state: BattleState, ballId: string): BattleState {
     balls,
     log: [`${wild.name} broke free!`, ...state.log].slice(0, BALANCE.logLimit),
   };
+}
+
+function performLastChanceBall(state: BattleState, ballId: string): BattleState {
+  if (state.config.battleMode !== "wild" || state.status !== "won") {
+    return state;
+  }
+  const count = state.balls[ballId] ?? 0;
+  if (count <= 0) {
+    return state;
+  }
+  const wild = teamUnits(state, "enemy")[0];
+  if (!wild) {
+    return state;
+  }
+
+  const [roll, rng] = nextRandom(state.rng);
+  const balls = { ...state.balls, [ballId]: count - 1 };
+  const chance = captureChanceFor({ ...wild, hp: 1 }, ballId) * BALANCE.lastChanceCaptureMultiplier;
+  if (roll < chance) {
+    return {
+      ...state,
+      rng,
+      balls,
+      status: "captured",
+      log: [`Last chance! ${wild.name} was caught!`, ...state.log].slice(0, BALANCE.logLimit),
+    };
+  }
+
+  return {
+    ...state,
+    rng,
+    balls,
+    log: [`Last chance failed. ${wild.name} slipped away.`, ...state.log].slice(0, BALANCE.logLimit),
+  };
+}
+
+export function captureChanceFor(wild: Unit, ballId: string) {
+  const ballPower = BALANCE.ballPower[ballId] ?? 0.3;
+  const hpFactor = 1 - (wild.hp / wild.maxHp) * BALANCE.captureHpWeight;
+  const statusFactor = wild.statusCondition ? BALANCE.captureStatusBonus : 1;
+  return clamp(ballPower * hpFactor * statusFactor, BALANCE.captureMinChance, BALANCE.captureMaxChance);
 }
 
 function tickPlayingBattle(state: BattleState, deltaSeconds: number): BattleState {
@@ -2077,6 +2121,34 @@ function chooseEnemyAction(state: BattleState, actor: Unit) {
   return options.sort((left, right) => right.score - left.score || right.damage - left.damage || left.targetHpRatio - right.targetHpRatio)[0];
 }
 
+export function previewEnemyIntents(state: BattleState): EnemyIntent[] {
+  return teamUnits(state, "enemy")
+    .filter(isAlive)
+    .map((enemy) => {
+      if (state.enemySyncCountdown === 0) {
+        const target = chooseBestTargetForMove(state, enemy, enemy.syncMove, "ally");
+        return {
+          unitId: enemy.id,
+          unitName: enemy.name,
+          moveName: enemy.syncMove.name,
+          targetName: target?.name ?? "an ally",
+          secondsUntilReady: state.enemyCooldowns[enemy.id] ?? 0,
+          sync: true,
+        };
+      }
+      const action = chooseEnemyAction(state, enemy);
+      return {
+        unitId: enemy.id,
+        unitName: enemy.name,
+        moveName: action?.move.name ?? enemy.moves[0]?.name ?? "Attack",
+        targetName: action?.target.name ?? "an ally",
+        secondsUntilReady: state.enemyCooldowns[enemy.id] ?? 0,
+        sync: false,
+      };
+    })
+    .sort((left, right) => left.secondsUntilReady - right.secondsUntilReady);
+}
+
 function chooseBestTargetForMove(state: BattleState, actor: Unit, move: Move, targetTeam: Team) {
   return teamUnits(state, targetTeam)
     .filter(isAlive)
@@ -2351,22 +2423,6 @@ function applyUnityAttack({
   });
 }
 
-export function getTypeEffectiveness(moveType: PokemonType, targetTypes: PokemonType[]) {
-  const relations = typeRelations[moveType];
-  return targetTypes.reduce((multiplier, targetType) => {
-    if (relations?.noDamageTo?.includes(targetType)) {
-      return multiplier * 0;
-    }
-    if (relations?.doubleDamageTo?.includes(targetType)) {
-      return multiplier * 2;
-    }
-    if (relations?.halfDamageTo?.includes(targetType)) {
-      return multiplier * 0.5;
-    }
-    return multiplier;
-  }, 1);
-}
-
 function calculateDamage(state: BattleState, actor: Unit, target: Unit, move: Move) {
   const typeMultiplier = getTypeEffectiveness(move.type, target.types);
   const sameTypeBonus = actor.types.includes(move.type) ? BALANCE.sameTypeBonus : 1;
@@ -2562,6 +2618,7 @@ export function previewPlayerMove(state: BattleState, moveId: string): MovePrevi
       type: move.type,
       cost: move.cost,
       estimatedDamage: 0,
+      willKo: false,
       effectiveness: 1,
       effectivenessLabel: "support",
       statusEffect: move.statusEffect,
@@ -2577,6 +2634,7 @@ export function previewPlayerMove(state: BattleState, moveId: string): MovePrevi
     type: move.type,
     cost: move.cost,
     estimatedDamage: damage,
+    willKo: damage >= target.hp,
     effectiveness: typeMultiplier,
     effectivenessLabel: getEffectivenessLabel(typeMultiplier).trim() || "normal",
     statusEffect: move.statusEffect,
@@ -2593,13 +2651,29 @@ function normalizeBattle(state: BattleState): BattleState {
   const selectedAlly = findLivingUnit(state, state.selectedAllyId, "ally") ?? firstAlly;
   const selectedEnemy = findLivingUnit(state, state.selectedEnemyId, "enemy") ?? firstEnemy;
   const status: BattleStatus = firstEnemy ? (firstAlly ? "playing" : "lost") : "won";
+  const wildDrop =
+    status === "won" && state.status === "playing" && state.config.battleMode === "wild"
+      ? rollWildDrop(state)
+      : { rng: state.rng, droppedItem: state.droppedItem };
 
   return {
     ...state,
+    rng: wildDrop.rng,
     status,
+    droppedItem: wildDrop.droppedItem,
     selectedAllyId: selectedAlly?.id ?? state.selectedAllyId,
     selectedEnemyId: selectedEnemy?.id ?? state.selectedEnemyId,
   };
+}
+
+function rollWildDrop(state: BattleState): { rng: number; droppedItem: BattleState["droppedItem"] } {
+  const [roll, rng] = nextRandom(state.rng);
+  if (roll > BALANCE.wildDropChance) {
+    return { rng, droppedItem: null };
+  }
+  const level = Math.max(1, Math.floor(state.config.stage));
+  const itemId = level >= 6 ? "sitrus-berry" : level >= 3 ? "pecha-berry" : "oran-berry";
+  return { rng, droppedItem: { itemId, quantity: 1 } };
 }
 
 export function isAlive(unit: Unit) {

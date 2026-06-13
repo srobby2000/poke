@@ -31,6 +31,42 @@ export function defaultProgress(): PlayerProgress {
   };
 }
 
+function sanitizeProgress(parsed: Partial<PlayerProgress>): PlayerProgress {
+  return {
+    bestStage: typeof parsed.bestStage === "number" && parsed.bestStage > 0 ? Math.floor(parsed.bestStage) : 0,
+    gems: typeof parsed.gems === "number" && parsed.gems >= 0 ? Math.floor(parsed.gems) : 0,
+    unlockedAllies:
+      Array.isArray(parsed.unlockedAllies) && parsed.unlockedAllies.length > 0
+        ? parsed.unlockedAllies.filter((id): id is string => typeof id === "string")
+        : [...DEFAULT_ALLY_IDS],
+    allyLevels: parsed.allyLevels && typeof parsed.allyLevels === "object" ? parsed.allyLevels : {},
+    dailyClearedDate: typeof parsed.dailyClearedDate === "string" ? parsed.dailyClearedDate : null,
+    achievements: Array.isArray(parsed.achievements)
+      ? parsed.achievements.filter((id): id is string => typeof id === "string")
+      : [],
+    worldPosition:
+      parsed.worldPosition && typeof parsed.worldPosition.x === "number" && typeof parsed.worldPosition.z === "number"
+        ? { x: parsed.worldPosition.x, z: parsed.worldPosition.z }
+        : null,
+    inventory:
+      parsed.inventory && typeof parsed.inventory === "object"
+        ? Object.fromEntries(
+            Object.entries(parsed.inventory).filter(
+              (entry): entry is [string, number] => typeof entry[1] === "number" && entry[1] > 0,
+            ),
+          )
+        : {},
+    berryPicks:
+      parsed.berryPicks && typeof parsed.berryPicks.date === "string" && Array.isArray(parsed.berryPicks.picked)
+        ? {
+            date: parsed.berryPicks.date,
+            picked: parsed.berryPicks.picked.filter((key): key is string => typeof key === "string"),
+          }
+        : { date: "", picked: [] },
+    captures: typeof parsed.captures === "number" && parsed.captures > 0 ? Math.floor(parsed.captures) : 0,
+  };
+}
+
 // Best stage saved by versions that predate the full save file.
 function legacyBestStage(): number {
   try {
@@ -52,41 +88,22 @@ export function loadProgress(): PlayerProgress {
       return defaultProgress();
     }
     const parsed = JSON.parse(raw) as Partial<PlayerProgress>;
-    return {
-      bestStage: typeof parsed.bestStage === "number" && parsed.bestStage > 0 ? Math.floor(parsed.bestStage) : 0,
-      gems: typeof parsed.gems === "number" && parsed.gems >= 0 ? Math.floor(parsed.gems) : 0,
-      unlockedAllies:
-        Array.isArray(parsed.unlockedAllies) && parsed.unlockedAllies.length > 0
-          ? parsed.unlockedAllies.filter((id): id is string => typeof id === "string")
-          : [...DEFAULT_ALLY_IDS],
-      allyLevels: parsed.allyLevels && typeof parsed.allyLevels === "object" ? parsed.allyLevels : {},
-      dailyClearedDate: typeof parsed.dailyClearedDate === "string" ? parsed.dailyClearedDate : null,
-      achievements: Array.isArray(parsed.achievements)
-        ? parsed.achievements.filter((id): id is string => typeof id === "string")
-        : [],
-      worldPosition:
-        parsed.worldPosition && typeof parsed.worldPosition.x === "number" && typeof parsed.worldPosition.z === "number"
-          ? { x: parsed.worldPosition.x, z: parsed.worldPosition.z }
-          : null,
-      inventory:
-        parsed.inventory && typeof parsed.inventory === "object"
-          ? Object.fromEntries(
-              Object.entries(parsed.inventory).filter(
-                (entry): entry is [string, number] => typeof entry[1] === "number" && entry[1] > 0,
-              ),
-            )
-          : {},
-      berryPicks:
-        parsed.berryPicks && typeof parsed.berryPicks.date === "string" && Array.isArray(parsed.berryPicks.picked)
-          ? {
-              date: parsed.berryPicks.date,
-              picked: parsed.berryPicks.picked.filter((key): key is string => typeof key === "string"),
-            }
-          : { date: "", picked: [] },
-      captures: typeof parsed.captures === "number" && parsed.captures > 0 ? Math.floor(parsed.captures) : 0,
-    };
+    return sanitizeProgress(parsed);
   } catch {
     return defaultProgress();
+  }
+}
+
+export function exportProgress(progress: PlayerProgress) {
+  return JSON.stringify(progress, null, 2);
+}
+
+export function importProgress(raw: string): PlayerProgress | null {
+  try {
+    const parsed = JSON.parse(raw) as Partial<PlayerProgress>;
+    return sanitizeProgress(parsed);
+  } catch {
+    return null;
   }
 }
 

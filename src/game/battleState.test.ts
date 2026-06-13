@@ -3,12 +3,15 @@ import {
   BALANCE,
   allyFormForLevel,
   battleReducer,
+  captureChanceFor,
   createInitialBattleState,
+  dailyChallengeKey,
   dailyChallengeStage,
   enemyTeamForStage,
   getAllyOptions,
   getTypeEffectiveness,
   nextEvolutionLevel,
+  previewEnemyIntents,
   previewPlayerMove,
   tickBattle,
 } from "./battleState";
@@ -82,7 +85,29 @@ describe("battle simulation", () => {
     expect(preview?.targetName).toBe("Butterfree");
     expect(preview?.effectivenessLabel).toBe("x2");
     expect(preview?.estimatedDamage).toBeGreaterThan(0);
+    expect(typeof preview?.willKo).toBe("boolean");
     expect(preview?.statusEffect).toBe("burn");
+  });
+
+  it("flags move previews that would knock out the target", () => {
+    let state = createInitialBattleState();
+    state = battleReducer(state, { type: "setTargetMode", mode: "manual" });
+    state = battleReducer(state, { type: "selectAlly", unitId: "charmander" });
+    state = battleReducer(state, { type: "selectEnemy", unitId: "pikachu" });
+    state = {
+      ...state,
+      units: state.units.map((unit) => (unit.id === "pikachu" ? { ...unit, hp: 1 } : unit)),
+    };
+
+    expect(previewPlayerMove(state, "ember")?.willKo).toBe(true);
+  });
+
+  it("previews the next enemy intent", () => {
+    const intents = previewEnemyIntents(createInitialBattleState());
+
+    expect(intents[0]?.unitName).toBeTruthy();
+    expect(intents[0]?.moveName).toBeTruthy();
+    expect(intents[0]?.targetName).toBeTruthy();
   });
 
   it("applies passive damage bonuses", () => {
@@ -287,6 +312,63 @@ describe("battle simulation", () => {
     );
 
     expect(afterDefense.units.filter((unit) => unit.team === "ally").every((unit) => unit.defenseStage === 1)).toBe(true);
+  });
+
+  it("uses bag potions to heal damaged allies and consume inventory", () => {
+    let state = createInitialBattleState(1, { items: { "potion-item": 2 } });
+    state = {
+      ...state,
+      units: state.units.map((unit) => (unit.id === "charmander" ? { ...unit, hp: 10 } : unit)),
+    };
+
+    const afterPotion = battleReducer(state, { type: "useItem", itemId: "potion-item" });
+    const charmander = afterPotion.units.find((unit) => unit.id === "charmander");
+
+    expect(charmander?.hp).toBe(70);
+    expect(afterPotion.items["potion-item"]).toBe(1);
+    expect(afterPotion.config.items?.["potion-item"]).toBe(1);
+    expect(afterPotion.log[0]).toContain("Used Potion");
+    expect(afterPotion.feedback[0]).toMatchObject({ unitId: "charmander", text: "+60", kind: "status" });
+    expect(battleReducer(afterPotion, { type: "restart" }).items["potion-item"]).toBe(1);
+  });
+
+  it("uses stronger bag potions for larger heals", () => {
+    let state = createInitialBattleState(1, { items: { "super-potion-item": 1 } });
+    state = {
+      ...state,
+      units: state.units.map((unit) => (unit.id === "charmander" ? { ...unit, hp: 5 } : unit)),
+    };
+
+    const afterPotion = battleReducer(state, { type: "useItem", itemId: "super-potion-item" });
+
+    expect(afterPotion.units.find((unit) => unit.id === "charmander")?.hp).toBe(107);
+    expect(afterPotion.items["super-potion-item"]).toBe(0);
+  });
+
+  it("uses bag cures on statused allies", () => {
+    let state = createInitialBattleState(1, { items: { antidote: 1 } });
+    state = {
+      ...state,
+      selectedAllyId: "bulbasaur",
+      units: state.units.map((unit) =>
+        unit.id === "bulbasaur" ? { ...unit, statusCondition: "poison", statusTimer: 3 } : unit,
+      ),
+    };
+
+    const cured = battleReducer(state, { type: "useItem", itemId: "antidote" });
+
+    expect(cured.units.find((unit) => unit.id === "bulbasaur")?.statusCondition).toBeNull();
+    expect(cured.items.antidote).toBe(0);
+    expect(cured.feedback[0]).toMatchObject({ unitId: "bulbasaur", text: "cured", kind: "status" });
+  });
+
+  it("refuses bag item use without stock or damaged allies", () => {
+    const noPotion = createInitialBattleState(1);
+    expect(battleReducer(noPotion, { type: "useItem", itemId: "potion-item" })).toBe(noPotion);
+
+    const fullHealth = createInitialBattleState(1, { items: { "potion-item": 1 } });
+    expect(battleReducer(fullHealth, { type: "useItem", itemId: "potion-item" })).toBe(fullHealth);
+    expect(battleReducer(fullHealth, { type: "useItem", itemId: "unknown-item" })).toBe(fullHealth);
   });
 
   it("fills and spends the player move gauge", () => {
@@ -567,6 +649,10 @@ describe("battle simulation", () => {
     );
   });
 
+  it("formats daily challenge keys from the local calendar date", () => {
+    expect(dailyChallengeKey(new Date(2026, 0, 2, 0, 30))).toBe("2026-01-02");
+  });
+
   it("preserves team and stage on restart", () => {
     const state = createInitialBattleState(1, { allyIds: ["geodude", "vulpix", "jigglypuff"], stage: 3 });
     const restarted = battleReducer(state, { type: "restart" });
@@ -637,6 +723,56 @@ describe("battle simulation", () => {
     expect(state.log.some((entry) => entry.includes("caught"))).toBe(true);
     // The battle is over: ticking changes nothing.
     expect(battleReducer(state, tickBattle(1))).toBe(state);
+  });
+
+  it("uses hold back to damage wild targets without knocking them out", () => {
+    let state = createInitialBattleState(1, {
+      battleMode: "wild",
+      wild: { speciesId: "pidgey", level: 1, balls: {} },
+    });
+    state = {
+      ...state,
+      moveGauge: 1,
+      units: state.units.map((unit) => (unit.team === "enemy" ? { ...unit, hp: 5 } : unit)),
+    };
+
+    const heldBack = battleReducer(state, { type: "holdBack" });
+    const wild = heldBack.units.find((unit) => unit.team === "enemy");
+
+    expect(wild?.hp).toBe(1);
+    expect(heldBack.status).toBe("playing");
+    expect(heldBack.moveGauge).toBe(0);
+  });
+
+  it("offers a last-chance ball after a wild target faints", () => {
+    let state = createInitialBattleState(1, {
+      battleMode: "wild",
+      wild: { speciesId: "pidgey", level: 1, balls: { "great-ball": 1 } },
+    });
+    state = {
+      ...state,
+      status: "won",
+      units: state.units.map((unit) => (unit.team === "enemy" ? { ...unit, hp: 0 } : unit)),
+    };
+
+    const captured = battleReducer(state, { type: "lastChanceBall", ballId: "great-ball" });
+
+    expect(captured.status).toBe("captured");
+    expect(captured.balls["great-ball"]).toBe(0);
+  });
+
+  it("estimates capture chance from ball strength, HP, and status", () => {
+    const state = createInitialBattleState(1, {
+      battleMode: "wild",
+      wild: { speciesId: "pidgey", level: 1, balls: { "poke-ball": 1, "great-ball": 1 } },
+    });
+    const fullHp = state.units.find((unit) => unit.team === "enemy")!;
+    const weakened = { ...fullHp, hp: 1 };
+    const statused = { ...weakened, statusCondition: "poison" as const };
+
+    expect(captureChanceFor(weakened, "great-ball")).toBeGreaterThan(captureChanceFor(weakened, "poke-ball"));
+    expect(captureChanceFor(weakened, "poke-ball")).toBeGreaterThan(captureChanceFor(fullHp, "poke-ball"));
+    expect(captureChanceFor(statused, "poke-ball")).toBeGreaterThan(captureChanceFor(weakened, "poke-ball"));
   });
 
   it("refuses ball throws outside wild battles or without balls", () => {

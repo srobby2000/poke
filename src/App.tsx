@@ -20,7 +20,7 @@ import {
 } from "./game/gacha";
 import { ITEMS, addItem, itemCount, pickBerry, pickedBerryTiles } from "./game/items";
 import { fetchSpeciesStats } from "./game/pokeApi";
-import { loadProgress, saveProgress } from "./game/progress";
+import { defaultProgress, exportProgress, importProgress, loadProgress, saveProgress } from "./game/progress";
 import { buyItem, sellItem } from "./game/shop";
 import { playFeedbackSound, playKoSound } from "./game/sound";
 
@@ -52,6 +52,7 @@ const BALL_ITEM_IDS = ["poke-ball", "great-ball"];
 export type WildEndSummary = {
   outcome: "won" | "lost" | "captured" | "fled";
   ballsRemaining: Record<string, number>;
+  droppedItem?: { itemId: string; quantity: number } | null;
 };
 
 export default function App() {
@@ -161,14 +162,14 @@ export default function App() {
       <ShopScreen
         progress={progress}
         onBack={() => setScreen("world")}
-        onBuy={(itemId) => {
-          const next = buyItem(progress, itemId);
+        onBuy={(itemId, quantity) => {
+          const next = buyItem(progress, itemId, quantity);
           if (next) {
             commitProgress(next);
           }
         }}
-        onSell={(itemId) => {
-          const next = sellItem(progress, itemId);
+        onSell={(itemId, quantity) => {
+          const next = sellItem(progress, itemId, quantity);
           if (next) {
             commitProgress(next);
           }
@@ -221,6 +222,22 @@ export default function App() {
             commitProgress(next);
           }
         }}
+        onResetSave={() => {
+          setProgress(defaultProgress());
+          setLastPulls(null);
+          setRecentAchievements(null);
+        }}
+        onExportSave={() => exportProgress(progress)}
+        onImportSave={(raw) => {
+          const imported = importProgress(raw);
+          if (!imported) {
+            return false;
+          }
+          setProgress(imported);
+          setLastPulls(null);
+          setRecentAchievements(null);
+          return true;
+        }}
       />
     );
   }
@@ -235,6 +252,16 @@ export default function App() {
       wild={session.wild}
       speciesStats={speciesStats}
       allyLevels={progress.allyLevels}
+      items={progress.inventory}
+      onItemUsed={(itemId, quantity) => {
+        setProgress((current) => ({
+          ...current,
+          inventory: {
+            ...current.inventory,
+            [itemId]: Math.max(0, (current.inventory[itemId] ?? 0) - quantity),
+          },
+        }));
+      }}
       onWildEnd={(summary) => {
         const wild = session.wild;
         if (!wild) {
@@ -253,6 +280,9 @@ export default function App() {
           next = { ...captured, captures: captured.captures + 1 };
         } else if (summary.outcome === "won") {
           next = { ...next, gems: next.gems + wildVictoryReward(wild.level) };
+          if (summary.droppedItem) {
+            next = addItem(next, summary.droppedItem.itemId, summary.droppedItem.quantity);
+          }
         }
         commitProgress(next);
         setSession(null);
@@ -284,6 +314,8 @@ type BattleProps = {
   wild?: WildSession;
   speciesStats: Record<string, PokemonBaseStats> | null;
   allyLevels: Record<string, number>;
+  items: Record<string, number>;
+  onItemUsed: (itemId: string, quantity: number) => void;
   onBattleCleared: (summary: BattleSummary) => void;
   onWildEnd?: (summary: WildEndSummary) => void;
   onNextStage?: () => void;
@@ -299,6 +331,8 @@ function Battle({
   wild,
   speciesStats,
   allyLevels,
+  items,
+  onItemUsed,
   onBattleCleared,
   onWildEnd,
   onNextStage,
@@ -314,10 +348,12 @@ function Battle({
       wild,
       speciesStats: speciesStats ?? undefined,
       allyLevels,
+      items,
     }),
   );
 
   useBattleSounds(battle);
+  useConsumedItems(battle, onItemUsed);
 
   const battleRef = useRef(battle);
   useEffect(() => {
@@ -418,7 +454,7 @@ function Battle({
             current.status === "captured" || current.status === "fled" || current.status === "won" || current.status === "lost"
               ? current.status
               : "fled";
-          onWildEnd({ outcome, ballsRemaining: current.balls });
+          onWildEnd({ outcome, ballsRemaining: current.balls, droppedItem: current.droppedItem });
         }
       : undefined;
 
@@ -437,6 +473,20 @@ function Battle({
       />
     </main>
   );
+}
+
+function useConsumedItems(state: BattleState, onItemUsed: (itemId: string, quantity: number) => void) {
+  const previousItems = useRef(state.items);
+
+  useEffect(() => {
+    for (const [itemId, previousCount] of Object.entries(previousItems.current)) {
+      const count = state.items[itemId] ?? 0;
+      if (count < previousCount) {
+        onItemUsed(itemId, previousCount - count);
+      }
+    }
+    previousItems.current = state.items;
+  }, [state.items, onItemUsed]);
 }
 
 // Plays a sound for each new feedback entry, for KOs, and a capture fanfare.
