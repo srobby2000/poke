@@ -14,6 +14,7 @@ const WorldCanvas = lazy(() => preloadWorldCanvas().then((module) => ({ default:
 type WorldScreenProps = {
   progress: PlayerProgress;
   pickedBerries: string[];
+  rematchedToday: string[];
   onEnterBuilding: (building: string) => void;
   onSavePosition: (position: { mapId: string; x: number; z: number }) => void;
   onPickBerry: (tileKey: string) => string;
@@ -31,12 +32,16 @@ function promptFor(nearby: WorldInteraction): string {
   if (nearby.kind === "trainer") {
     return `Challenge ${nearby.name}`;
   }
+  if (nearby.kind === "water") {
+    return "Fish";
+  }
   return "Check berry tree";
 }
 
 export function WorldScreen({
   progress,
   pickedBerries,
+  rematchedToday,
   onEnterBuilding,
   onSavePosition,
   onPickBerry,
@@ -44,7 +49,7 @@ export function WorldScreen({
   onStartTrainer,
 }: WorldScreenProps) {
   const [world, dispatch] = useReducer(worldReducer, undefined, () =>
-    createInitialWorldState(progress.worldPosition, undefined, progress.defeatedTrainers),
+    createInitialWorldState(progress.worldPosition, undefined, progress.defeatedTrainers, rematchedToday),
   );
 
   const worldRef = useRef(world);

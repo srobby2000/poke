@@ -1,10 +1,11 @@
 import { Suspense, lazy, useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { BattleHud } from "./components/BattleHud";
+import { PokedexScreen } from "./components/PokedexScreen";
 import { ShopScreen } from "./components/ShopScreen";
 import { TeamSelect } from "./components/TeamSelect";
 import { WorldScreen } from "./components/WorldScreen";
 import type { BattleMode, BattleState, PokemonBaseStats } from "./game/battleState";
-import { battleReducer, createInitialBattleState, dailyChallengeKey, dailyChallengeStage, isAlive, speciesNames, tickBattle } from "./game/battleState";
+import { battleReducer, createInitialBattleState, dailyChallengeKey, dailyChallengeStage, enemyTeamSpeciesIds, isAlive, speciesNames, tickBattle } from "./game/battleState";
 import type { AchievementDef, BattleSummary } from "./game/achievements";
 import { evaluateAchievements } from "./game/achievements";
 import type { PullResult } from "./game/gacha";
@@ -38,7 +39,14 @@ const BattleCanvas = lazy(() => preloadCanvas().then((module) => ({ default: mod
 
 type WildSession = { speciesId: string; level: number; balls: Record<string, number> };
 
-type TrainerSession = { id: string; name: string; teamId: string; level: number; reward: number };
+type TrainerSession = {
+  id: string;
+  name: string;
+  teamId: string;
+  level: number;
+  reward: number;
+  isRematch: boolean;
+};
 
 type Session = {
   allyIds: string[];
@@ -64,12 +72,25 @@ export default function App() {
   const [progress, setProgress] = useState(loadProgress);
   const [lastPulls, setLastPulls] = useState<PullResult[] | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [screen, setScreen] = useState<"world" | "hub" | "shop">("world");
+  const [screen, setScreen] = useState<"world" | "hub" | "shop" | "pokedex">("world");
   const todayKey = dailyChallengeKey();
 
   const savePosition = useCallback((position: { mapId: string; x: number; z: number }) => {
     setProgress((current) => ({ ...current, worldPosition: position }));
   }, []);
+
+  // Records species the player has now encountered, for the Pokédex.
+  const markSeen = useCallback((speciesIds: string[]) => {
+    setProgress((current) => {
+      const additions = speciesIds.filter((id) => !current.seenSpecies.includes(id));
+      return additions.length === 0 ? current : { ...current, seenSpecies: [...current.seenSpecies, ...additions] };
+    });
+  }, []);
+
+  // Trainers the player has already rematched today (no further battle).
+  const rematchedToday = Object.entries(progress.trainerRematches)
+    .filter(([, date]) => date === todayKey)
+    .map(([id]) => id);
 
   // The team used for wild encounters: the last arena team, or the first
   // three unlocked allies as a fallback.
@@ -129,6 +150,7 @@ export default function App() {
       <WorldScreen
         progress={progress}
         pickedBerries={pickedBerryTiles(progress, todayKey)}
+        rematchedToday={rematchedToday}
         onSavePosition={savePosition}
         onEnterBuilding={(building) => {
           if (building === "arena") {
@@ -147,6 +169,7 @@ export default function App() {
           return `You picked ${result.quantity} × ${item?.name ?? result.itemId}! Sell them at the shop.`;
         }}
         onStartWild={(encounter) => {
+          markSeen([encounter.speciesId]);
           const balls = Object.fromEntries(BALL_ITEM_IDS.map((id) => [id, itemCount(progress, id)]));
           const team = lastTeamRef.current?.filter((id) => progress.unlockedAllies.includes(id));
           setSession({
@@ -158,14 +181,17 @@ export default function App() {
           });
         }}
         onStartTrainer={(trainer) => {
+          markSeen(enemyTeamSpeciesIds(trainer.teamId));
           const team = lastTeamRef.current?.filter((id) => progress.unlockedAllies.includes(id));
+          // Rematches pay a reduced reward.
+          const reward = trainer.isRematch ? Math.max(10, Math.round(trainer.reward * 0.4)) : trainer.reward;
           setSession({
             allyIds: team && team.length === 3 ? team : progress.unlockedAllies.slice(0, 3),
             stage: trainer.level,
             runId: 1,
             battleMode: "trainer",
             enemyTeamId: trainer.teamId,
-            trainer,
+            trainer: { id: trainer.id, name: trainer.name, teamId: trainer.teamId, level: trainer.level, reward, isRematch: trainer.isRematch },
           });
         }}
       />
@@ -193,12 +219,17 @@ export default function App() {
     );
   }
 
+  if (!session && screen === "pokedex") {
+    return <PokedexScreen progress={progress} speciesStats={speciesStats} onBack={() => setScreen("hub")} />;
+  }
+
   if (!session) {
     return (
       <TeamSelect
         progress={progress}
         lastPulls={lastPulls}
         onBack={() => setScreen("world")}
+        onOpenPokedex={() => setScreen("pokedex")}
         recentAchievements={recentAchievements}
         statsSource={speciesStats ? "live" : "bundled"}
         speciesStats={speciesStats}
@@ -308,13 +339,21 @@ export default function App() {
       onBattleCleared={(summary) => {
         const trainer = session.trainer;
         if (trainer) {
-          // Trainers pay a flat reward once and stay beaten (they step aside in
-          // the overworld). No ladder progression.
+          // First win: the trainer stays beaten (steps aside in the overworld).
+          // Rematch win: record the date so they can be re-challenged tomorrow.
+          // No ladder progression either way.
           const defeated = progress.defeatedTrainers.includes(trainer.id)
             ? progress.defeatedTrainers
             : [...progress.defeatedTrainers, trainer.id];
           commitProgress(
-            { ...progress, gems: progress.gems + trainer.reward, defeatedTrainers: defeated },
+            {
+              ...progress,
+              gems: progress.gems + trainer.reward,
+              defeatedTrainers: defeated,
+              trainerRematches: trainer.isRematch
+                ? { ...progress.trainerRematches, [trainer.id]: todayKey }
+                : progress.trainerRematches,
+            },
             summary,
           );
           return;

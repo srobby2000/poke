@@ -12,6 +12,10 @@ export type PlayerProgress = {
   achievements: string[];
   worldPosition: { mapId: string; x: number; z: number } | null;
   defeatedTrainers: string[];
+  // trainerId -> dateKey of the most recent rematch (one rematch per day each).
+  trainerRematches: Record<string, string>;
+  // Species the player has encountered (wild, fished, or faced in a battle).
+  seenSpecies: string[];
   inventory: Record<string, number>;
   berryPicks: { date: string; picked: string[] };
   captures: number;
@@ -27,6 +31,8 @@ export function defaultProgress(): PlayerProgress {
     achievements: [],
     worldPosition: null,
     defeatedTrainers: [],
+    trainerRematches: {},
+    seenSpecies: [],
     inventory: {},
     berryPicks: { date: "", picked: [] },
     captures: 0,
@@ -57,6 +63,17 @@ function sanitizeProgress(parsed: Partial<PlayerProgress>): PlayerProgress {
         : null,
     defeatedTrainers: Array.isArray(parsed.defeatedTrainers)
       ? parsed.defeatedTrainers.filter((id): id is string => typeof id === "string")
+      : [],
+    trainerRematches:
+      parsed.trainerRematches && typeof parsed.trainerRematches === "object"
+        ? Object.fromEntries(
+            Object.entries(parsed.trainerRematches).filter(
+              (entry): entry is [string, string] => typeof entry[1] === "string",
+            ),
+          )
+        : {},
+    seenSpecies: Array.isArray(parsed.seenSpecies)
+      ? parsed.seenSpecies.filter((id): id is string => typeof id === "string")
       : [],
     inventory:
       parsed.inventory && typeof parsed.inventory === "object"

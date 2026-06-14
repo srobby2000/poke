@@ -12,6 +12,8 @@ const baseProgress = (overrides: Partial<PlayerProgress> = {}): PlayerProgress =
   achievements: [],
   worldPosition: null,
   defeatedTrainers: [],
+  trainerRematches: {},
+  seenSpecies: [],
   inventory: {},
   berryPicks: { date: "", picked: [] },
   captures: 0,

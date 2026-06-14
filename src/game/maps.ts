@@ -16,8 +16,11 @@ export type DoorMeta = { building: string; label: string };
 export type NpcMeta = { name: string; dialogue: string };
 // A tile that, when stepped on, sends the player to another map.
 export type WarpMeta = { toMap: string; toX: number; toZ: number; label: string };
+export type Direction = "up" | "down" | "left" | "right";
+
 // An overworld trainer: a fixed enemy squad you challenge by facing them and
-// interacting. Once defeated they step aside (their tile becomes walkable).
+// interacting, or by walking into their line of sight. Once defeated they step
+// aside (their tile becomes walkable) and can be rematched once per day.
 export type TrainerMeta = {
   id: string;
   name: string;
@@ -26,6 +29,9 @@ export type TrainerMeta = {
   reward: number;
   dialogue: string;
   afterDialogue: string;
+  // The direction the trainer watches, and how many tiles they can see.
+  facing?: Direction;
+  sightRange?: number;
 };
 
 export type EncounterEntry = {
@@ -54,10 +60,14 @@ export type WorldMap = {
   warps: Record<string, WarpMeta>; // keyed "x,z"
   trainers: Record<string, TrainerMeta>; // keyed "x,z"
   spawn: { x: number; z: number };
-  // What can appear in this map's tall grass.
+  // The tile kind that rolls wild encounters (tall grass outdoors, path in caves).
+  encounterTile: TileKind;
+  // What can appear in this map's encounter tiles.
   encounters: EncounterEntry[];
   // Regions with their own (usually tougher) encounter tables.
   encounterZones: EncounterZone[];
+  // What can be reeled in when fishing on this map's water tiles.
+  fishing: EncounterEntry[];
 };
 
 type MapLegend = {
@@ -66,8 +76,10 @@ type MapLegend = {
   npcs?: Record<string, NpcMeta>;
   warps?: Record<string, WarpMeta>;
   trainers?: Record<string, TrainerMeta>;
+  encounterTile?: TileKind;
   encounters?: EncounterEntry[];
   encounterZones?: EncounterZone[];
+  fishing?: EncounterEntry[];
 };
 
 const TILE_CHARS: Record<string, TileKind> = {
@@ -143,8 +155,10 @@ function parseMap(id: string, layout: string[], legend: MapLegend): WorldMap {
     warps,
     trainers,
     spawn,
+    encounterTile: legend.encounterTile ?? "tallgrass",
     encounters: legend.encounters ?? [],
     encounterZones: legend.encounterZones ?? [],
+    fishing: legend.fishing ?? [],
   };
 }
 
@@ -261,10 +275,16 @@ export const VILLAGE_MAP = parseMap("village", VILLAGE_LAYOUT, {
       ],
     },
   ],
+  fishing: [
+    { speciesId: "psyduck", weight: 40, minLevel: 3, maxLevel: 6 },
+    { speciesId: "squirtle", weight: 30, minLevel: 3, maxLevel: 6 },
+    { speciesId: "dratini", weight: 12, minLevel: 4, maxLevel: 7 },
+  ],
 });
 
 // Route 2: reached through the gate east of Route 1. Tougher wild spawns, a
-// pond, and three overworld trainers. The west warp leads back to the village.
+// fishable pond, three line-of-sight trainers, and an east gate (Psychic Sage)
+// that guards the warp into Crystal Cave.
 const ROUTE2_LAYOUT = [
   "##############################",
   "#,,,,,,,,,,,,,,,,,,,,,,,,,,,,#",
@@ -272,14 +292,14 @@ const ROUTE2_LAYOUT = [
   "#,,,%%%%%%%,,,,,,,%%%%M%%,,,,#",
   "#,,,%%%%%%%,,,,,,,%%%%%%%,,,,#",
   "#,,,,,,,,,,,,,,,,,,,,,,,,,,,,#",
-  "#,,,,,,,,,,,,,,~~~~~~,,,,,,,,#",
-  "#,,,,,,,,,,,,,,~~~~~~,,,,,,,,#",
-  "#<,P,,,,,,,,,,~~~~~~,,,,,,,,,#",
-  "#,,,,N,,,,,,,,~~~~~~,,,,,,,,,#",
+  "#,,,,,,,,,,,,,~~~~~~,,,,,,,,,#",
+  "#,,,,,,,,,,,,,~~~~~~,,,,,,,###",
+  "#<,P,,,,,,,,,,~~~~~~,,,,,,,D>#",
+  "#,,,,N,,,,,,,,,,,,,,,,,,,,,###",
   "#,,,,,,,,,,,,,,,,,,,,,,,,,,,,#",
   "#,,%%%%%,,,,,,K,,,,,%%%%%,,,,#",
   "#,,%%%%%,,,,,,,,,,,,%%%%%,,,,#",
-  "#,,%%%%%,,,B,,,D,,,%%%%%,,,,,#",
+  "#,,%%%%%,,,B,,,,,,,%%%%%,,,,,#",
   "#,,,,,,,,,,,,,,,,,,,,,,,,,,,,#",
   "##############################",
 ];
@@ -288,12 +308,13 @@ export const ROUTE2_MAP = parseMap("route2", ROUTE2_LAYOUT, {
   name: "Route 2",
   warps: {
     "<": { toMap: "village", toX: 37, toZ: 9, label: "Rift Village" },
+    ">": { toMap: "cave", toX: 2, toZ: 1, label: "Crystal Cave" },
   },
   npcs: {
     N: {
       name: "Signpost",
       dialogue:
-        "Route 2 — walk back through the warp to the west to return to Rift Village. The locals here battle hard!",
+        "Route 2 — the warp west returns to Rift Village; the east gate leads to Crystal Cave. Try fishing the pond!",
     },
   },
   trainers: {
@@ -303,6 +324,8 @@ export const ROUTE2_MAP = parseMap("route2", ROUTE2_LAYOUT, {
       teamId: "ember-dojo",
       level: 8,
       reward: 50,
+      facing: "down",
+      sightRange: 3,
       dialogue: "My dojo squad trains in this grass every day. Let's spar!",
       afterDialogue: "Strong! Keep heading east — the others are tougher than me.",
     },
@@ -312,6 +335,8 @@ export const ROUTE2_MAP = parseMap("route2", ROUTE2_LAYOUT, {
       teamId: "shoreline-rogues",
       level: 9,
       reward: 55,
+      facing: "up",
+      sightRange: 3,
       dialogue: "Resting by the pond, are we? Not before you beat my team!",
       afterDialogue: "Whew, you've got grit. The pond's good for water types, by the way.",
     },
@@ -321,8 +346,10 @@ export const ROUTE2_MAP = parseMap("route2", ROUTE2_LAYOUT, {
       teamId: "mind-garden",
       level: 10,
       reward: 60,
-      dialogue: "I foresaw your arrival... and your challenge. Come, test your mind against mine.",
-      afterDialogue: "Your future is bright. The chase species favour the deep grass here.",
+      facing: "left",
+      sightRange: 4,
+      dialogue: "I foresaw your arrival... and your challenge. Best me, and the cave is yours.",
+      afterDialogue: "Your future is bright. Crystal Cave lies through the warp behind me.",
     },
   },
   encounters: [
@@ -351,12 +378,66 @@ export const ROUTE2_MAP = parseMap("route2", ROUTE2_LAYOUT, {
       ],
     },
   ],
+  fishing: [
+    { speciesId: "psyduck", weight: 32, minLevel: 7, maxLevel: 10 },
+    { speciesId: "squirtle", weight: 28, minLevel: 7, maxLevel: 10 },
+    { speciesId: "lapras", weight: 22, minLevel: 9, maxLevel: 13 },
+    { speciesId: "dratini", weight: 18, minLevel: 8, maxLevel: 12 },
+  ],
+});
+
+// Crystal Cave: an interior reached past the Psychic Sage on Route 2. Wild
+// rock/ground/ghost types lurk on every step (encounters roll on the path
+// itself), and a boss-aura warden guards the depths. The warp returns to Route 2.
+const CAVE_LAYOUT = [
+  "HHHHHHHHHHHHHHHHHHHH",
+  "H<P................H",
+  "H..HH.........HH...H",
+  "H..................H",
+  "H.....HH.....HH....H",
+  "H........HH........H",
+  "H........CH........H",
+  "H........HH........H",
+  "H.....HH.....HH....H",
+  "H........B.........H",
+  "H..................H",
+  "HHHHHHHHHHHHHHHHHHHH",
+];
+
+export const CAVE_MAP = parseMap("cave", CAVE_LAYOUT, {
+  name: "Crystal Cave",
+  encounterTile: "path",
+  warps: {
+    "<": { toMap: "route2", toX: 26, toZ: 8, label: "Route 2" },
+  },
+  trainers: {
+    C: {
+      id: "cave-warden",
+      name: "Cave Warden Onyx",
+      teamId: "aurora-boss",
+      level: 13,
+      reward: 120,
+      facing: "down",
+      sightRange: 3,
+      dialogue: "Few reach my chamber. Fewer leave victorious. Draw your team!",
+      afterDialogue: "The crystals acknowledge your strength. The cave's treasures are yours.",
+    },
+  },
+  encounters: [
+    { speciesId: "geodude", weight: 24, minLevel: 10, maxLevel: 13 },
+    { speciesId: "cubone", weight: 20, minLevel: 10, maxLevel: 13 },
+    { speciesId: "machop", weight: 18, minLevel: 10, maxLevel: 13 },
+    { speciesId: "haunter", weight: 14, minLevel: 11, maxLevel: 14 },
+    { speciesId: "abra", weight: 14, minLevel: 11, maxLevel: 14 },
+    { speciesId: "dratini", weight: 10, minLevel: 12, maxLevel: 15 },
+  ],
 });
 
 // Every traversable map, keyed by id, for warp lookups and save restoration.
 export const MAPS: Record<string, WorldMap> = {
   village: VILLAGE_MAP,
   route2: ROUTE2_MAP,
+  cave: CAVE_MAP,
 };
 
 export function getMap(id: string | undefined): WorldMap {

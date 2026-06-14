@@ -31,6 +31,7 @@ type TeamSelectProps = {
   onExportSave: () => string;
   onImportSave: (raw: string) => boolean;
   onBack?: () => void;
+  onOpenPokedex?: () => void;
 };
 
 export function TeamSelect({
@@ -51,6 +52,7 @@ export function TeamSelect({
   onExportSave,
   onImportSave,
   onBack,
+  onOpenPokedex,
 }: TeamSelectProps) {
   const [selected, setSelected] = useState<string[]>([]);
   const [revealOpen, setRevealOpen] = useState(false);
@@ -92,6 +94,11 @@ export function TeamSelect({
         {onBack ? (
           <button className="back-button" onClick={onBack}>
             ← Back to Village
+          </button>
+        ) : null}
+        {onOpenPokedex ? (
+          <button className="back-button pokedex-button" onClick={onOpenPokedex}>
+            📕 Pokédex
           </button>
         ) : null}
         <h1>Creature Masters Battle</h1>

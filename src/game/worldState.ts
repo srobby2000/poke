@@ -20,6 +20,7 @@ export type TrainerChallenge = {
   teamId: string;
   level: number;
   reward: number;
+  isRematch: boolean;
 };
 
 // A pending warp to another map; the screen layer applies it via a "warp"
@@ -41,7 +42,8 @@ export type WorldInteraction =
   | { kind: "door"; building: string; label: string }
   | { kind: "npc"; name: string; dialogue: string }
   | { kind: "berry"; tileKey: string }
-  | { kind: "trainer"; tileKey: string; name: string };
+  | { kind: "trainer"; tileKey: string; name: string }
+  | { kind: "water" };
 
 export type WorldState = {
   map: WorldMap;
@@ -66,6 +68,8 @@ export type WorldState = {
   pendingWarp: PendingWarp | null;
   // Trainer ids the player has already beaten — those trainers step aside.
   defeatedTrainers: string[];
+  // Trainer ids already rematched today — they offer no further battle.
+  rematchedToday: string[];
   message: string | null;
   grassProgress: number;
   rng: number;
@@ -88,6 +92,7 @@ export function createInitialWorldState(
   position?: { mapId?: string; x: number; z: number } | null,
   seed?: number,
   defeatedTrainers: string[] = [],
+  rematchedToday: string[] = [],
 ): WorldState {
   const map = getMap(position?.mapId);
   const requested = position ?? map.spawn;
@@ -109,6 +114,7 @@ export function createInitialWorldState(
     trainerBattle: null,
     pendingWarp: null,
     defeatedTrainers,
+    rematchedToday,
     message: null,
     grassProgress: 0,
     rng: seed ?? Math.floor(Math.random() * 0xffffffff),
@@ -158,10 +164,12 @@ function findNearbyInteraction(state: WorldState): WorldInteraction | null {
   }
   if (kind === "trainer") {
     const trainer = state.map.trainers[key];
-    // A beaten trainer has stepped aside — no challenge prompt.
-    if (trainer && !state.defeatedTrainers.includes(trainer.id)) {
+    if (trainer && trainerChallengeable(state, trainer.id)) {
       return { kind: "trainer", tileKey: key, name: trainer.name };
     }
+  }
+  if (kind === "water" && state.map.fishing.length > 0) {
+    return { kind: "water" };
   }
   if (kind === "berry") {
     return { kind: "berry", tileKey: key };
@@ -169,8 +177,15 @@ function findNearbyInteraction(state: WorldState): WorldInteraction | null {
   return null;
 }
 
-function trainerChallengeFor(map: WorldMap, key: string): TrainerChallenge | null {
-  const trainer: TrainerMeta | undefined = map.trainers[key];
+// A trainer offers a battle if they haven't been beaten yet, or if they have
+// been beaten but not yet rematched today.
+function trainerChallengeable(state: WorldState, trainerId: string): boolean {
+  const beaten = state.defeatedTrainers.includes(trainerId);
+  return !beaten || !state.rematchedToday.includes(trainerId);
+}
+
+function trainerChallengeFor(state: WorldState, key: string): TrainerChallenge | null {
+  const trainer: TrainerMeta | undefined = state.map.trainers[key];
   if (!trainer) {
     return null;
   }
@@ -181,8 +196,43 @@ function trainerChallengeFor(map: WorldMap, key: string): TrainerChallenge | nul
     teamId: trainer.teamId,
     level: trainer.level,
     reward: trainer.reward,
+    isRematch: state.defeatedTrainers.includes(trainer.id),
   };
 }
+
+// Whether a non-defeated trainer can see the player along their facing line.
+function trainerSpotting(state: WorldState): TrainerChallenge | null {
+  const px = Math.round(state.x);
+  const pz = Math.round(state.z);
+  for (const [key, trainer] of Object.entries(state.map.trainers)) {
+    if (state.defeatedTrainers.includes(trainer.id) || !trainer.facing) {
+      continue;
+    }
+    const [tx, tz] = key.split(",").map(Number);
+    const range = trainer.sightRange ?? 0;
+    const step = DIRECTION_STEP[trainer.facing];
+    for (let dist = 1; dist <= range; dist += 1) {
+      const lx = tx + step.x * dist;
+      const lz = tz + step.z * dist;
+      const tile = tileAt(state.map, lx, lz);
+      // The line of sight is blocked by anything you cannot walk through.
+      if (!isWalkableTile(tile) && tile !== "warp") {
+        break;
+      }
+      if (lx === px && lz === pz) {
+        return trainerChallengeFor(state, key);
+      }
+    }
+  }
+  return null;
+}
+
+const DIRECTION_STEP: Record<string, { x: number; z: number }> = {
+  up: { x: 0, z: -1 },
+  down: { x: 0, z: 1 },
+  left: { x: -1, z: 0 },
+  right: { x: 1, z: 0 },
+};
 
 export function worldReducer(state: WorldState, action: WorldAction): WorldState {
   if (action.type === "setMoveInput") {
@@ -206,8 +256,17 @@ export function worldReducer(state: WorldState, action: WorldAction): WorldState
       return { ...state, message: `${nearby.name}: ${nearby.dialogue}` };
     }
     if (nearby.kind === "trainer") {
-      const challenge = trainerChallengeFor(state.map, nearby.tileKey);
+      const challenge = trainerChallengeFor(state, nearby.tileKey);
       return challenge ? { ...state, trainerBattle: challenge } : state;
+    }
+    if (nearby.kind === "water") {
+      // Cast a line: a 70% bite chance rolls a fishing encounter.
+      const [biteRoll, seedAfterBite] = nextRandom(state.rng);
+      if (biteRoll >= 0.7) {
+        return { ...state, rng: seedAfterBite, message: "You cast your line… not even a nibble." };
+      }
+      const rolled = rollEncounter(state.map.fishing, seedAfterBite);
+      return { ...state, rng: rolled.nextSeed, encounter: rolled.encounter };
     }
     return { ...state, berryTarget: nearby.tileKey };
   }
@@ -288,7 +347,7 @@ export function worldReducer(state: WorldState, action: WorldAction): WorldState
     let { grassProgress, rng } = state;
     let encounter: WildEncounter | null = null;
     const localEncounters = encountersAt(state.map, x, z);
-    if (distanceMoved > 0 && tileAt(state.map, x, z) === "tallgrass" && localEncounters.length > 0) {
+    if (distanceMoved > 0 && tileAt(state.map, x, z) === state.map.encounterTile && localEncounters.length > 0) {
       grassProgress += distanceMoved;
       while (grassProgress >= 1 && !encounter) {
         grassProgress -= 1;
@@ -328,6 +387,15 @@ export function worldReducer(state: WorldState, action: WorldAction): WorldState
       // Walking away from a conversation closes it.
       message: moving ? null : state.message,
     };
+
+    // Walking into a trainer's line of sight starts the battle automatically.
+    if (!encounter && !pendingWarp && distanceMoved > 0) {
+      const spotted = trainerSpotting(next);
+      if (spotted) {
+        return { ...next, trainerBattle: spotted, nearby: null };
+      }
+    }
+
     return { ...next, nearby: findNearbyInteraction(next) };
   }
 

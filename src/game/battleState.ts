@@ -1123,6 +1123,16 @@ const bossEnemyTeams: EnemyTeamPreset[] = [
 
 const allEnemyTeams = [...regularEnemyTeams, ...bossEnemyTeams];
 
+// The base ally species behind an enemy team's templates, for Pokédex "seen"
+// tracking (templates are named "enemy-vulpix" / "boss-dratini" / "pikachu").
+export function enemyTeamSpeciesIds(teamId: string): string[] {
+  const team = allEnemyTeams.find((candidate) => candidate.id === teamId);
+  if (!team) {
+    return [];
+  }
+  return team.templateIds.map((id) => id.replace(/^(enemy-|boss-)/, ""));
+}
+
 export function enemyTeamForStage(stage: number): EnemyTeamPreset {
   const normalizedStage = Math.max(1, Math.floor(stage));
   if (normalizedStage % 5 === 0) {

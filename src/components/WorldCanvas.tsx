@@ -18,12 +18,20 @@ export function WorldCanvas({ state, pickedBerries }: WorldCanvasProps) {
       <fog attach="fog" args={["#0c1220", 14, 30]} />
       <ambientLight intensity={0.75} />
       <directionalLight castShadow position={[-6, 12, 6]} intensity={1.9} shadow-mapSize={[2048, 2048]} />
-      <StaticVillage map={state.map} pickedBerries={pickedBerries} />
+      <StaticVillage map={state.map} pickedBerries={pickedBerries} defeatedTrainers={state.defeatedTrainers} />
       <Player state={state} />
       <CameraRig x={state.x} z={state.z} />
     </Canvas>
   );
 }
+
+// A beaten trainer shifts off the path (perpendicular to where they watched).
+const TRAINER_STEP_ASIDE: Record<string, { x: number; z: number }> = {
+  up: { x: 0.45, z: 0 },
+  down: { x: 0.45, z: 0 },
+  left: { x: 0, z: 0.45 },
+  right: { x: 0, z: 0.45 },
+};
 
 function CameraRig({ x, z }: { x: number; z: number }) {
   useFrame(({ camera }, delta) => {
@@ -71,7 +79,15 @@ function Player({ state }: { state: WorldState }) {
 
 // The village geometry only changes when a berry tree is picked, so this
 // subtree renders rarely and React.memo skips it on every movement tick.
-const StaticVillage = memo(function StaticVillage({ map, pickedBerries }: { map: WorldMap; pickedBerries: string[] }) {
+const StaticVillage = memo(function StaticVillage({
+  map,
+  pickedBerries,
+  defeatedTrainers,
+}: {
+  map: WorldMap;
+  pickedBerries: string[];
+  defeatedTrainers: string[];
+}) {
   const layout = useMemo(() => {
     const grass: [number, number][] = [];
     const tallgrass: [number, number][] = [];
@@ -83,7 +99,7 @@ const StaticVillage = memo(function StaticVillage({ map, pickedBerries }: { map:
     const warps: { x: number; z: number; label: string }[] = [];
     const doors: { x: number; z: number; label: string }[] = [];
     const npcs: { x: number; z: number; name: string }[] = [];
-    const trainers: { x: number; z: number; name: string }[] = [];
+    const trainers: { x: number; z: number; name: string; id: string; facing?: string }[] = [];
 
     map.tiles.forEach((row, z) => {
       row.forEach((kind, x) => {
@@ -101,7 +117,8 @@ const StaticVillage = memo(function StaticVillage({ map, pickedBerries }: { map:
         } else if (kind === "npc") {
           npcs.push({ x, z, name: map.npcs[tileKey(x, z)]?.name ?? "Villager" });
         } else if (kind === "trainer") {
-          trainers.push({ x, z, name: map.trainers[tileKey(x, z)]?.name ?? "Trainer" });
+          const meta = map.trainers[tileKey(x, z)];
+          trainers.push({ x, z, name: meta?.name ?? "Trainer", id: meta?.id ?? "", facing: meta?.facing });
         }
       });
     });
@@ -271,21 +288,28 @@ const StaticVillage = memo(function StaticVillage({ map, pickedBerries }: { map:
         </group>
       ))}
 
-      {layout.trainers.map((trainer) => (
-        <group key={`tr${trainer.x},${trainer.z}`} position={[trainer.x, 0, trainer.z]}>
-          <mesh castShadow position={[0, 0.4, 0]}>
-            <capsuleGeometry args={[0.24, 0.4, 4, 10]} />
-            <meshStandardMaterial color="#f97316" roughness={0.55} />
-          </mesh>
-          <mesh castShadow position={[0, 0.92, 0]}>
-            <sphereGeometry args={[0.19, 12, 10]} />
-            <meshStandardMaterial color="#f1d4b0" roughness={0.6} />
-          </mesh>
-          <Html center position={[0, 1.5, 0]} className="unit-label" distanceFactor={11}>
-            <span>⚔ {trainer.name}</span>
-          </Html>
-        </group>
-      ))}
+      {layout.trainers.map((trainer) => {
+        const beaten = defeatedTrainers.includes(trainer.id);
+        // A beaten trainer steps aside (offset off the path) and dims.
+        const offset = beaten ? TRAINER_STEP_ASIDE[trainer.facing ?? "down"] : { x: 0, z: 0 };
+        return (
+          <group key={`tr${trainer.x},${trainer.z}`} position={[trainer.x + offset.x, 0, trainer.z + offset.z]}>
+            <mesh castShadow position={[0, 0.4, 0]}>
+              <capsuleGeometry args={[0.24, 0.4, 4, 10]} />
+              <meshStandardMaterial color={beaten ? "#7c6f64" : "#f97316"} roughness={0.55} />
+            </mesh>
+            <mesh castShadow position={[0, 0.92, 0]}>
+              <sphereGeometry args={[0.19, 12, 10]} />
+              <meshStandardMaterial color="#f1d4b0" roughness={0.6} />
+            </mesh>
+            {beaten ? null : (
+              <Html center position={[0, 1.5, 0]} className="unit-label" distanceFactor={11}>
+                <span>⚔ {trainer.name}</span>
+              </Html>
+            )}
+          </group>
+        );
+      })}
     </group>
   );
 });

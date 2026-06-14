@@ -1561,6 +1561,42 @@ kbd {
   color: #94a3b8;
 }
 
+/* Pokédex */
+.pokedex-button {
+  border-color: rgba(168, 85, 247, 0.5);
+  color: #e9d5ff;
+  background: rgba(76, 29, 149, 0.45);
+}
+
+.dex-badge {
+  margin-left: auto;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.dex-badge-caught {
+  background: rgba(34, 197, 94, 0.18);
+  color: #86efac;
+  border: 1px solid rgba(34, 197, 94, 0.4);
+}
+
+.dex-badge-seen {
+  background: rgba(148, 163, 184, 0.16);
+  color: #cbd5e1;
+  border: 1px solid rgba(148, 163, 184, 0.36);
+}
+
+.dex-card-seen {
+  opacity: 0.82;
+}
+
+.dex-card-missing {
+  opacity: 0.55;
+}
+
 .floating-feedback {
   pointer-events: none;
   user-select: none;

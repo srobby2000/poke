@@ -6,9 +6,13 @@ A real-time, Pokémon Masters-inspired 3v3 battle game built with React, TypeScr
 
 ## Features
 
-- **Overworld village** — walk around Rift Village (WASD/arrows, touch joystick on mobile), talk to NPCs, and enter the Arena to battle; your position is saved between sessions
+- **Connected overworld** — walk between Rift Village, Route 2, and Crystal Cave (WASD/arrows, touch joystick on mobile); step on a warp tile to travel between areas. Your map and position are saved between sessions
 - **Berries & shop** — pick berries from village trees (they regrow daily) and trade at the Village Shop: sell berries, buy Poké Balls and potions
 - **Wild encounters & capture** — Route 1's tall grass hides wild creatures (Pidgey, Rattata, Oddish, and rare roster species up to Dratini); weaken them in battle, throw balls to capture, and recruit them — duplicates level up like gacha dupes. The deep grass further east hides stronger spawns including wild Growlithe and Eevee. Wild species evolve too (Pidgey → Pidgeotto → Pidgeot, etc.)
+- **Route 2 & Crystal Cave** — head east through the gate to Route 2 (a fishable pond, deep-grass chase zone, wild Lapras) and on into Crystal Cave, where rock/ground/ghost types lurk on every step and a boss-aura Warden guards the depths
+- **Overworld trainers** — line-of-sight trainers spot you and battle; beat one and they step aside (gating progress). A Gatekeeper guards Route 2 and the Psychic Sage guards the cave. Defeated trainers can be **rematched once per day** for bonus gems
+- **Fishing** — cast a line on any pond's water tiles for a chance at water types (Psyduck, Squirtle, and rare Lapras)
+- **Pokédex** — a seen/caught collection screen (open from the Arena) tracking every creature you've encountered in the wild, fishing, or in battle
 - **Minimap & capture achievements** — an in-world minimap tracks your position; capture milestones (Gotcha!, Seasoned Catcher, Route Researcher) pay gem rewards
 - **Gacha scouting** — earn gems by clearing stages and spend them on pulls (×1 or discounted ×10) with an animated rarity reveal; new allies are guaranteed while any remain locked (weighted by ★ rarity), then pulls become level-ups
 - **Rotating rival squads** — four enemy teams rotate by stage, with a Boss Aura team every fifth stage, plus a once-per-day seeded Daily Challenge for bonus gems
@@ -67,6 +71,7 @@ src/
 │   ├── WorldScreen.tsx      # Overworld loop, keyboard + joystick, village HUD
 │   ├── WorldCanvas.tsx      # three.js village scene
 │   ├── TeamSelect.tsx       # Arena hub: roster, scout, achievements
+│   ├── PokedexScreen.tsx    # Seen/caught creature collection
 │   ├── BattleCanvas.tsx     # three.js battle scene (react-three-fiber + drei)
 │   └── BattleHud.tsx        # 2D HUD: gauges, move buttons, battle log
 ├── App.tsx                  # Screen flow + 30Hz fixed-rate game loop

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ROUTE2_MAP, VILLAGE_MAP, encountersAt, isWalkableTile, tileAt, tileKey } from "./maps";
+import { CAVE_MAP, ROUTE2_MAP, VILLAGE_MAP, encountersAt, isWalkableTile, tileAt, tileKey } from "./maps";
 import type { WorldState } from "./worldState";
 import { WORLD_BALANCE, createInitialWorldState, worldReducer } from "./worldState";
 
@@ -242,8 +242,8 @@ describe("overworld trainers", () => {
   });
 
   it("lets a defeated trainer be walked through to reach the warp", () => {
-    let state = createInitialWorldState({ mapId: "village", x: 37, z: 9 }, 1, ["village-gate"]);
-    // No challenge prompt once they have been beaten.
+    // Beaten and already rematched today, so the gate is fully cleared.
+    let state = createInitialWorldState({ mapId: "village", x: 37, z: 9 }, 1, ["village-gate"], ["village-gate"]);
     state = worldReducer(state, { type: "setMoveInput", x: 1, z: 0 });
     state = tick(state);
     expect(state.nearby?.kind).not.toBe("trainer");
@@ -253,6 +253,19 @@ describe("overworld trainers", () => {
     }
     expect(state.x).toBeGreaterThan(38);
     expect(state.pendingWarp?.toMap).toBe("route2");
+  });
+
+  it("offers a rematch to a beaten trainer until it has been rematched today", () => {
+    // Beaten but not yet rematched today.
+    let state = createInitialWorldState({ mapId: "village", x: 37, z: 9 }, 1, ["village-gate"]);
+    state = worldReducer(state, { type: "setMoveInput", x: 1, z: 0 });
+    state = tick(state);
+    state = worldReducer(state, { type: "setMoveInput", x: 0, z: 0 });
+    state = tick(state);
+
+    expect(state.nearby?.kind).toBe("trainer");
+    state = worldReducer(state, { type: "interact" });
+    expect(state.trainerBattle?.isRematch).toBe(true);
   });
 });
 
@@ -286,5 +299,46 @@ describe("map warps", () => {
     expect(Object.keys(ROUTE2_MAP.trainers).length).toBeGreaterThanOrEqual(3);
     expect(Object.values(ROUTE2_MAP.warps).some((warp) => warp.toMap === "village")).toBe(true);
     expect(ROUTE2_MAP.encounters.some((entry) => entry.speciesId === "lapras")).toBe(true);
+  });
+
+  it("gates Crystal Cave behind the Psychic Sage and rolls encounters on its path", () => {
+    expect(CAVE_MAP.encounterTile).toBe("path");
+    expect(CAVE_MAP.encounters.length).toBeGreaterThan(0);
+    expect(Object.values(ROUTE2_MAP.warps).some((warp) => warp.toMap === "cave")).toBe(true);
+    expect(Object.values(CAVE_MAP.warps).some((warp) => warp.toMap === "route2")).toBe(true);
+  });
+});
+
+describe("fishing", () => {
+  it("reels in a fishing-table species when facing water", () => {
+    // Try a handful of seeds until a bite lands, then validate the catch.
+    let caught: { speciesId: string; level: number } | null = null;
+    for (let seed = 1; seed < 60 && !caught; seed += 1) {
+      // Stand just west of the Route 2 pond (x14) and face east into it.
+      let state = createInitialWorldState({ mapId: "route2", x: 13, z: 8 }, seed);
+      state = worldReducer(state, { type: "setMoveInput", x: 1, z: 0 });
+      state = tick(state);
+      state = worldReducer(state, { type: "setMoveInput", x: 0, z: 0 });
+      state = tick(state);
+      if (state.nearby?.kind !== "water") {
+        continue;
+      }
+      state = worldReducer(state, { type: "interact" });
+      caught = state.encounter;
+    }
+    expect(caught).not.toBeNull();
+    expect(ROUTE2_MAP.fishing.some((entry) => entry.speciesId === caught!.speciesId)).toBe(true);
+  });
+});
+
+describe("line-of-sight trainers", () => {
+  it("starts a battle when the player walks into a trainer's sight line", () => {
+    // Battle Girl Maya watches south from (22,3); approach up her column.
+    let state = createInitialWorldState({ mapId: "route2", x: 22, z: 7 }, 5);
+    state = worldReducer(state, { type: "setMoveInput", x: 0, z: -1 });
+    for (let step = 0; step < 30 * 3 && !state.trainerBattle && !state.encounter; step += 1) {
+      state = tick(state);
+    }
+    expect(state.trainerBattle?.id).toBe("route2-maya");
   });
 });

@@ -11,6 +11,8 @@ const progress: PlayerProgress = {
   achievements: ["first-victory"],
   worldPosition: { mapId: "village", x: 2, z: 3 },
   defeatedTrainers: ["village-gate"],
+  trainerRematches: { "village-gate": "2026-06-14" },
+  seenSpecies: ["pidgey", "rattata"],
   inventory: { "potion-item": 2 },
   berryPicks: { date: "2026-06-14", picked: ["1,2"] },
   captures: 1,
