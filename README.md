@@ -12,6 +12,7 @@ A real-time, Pokémon Masters-inspired 3v3 battle game built with React, TypeScr
 - **Route 2 & Crystal Cave** — head east through the gate to Route 2 (a fishable pond, deep-grass chase zone, wild Lapras) and on into Crystal Cave, where rock/ground/ghost types lurk on every step and a boss-aura Warden guards the depths
 - **Overworld trainers** — line-of-sight trainers spot you and battle; beat one and they step aside (gating progress). A Gatekeeper guards Route 2 and the Psychic Sage guards the cave. Defeated trainers can be **rematched once per day** for bonus gems
 - **Fishing** — cast a line on any pond's water tiles for a chance at water types (Psyduck, Squirtle, and rare Lapras)
+- **Held items** — equip an ally with a held item for a passive battle effect: type-boost charms (Charcoal, Mystic Water, Soft Sand, Hard Stone…) that amp a move type by 20%, Life Orb (+25% damage), Leftovers (HP regen each turn), and Focus Sash (survive one knockout from full HP). Buy them at the shop, find them as drops from strong wild creatures, or earn the Focus Sash from the Cave Warden — a lever for patching type coverage against the rock/ground cave
 - **Pokédex** — a seen/caught collection screen (open from the Arena) tracking every creature you've encountered in the wild, fishing, or in battle
 - **Minimap & capture achievements** — an in-world minimap tracks your position; capture milestones (Gotcha!, Seasoned Catcher, Route Researcher) pay gem rewards
 - **Gacha scouting** — earn gems by clearing stages and spend them on pulls (×1 or discounted ×10) with an animated rarity reveal; new allies are guaranteed while any remain locked (weighted by ★ rarity), then pulls become level-ups
@@ -62,6 +63,7 @@ src/
 │   ├── maps.ts              # Overworld maps as editable ASCII grids
 │   ├── worldState.ts        # Overworld reducer: movement, collision, interactions
 │   ├── items.ts             # Item definitions, inventory, daily berry picking
+│   ├── heldItems.ts         # Held-item effects, equip/unequip logic
 │   ├── shop.ts              # Buy/sell logic
 │   ├── pokeApi.ts           # Live PokeAPI stat fetching with localStorage cache
 │   ├── gacha.ts             # Pull, leveling, and gem-reward logic

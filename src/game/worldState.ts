@@ -21,6 +21,7 @@ export type TrainerChallenge = {
   level: number;
   reward: number;
   isRematch: boolean;
+  itemReward?: string;
 };
 
 // A pending warp to another map; the screen layer applies it via a "warp"
@@ -197,6 +198,7 @@ function trainerChallengeFor(state: WorldState, key: string): TrainerChallenge |
     level: trainer.level,
     reward: trainer.reward,
     isRematch: state.defeatedTrainers.includes(trainer.id),
+    itemReward: trainer.itemReward,
   };
 }
 

@@ -8,6 +8,7 @@ import {
   dailyChallengeKey,
   dailyChallengeStage,
   enemyTeamForStage,
+  focusSashSurvives,
   getAllyOptions,
   getTypeEffectiveness,
   nextEvolutionLevel,
@@ -910,5 +911,58 @@ describe("battle simulation", () => {
       units: lost.units.map((unit) => (unit.team === "ally" ? { ...unit, hp: 0 } : unit)),
     };
     expect(battleReducer(lost, tickBattle(0.1)).status).toBe("lost");
+  });
+});
+
+describe("held items", () => {
+  const allyIds = ["charmander", "squirtle", "bulbasaur"];
+
+  const fireMoveDamage = (heldItems: Record<string, string>) => {
+    let state = createInitialBattleState(1, { allyIds, heldItems });
+    state = battleReducer(state, { type: "selectAlly", unitId: "charmander" });
+    const charmander = state.units.find((unit) => unit.id === "charmander")!;
+    const fireMove = charmander.moves.find((move) => move.type === "fire")!;
+    return previewPlayerMove(state, fireMove.id)?.estimatedDamage ?? 0;
+  };
+
+  it("attaches a configured held item to the right ally", () => {
+    const state = createInitialBattleState(1, { allyIds, heldItems: { charmander: "charcoal" } });
+    expect(state.units.find((unit) => unit.id === "charmander")?.heldItem).toBe("charcoal");
+    expect(state.units.find((unit) => unit.id === "squirtle")?.heldItem).toBeUndefined();
+  });
+
+  it("a type-boost item increases matching-type damage", () => {
+    expect(fireMoveDamage({ charmander: "charcoal" })).toBeGreaterThan(fireMoveDamage({}));
+  });
+
+  it("Leftovers heals the holder over a status tick", () => {
+    let state = createInitialBattleState(1, { allyIds, heldItems: { charmander: "leftovers" } });
+    state = {
+      ...state,
+      units: state.units.map((unit) =>
+        unit.id === "charmander" ? { ...unit, hp: Math.floor(unit.maxHp / 2) } : unit,
+      ),
+    };
+    const before = state.units.find((unit) => unit.id === "charmander")!.hp;
+    // ~1.3s of ticks: past one status tick, well short of any enemy cooldown.
+    for (let step = 0; step < 13; step += 1) {
+      state = battleReducer(state, tickBattle(0.1));
+    }
+    const after = state.units.find((unit) => unit.id === "charmander")!.hp;
+    expect(after).toBeGreaterThan(before);
+  });
+
+  it("Focus Sash survives a lethal hit only from full HP and only once", () => {
+    const sashed = { heldItem: "focus-sash", heldItemUsed: false, hp: 100, maxHp: 100 };
+    expect(focusSashSurvives(sashed, 0)).toBe(true);
+    expect(focusSashSurvives(sashed, -40)).toBe(true);
+    // Not from a chip of HP missing.
+    expect(focusSashSurvives({ ...sashed, hp: 99 }, 0)).toBe(false);
+    // Not once already used.
+    expect(focusSashSurvives({ ...sashed, heldItemUsed: true }, 0)).toBe(false);
+    // Not without the item.
+    expect(focusSashSurvives({ heldItem: "leftovers", heldItemUsed: false, hp: 100, maxHp: 100 }, 0)).toBe(false);
+    // Not on a non-lethal hit.
+    expect(focusSashSurvives(sashed, 30)).toBe(false);
   });
 });

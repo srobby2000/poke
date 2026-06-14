@@ -16,6 +16,8 @@ export type PlayerProgress = {
   trainerRematches: Record<string, string>;
   // Species the player has encountered (wild, fished, or faced in a battle).
   seenSpecies: string[];
+  // allyId -> equipped held-item id.
+  heldItems: Record<string, string>;
   inventory: Record<string, number>;
   berryPicks: { date: string; picked: string[] };
   captures: number;
@@ -33,6 +35,7 @@ export function defaultProgress(): PlayerProgress {
     defeatedTrainers: [],
     trainerRematches: {},
     seenSpecies: [],
+    heldItems: {},
     inventory: {},
     berryPicks: { date: "", picked: [] },
     captures: 0,
@@ -75,6 +78,14 @@ function sanitizeProgress(parsed: Partial<PlayerProgress>): PlayerProgress {
     seenSpecies: Array.isArray(parsed.seenSpecies)
       ? parsed.seenSpecies.filter((id): id is string => typeof id === "string")
       : [],
+    heldItems:
+      parsed.heldItems && typeof parsed.heldItems === "object"
+        ? Object.fromEntries(
+            Object.entries(parsed.heldItems).filter(
+              (entry): entry is [string, string] => typeof entry[1] === "string",
+            ),
+          )
+        : {},
     inventory:
       parsed.inventory && typeof parsed.inventory === "object"
         ? Object.fromEntries(

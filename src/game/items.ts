@@ -1,6 +1,6 @@
 import type { PlayerProgress } from "./progress";
 
-export type ItemKind = "ball" | "heal" | "berry";
+export type ItemKind = "ball" | "heal" | "berry" | "held";
 
 export type ItemDef = {
   id: string;
@@ -88,6 +88,84 @@ export const ITEMS: Record<string, ItemDef> = {
     description: "A rare, prized berry.",
     kind: "berry",
     sellPrice: 40,
+  },
+  // Held items — equip on an ally for a passive battle effect.
+  charcoal: {
+    id: "charcoal",
+    name: "Charcoal",
+    description: "Held item: boosts the holder's Fire moves by 20%.",
+    kind: "held",
+    buyPrice: 220,
+    sellPrice: 110,
+  },
+  "mystic-water": {
+    id: "mystic-water",
+    name: "Mystic Water",
+    description: "Held item: boosts the holder's Water moves by 20%.",
+    kind: "held",
+    buyPrice: 220,
+    sellPrice: 110,
+  },
+  magnet: {
+    id: "magnet",
+    name: "Magnet",
+    description: "Held item: boosts the holder's Electric moves by 20%.",
+    kind: "held",
+    buyPrice: 220,
+    sellPrice: 110,
+  },
+  "miracle-seed": {
+    id: "miracle-seed",
+    name: "Miracle Seed",
+    description: "Held item: boosts the holder's Grass moves by 20%.",
+    kind: "held",
+    buyPrice: 220,
+    sellPrice: 110,
+  },
+  "twisted-spoon": {
+    id: "twisted-spoon",
+    name: "Twisted Spoon",
+    description: "Held item: boosts the holder's Psychic moves by 20%.",
+    kind: "held",
+    buyPrice: 220,
+    sellPrice: 110,
+  },
+  "soft-sand": {
+    id: "soft-sand",
+    name: "Soft Sand",
+    description: "Held item: boosts the holder's Ground moves by 20%. Found in Crystal Cave.",
+    kind: "held",
+    sellPrice: 120,
+  },
+  "hard-stone": {
+    id: "hard-stone",
+    name: "Hard Stone",
+    description: "Held item: boosts the holder's Rock moves by 20%. Found in Crystal Cave.",
+    kind: "held",
+    sellPrice: 120,
+  },
+  leftovers: {
+    id: "leftovers",
+    name: "Leftovers",
+    description: "Held item: the holder restores a little HP each turn.",
+    kind: "held",
+    buyPrice: 320,
+    sellPrice: 160,
+  },
+  "life-orb": {
+    id: "life-orb",
+    name: "Life Orb",
+    description: "Held item: boosts all of the holder's damage by 25%.",
+    kind: "held",
+    buyPrice: 420,
+    sellPrice: 210,
+  },
+  "focus-sash": {
+    id: "focus-sash",
+    name: "Focus Sash",
+    description: "Held item: if at full HP, the holder survives a knockout with 1 HP (once per battle).",
+    kind: "held",
+    sellPrice: 200,
   },
 };
 

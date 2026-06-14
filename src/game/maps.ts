@@ -32,6 +32,8 @@ export type TrainerMeta = {
   // The direction the trainer watches, and how many tiles they can see.
   facing?: Direction;
   sightRange?: number;
+  // A held item granted the first time this trainer is beaten.
+  itemReward?: string;
 };
 
 export type EncounterEntry = {
@@ -419,8 +421,9 @@ export const CAVE_MAP = parseMap("cave", CAVE_LAYOUT, {
       reward: 120,
       facing: "down",
       sightRange: 3,
+      itemReward: "focus-sash",
       dialogue: "Few reach my chamber. Fewer leave victorious. Draw your team!",
-      afterDialogue: "The crystals acknowledge your strength. The cave's treasures are yours.",
+      afterDialogue: "The crystals acknowledge your strength. Take this Focus Sash as proof.",
     },
   },
   encounters: [

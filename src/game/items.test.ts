@@ -14,6 +14,7 @@ const baseProgress = (overrides: Partial<PlayerProgress> = {}): PlayerProgress =
   defeatedTrainers: [],
   trainerRematches: {},
   seenSpecies: [],
+  heldItems: {},
   inventory: {},
   berryPicks: { date: "", picked: [] },
   captures: 0,
@@ -113,6 +114,13 @@ describe("shop", () => {
       "antidote",
       "burn-heal",
       "paralyze-heal",
+      "charcoal",
+      "mystic-water",
+      "magnet",
+      "miracle-seed",
+      "twisted-spoon",
+      "leftovers",
+      "life-orb",
     ]);
 
     const stocked = addItem(baseProgress(), "sitrus-berry", 1);

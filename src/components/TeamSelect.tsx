@@ -5,6 +5,8 @@ import type { PokemonBaseStats } from "../game/battleState";
 import { BALANCE, getAllyOptions } from "../game/battleState";
 import type { PullResult } from "../game/gacha";
 import { MULTI_PULL_COST, MULTI_PULL_COUNT, PULL_COST, canMultiPull, canPull, levelOf, levelUpCost } from "../game/gacha";
+import { isHeldItem } from "../game/heldItems";
+import { ITEMS } from "../game/items";
 import type { PlayerProgress } from "../game/progress";
 
 const TEAM_SIZE = 3;
@@ -32,6 +34,7 @@ type TeamSelectProps = {
   onImportSave: (raw: string) => boolean;
   onBack?: () => void;
   onOpenPokedex?: () => void;
+  onEquipHeld?: (allyId: string, itemId: string | null) => void;
 };
 
 export function TeamSelect({
@@ -53,7 +56,12 @@ export function TeamSelect({
   onImportSave,
   onBack,
   onOpenPokedex,
+  onEquipHeld,
 }: TeamSelectProps) {
+  // Held items currently in the bag, available to equip.
+  const ownedHeldItems = Object.keys(progress.inventory).filter(
+    (id) => isHeldItem(id) && (progress.inventory[id] ?? 0) > 0,
+  );
   const [selected, setSelected] = useState<string[]>([]);
   const [revealOpen, setRevealOpen] = useState(false);
   const [saveText, setSaveText] = useState("");
@@ -316,6 +324,23 @@ export function TeamSelect({
                   <small className="level-max">MAX</small>
                 )}
               </span>
+              {onEquipHeld ? (
+                <label className="held-item-line" onClick={(event) => event.stopPropagation()}>
+                  Held
+                  <select
+                    value={progress.heldItems[option.id] ?? ""}
+                    onClick={(event) => event.stopPropagation()}
+                    onChange={(event) => onEquipHeld(option.id, event.target.value || null)}
+                  >
+                    <option value="">— none —</option>
+                    {Array.from(new Set([progress.heldItems[option.id], ...ownedHeldItems].filter(Boolean))).map((itemId) => (
+                      <option key={itemId} value={itemId as string}>
+                        {ITEMS[itemId as string]?.name ?? itemId}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ) : null}
             </div>
           );
         })}

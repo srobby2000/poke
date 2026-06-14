@@ -19,6 +19,7 @@ import {
   performPull,
   wildVictoryReward,
 } from "./game/gacha";
+import { equipHeldItem, unequipHeldItem } from "./game/heldItems";
 import { ITEMS, addItem, itemCount, pickBerry, pickedBerryTiles } from "./game/items";
 import { fetchSpeciesStats } from "./game/pokeApi";
 import { defaultProgress, exportProgress, importProgress, loadProgress, saveProgress } from "./game/progress";
@@ -46,6 +47,7 @@ type TrainerSession = {
   level: number;
   reward: number;
   isRematch: boolean;
+  itemReward?: string;
 };
 
 type Session = {
@@ -191,7 +193,15 @@ export default function App() {
             runId: 1,
             battleMode: "trainer",
             enemyTeamId: trainer.teamId,
-            trainer: { id: trainer.id, name: trainer.name, teamId: trainer.teamId, level: trainer.level, reward, isRematch: trainer.isRematch },
+            trainer: {
+              id: trainer.id,
+              name: trainer.name,
+              teamId: trainer.teamId,
+              level: trainer.level,
+              reward,
+              isRematch: trainer.isRematch,
+              itemReward: trainer.itemReward,
+            },
           });
         }}
       />
@@ -230,6 +240,12 @@ export default function App() {
         lastPulls={lastPulls}
         onBack={() => setScreen("world")}
         onOpenPokedex={() => setScreen("pokedex")}
+        onEquipHeld={(allyId, itemId) => {
+          const next = itemId ? equipHeldItem(progress, allyId, itemId) : unequipHeldItem(progress, allyId);
+          if (next) {
+            commitProgress(next);
+          }
+        }}
         recentAchievements={recentAchievements}
         statsSource={speciesStats ? "live" : "bundled"}
         speciesStats={speciesStats}
@@ -300,6 +316,7 @@ export default function App() {
       isTrainer={!!session.trainer}
       speciesStats={speciesStats}
       allyLevels={progress.allyLevels}
+      heldItems={progress.heldItems}
       items={progress.inventory}
       onItemUsed={(itemId, quantity) => {
         setProgress((current) => ({
@@ -342,20 +359,21 @@ export default function App() {
           // First win: the trainer stays beaten (steps aside in the overworld).
           // Rematch win: record the date so they can be re-challenged tomorrow.
           // No ladder progression either way.
-          const defeated = progress.defeatedTrainers.includes(trainer.id)
-            ? progress.defeatedTrainers
-            : [...progress.defeatedTrainers, trainer.id];
-          commitProgress(
-            {
-              ...progress,
-              gems: progress.gems + trainer.reward,
-              defeatedTrainers: defeated,
-              trainerRematches: trainer.isRematch
-                ? { ...progress.trainerRematches, [trainer.id]: todayKey }
-                : progress.trainerRematches,
-            },
-            summary,
-          );
+          const firstWin = !progress.defeatedTrainers.includes(trainer.id);
+          const defeated = firstWin ? [...progress.defeatedTrainers, trainer.id] : progress.defeatedTrainers;
+          let next: typeof progress = {
+            ...progress,
+            gems: progress.gems + trainer.reward,
+            defeatedTrainers: defeated,
+            trainerRematches: trainer.isRematch
+              ? { ...progress.trainerRematches, [trainer.id]: todayKey }
+              : progress.trainerRematches,
+          };
+          // The first defeat hands over the trainer's held-item reward, if any.
+          if (firstWin && trainer.itemReward) {
+            next = addItem(next, trainer.itemReward, 1);
+          }
+          commitProgress(next, summary);
           return;
         }
         const rewarded =
@@ -389,6 +407,7 @@ type BattleProps = {
   isTrainer?: boolean;
   speciesStats: Record<string, PokemonBaseStats> | null;
   allyLevels: Record<string, number>;
+  heldItems: Record<string, string>;
   items: Record<string, number>;
   onItemUsed: (itemId: string, quantity: number) => void;
   onBattleCleared: (summary: BattleSummary) => void;
@@ -409,6 +428,7 @@ function Battle({
   isTrainer,
   speciesStats,
   allyLevels,
+  heldItems,
   items,
   onItemUsed,
   onBattleCleared,
@@ -428,6 +448,7 @@ function Battle({
       wild,
       speciesStats: speciesStats ?? undefined,
       allyLevels,
+      heldItems,
       items,
     }),
   );

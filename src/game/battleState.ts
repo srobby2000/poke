@@ -1,6 +1,7 @@
 import { BALANCE } from "./battleBalance";
 import { battleItemEffect } from "./battleItems";
 import { getTypeEffectiveness } from "./battleTypeChart";
+import { heldItemDamageMultiplier, heldItemEffect } from "./heldItems";
 
 export { BALANCE };
 export { getTypeEffectiveness };
@@ -94,6 +95,9 @@ export type Unit = {
   trainerMove: TrainerMove | null;
   hitFlash: number;
   actionPulse: number;
+  // Equipped held item (allies only) and whether its one-shot effect fired.
+  heldItem?: string;
+  heldItemUsed?: boolean;
 };
 
 export type EnemyTrainerState = {
@@ -213,6 +217,8 @@ export type BattleConfig = {
   speciesStats?: Record<string, PokemonBaseStats>;
   allyLevels?: Record<string, number>;
   items?: Record<string, number>;
+  // allyId -> equipped held-item id.
+  heldItems?: Record<string, string>;
 };
 
 export type BattleState = {
@@ -1298,13 +1304,15 @@ export const createInitialBattleState = (seed?: number, config?: Partial<BattleC
     const form = allyFormForLevel(template.id, level);
     const effectiveTemplate = form ? { ...template, name: form.name, sourcePokemon: form.sourcePokemon } : template;
     const levelFactor = 1 + BALANCE.allyLevelGrowth * (level - 1);
-    return makeUnit(
+    const unit = makeUnit(
       effectiveTemplate,
       ALLY_SLOTS[index % ALLY_SLOTS.length],
       statsLookup,
       { hp: levelFactor, attack: levelFactor, defense: levelFactor },
       level,
     );
+    const heldItem = config?.heldItems?.[template.id];
+    return heldItem ? { ...unit, heldItem, heldItemUsed: false } : unit;
   });
   const enemies = activeEnemyTemplates.map((template, index) =>
     makeUnit(template, template.position ?? ENEMY_SLOTS[index % ENEMY_SLOTS.length], statsLookup, enemyScale, stage),
@@ -1325,6 +1333,7 @@ export const createInitialBattleState = (seed?: number, config?: Partial<BattleC
       wild: wild ?? undefined,
       speciesStats: config?.speciesStats,
       allyLevels: config?.allyLevels,
+      heldItems: config?.heldItems,
     },
     selectedAllyId: allies[0]?.id ?? DEFAULT_ALLY_IDS[0],
     selectedEnemyId: enemies[1]?.id ?? enemies[0]?.id ?? "snorlax",
@@ -2282,7 +2291,9 @@ function applyAttack({
   const variance = BALANCE.varianceMin + varianceRoll * (1 - BALANCE.varianceMin);
   const damage =
     typeMultiplier === 0 ? 0 : Math.max(1, Math.round(baseDamage * variance * (isCrit ? BALANCE.critMultiplier : 1)));
-  const targetHp = clamp(target.hp - damage, 0, target.maxHp);
+  const rawTargetHp = clamp(target.hp - damage, 0, target.maxHp);
+  const sashTriggered = focusSashSurvives(target, rawTargetHp);
+  const targetHp = sashTriggered ? 1 : rawTargetHp;
 
   // An existing status condition blocks new ones; the same status refreshes its timer.
   const canApplyStatus = Boolean(move.statusEffect) && targetHp > 0;
@@ -2298,6 +2309,7 @@ function applyAttack({
         ...unit,
         hp: targetHp,
         hitFlash: 1,
+        heldItemUsed: sashTriggered ? true : unit.heldItemUsed,
         statusCondition: statusApplied ? move.statusEffect ?? null : unit.statusCondition,
         statusTimer: statusApplied || statusRefreshed ? getStatusDuration(actor) : unit.statusTimer,
       };
@@ -2308,9 +2320,10 @@ function applyAttack({
   const effectText = getEffectivenessText(typeMultiplier);
   const critText = isCrit ? " A critical hit!" : "";
   const statusText = statusApplied && move.statusEffect ? ` ${target.name} is ${getStatusVerb(move.statusEffect)}.` : "";
+  const sashText = sashTriggered ? ` ${target.name} held on with its Focus Sash!` : "";
   const koText = targetHp <= 0 ? ` ${target.name} is down.` : "";
   const prefix = sync ? `${actor.name} unleashed ${move.name}` : `${actor.name} used ${move.name}`;
-  const log = [`${prefix} for ${damage} damage.${critText}${effectText}${statusText}${koText}`, ...state.log].slice(0, BALANCE.logLimit);
+  const log = [`${prefix} for ${damage} damage.${critText}${effectText}${statusText}${sashText}${koText}`, ...state.log].slice(0, BALANCE.logLimit);
   const feedback = makeAttackFeedback(state, target.id, damage, typeMultiplier, Boolean(sync), isCrit, move.statusEffect, statusApplied);
 
   return normalizeBattle({
@@ -2435,6 +2448,19 @@ function applyUnityAttack({
   });
 }
 
+// Focus Sash: a holder at full HP hangs on with 1 HP through a knockout, once.
+export function focusSashSurvives(
+  target: Pick<Unit, "heldItem" | "heldItemUsed" | "hp" | "maxHp">,
+  rawTargetHp: number,
+): boolean {
+  return (
+    rawTargetHp <= 0 &&
+    !target.heldItemUsed &&
+    target.hp >= target.maxHp &&
+    heldItemEffect(target.heldItem)?.kind === "focusSash"
+  );
+}
+
 function calculateDamage(state: BattleState, actor: Unit, target: Unit, move: Move) {
   const typeMultiplier = getTypeEffectiveness(move.type, target.types);
   const sameTypeBonus = actor.types.includes(move.type) ? BALANCE.sameTypeBonus : 1;
@@ -2452,12 +2478,15 @@ function calculateDamage(state: BattleState, actor: Unit, target: Unit, move: Mo
         : 1;
   const passiveDamageReduction =
     target.passive.id === "thick-guard" && target.hp / target.maxHp > 0.5 ? 0.88 : target.passive.id === "boss-aura" ? 0.92 : 1;
+  const heldItemBonus = heldItemDamageMultiplier(actor.heldItem, move.type);
   const attack = actor.attack * (1 + actor.attackStage * BALANCE.stageMultiplier) * burnPenalty;
   const defense = target.defense * (1 + target.defenseStage * BALANCE.stageMultiplier);
   const baseDamage = Math.max(8, move.power + attack * 0.6 - defense * 0.45);
   const damage = Math.max(
     typeMultiplier === 0 ? 0 : 1,
-    Math.round(baseDamage * typeMultiplier * sameTypeBonus * syncBoost * roleBonus * supportReduction * passiveDamageBonus * passiveDamageReduction),
+    Math.round(
+      baseDamage * typeMultiplier * sameTypeBonus * syncBoost * roleBonus * supportReduction * passiveDamageBonus * passiveDamageReduction * heldItemBonus,
+    ),
   );
 
   return { damage, typeMultiplier };
@@ -2480,31 +2509,50 @@ function tickStatuses(state: BattleState): BattleState {
   const logs: string[] = [];
   const feedback: BattleFeedback[] = [];
   const units = mapStable(state.units, (unit) => {
-    if (!isAlive(unit) || !unit.statusCondition) {
+    if (!isAlive(unit)) {
+      return unit;
+    }
+    const leftovers = heldItemEffect(unit.heldItem);
+    const hasLeftovers = leftovers?.kind === "leftovers";
+    if (!unit.statusCondition && !(hasLeftovers && unit.hp < unit.maxHp)) {
       return unit;
     }
 
-    const statusDamage =
-      unit.statusCondition === "burn" ? BALANCE.burnTickDamage : unit.statusCondition === "poison" ? BALANCE.poisonTickDamage : 0;
-    const hp = clamp(unit.hp - statusDamage, 0, unit.maxHp);
-    const statusTimer = Math.max(0, unit.statusTimer - 1);
-    if (statusDamage > 0) {
-      logs.push(`${unit.name} took ${statusDamage} ${unit.statusCondition} damage.`);
-      feedback.push({
-        id: makeFeedbackId(state, unit.id, unit.statusCondition),
-        unitId: unit.id,
-        text: `-${statusDamage} ${unit.statusCondition}`,
-        kind: "status",
-        ttl: 1.15,
-      });
+    let hp = unit.hp;
+    let hitFlash = unit.hitFlash;
+
+    if (unit.statusCondition) {
+      const statusDamage =
+        unit.statusCondition === "burn" ? BALANCE.burnTickDamage : unit.statusCondition === "poison" ? BALANCE.poisonTickDamage : 0;
+      if (statusDamage > 0) {
+        hp = clamp(hp - statusDamage, 0, unit.maxHp);
+        hitFlash = 0.6;
+        logs.push(`${unit.name} took ${statusDamage} ${unit.statusCondition} damage.`);
+        feedback.push({
+          id: makeFeedbackId(state, unit.id, unit.statusCondition),
+          unitId: unit.id,
+          text: `-${statusDamage} ${unit.statusCondition}`,
+          kind: "status",
+          ttl: 1.15,
+        });
+      }
     }
+
+    // Leftovers heal a little each tick (a log line only — no per-tick sound).
+    if (hasLeftovers && leftovers.kind === "leftovers" && hp > 0 && hp < unit.maxHp) {
+      const heal = Math.max(1, Math.round(unit.maxHp * leftovers.fraction));
+      hp = clamp(hp + heal, 0, unit.maxHp);
+      logs.push(`${unit.name} restored ${heal} HP with Leftovers.`);
+    }
+
+    const statusTimer = unit.statusCondition ? Math.max(0, unit.statusTimer - 1) : unit.statusTimer;
 
     return {
       ...unit,
       hp,
       statusTimer,
-      statusCondition: hp > 0 && statusTimer > 0 ? unit.statusCondition : null,
-      hitFlash: statusDamage > 0 ? 0.6 : unit.hitFlash,
+      statusCondition: unit.statusCondition ? (hp > 0 && statusTimer > 0 ? unit.statusCondition : null) : unit.statusCondition,
+      hitFlash,
     };
   });
 
@@ -2678,14 +2726,27 @@ function normalizeBattle(state: BattleState): BattleState {
   };
 }
 
+// Held items that strong wild creatures (deep Route 2, Crystal Cave) can drop.
+const WILD_HELD_DROP_POOL = ["hard-stone", "soft-sand", "twisted-spoon", "mystic-water"];
+
 function rollWildDrop(state: BattleState): { rng: number; droppedItem: BattleState["droppedItem"] } {
-  const [roll, rng] = nextRandom(state.rng);
+  const [roll, rngAfterChance] = nextRandom(state.rng);
   if (roll > BALANCE.wildDropChance) {
-    return { rng, droppedItem: null };
+    return { rng: rngAfterChance, droppedItem: null };
   }
   const level = Math.max(1, Math.floor(state.config.stage));
+  // High-level wilds occasionally drop a held item instead of a berry.
+  if (level >= 8) {
+    const [heldRoll, rngAfterHeld] = nextRandom(rngAfterChance);
+    if (heldRoll < 0.45) {
+      const [pickRoll, rng] = nextRandom(rngAfterHeld);
+      const itemId = WILD_HELD_DROP_POOL[Math.floor(pickRoll * WILD_HELD_DROP_POOL.length) % WILD_HELD_DROP_POOL.length];
+      return { rng, droppedItem: { itemId, quantity: 1 } };
+    }
+    return { rng: rngAfterHeld, droppedItem: { itemId: "sitrus-berry", quantity: 1 } };
+  }
   const itemId = level >= 6 ? "sitrus-berry" : level >= 3 ? "pecha-berry" : "oran-berry";
-  return { rng, droppedItem: { itemId, quantity: 1 } };
+  return { rng: rngAfterChance, droppedItem: { itemId, quantity: 1 } };
 }
 
 export function isAlive(unit: Unit) {
