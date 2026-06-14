@@ -80,8 +80,10 @@ const StaticVillage = memo(function StaticVillage({ map, pickedBerries }: { map:
     const walls: [number, number][] = [];
     const fences: [number, number][] = [];
     const berries: [number, number][] = [];
+    const warps: { x: number; z: number; label: string }[] = [];
     const doors: { x: number; z: number; label: string }[] = [];
     const npcs: { x: number; z: number; name: string }[] = [];
+    const trainers: { x: number; z: number; name: string }[] = [];
 
     map.tiles.forEach((row, z) => {
       row.forEach((kind, x) => {
@@ -92,15 +94,19 @@ const StaticVillage = memo(function StaticVillage({ map, pickedBerries }: { map:
         else if (kind === "wall") walls.push([x, z]);
         else if (kind === "fence") fences.push([x, z]);
         else if (kind === "berry") berries.push([x, z]);
-        else if (kind === "door") {
+        else if (kind === "warp") {
+          warps.push({ x, z, label: map.warps[tileKey(x, z)]?.label ?? "Warp" });
+        } else if (kind === "door") {
           doors.push({ x, z, label: map.doors[tileKey(x, z)]?.label ?? "Door" });
         } else if (kind === "npc") {
           npcs.push({ x, z, name: map.npcs[tileKey(x, z)]?.name ?? "Villager" });
+        } else if (kind === "trainer") {
+          trainers.push({ x, z, name: map.trainers[tileKey(x, z)]?.name ?? "Trainer" });
         }
       });
     });
 
-    return { grass, tallgrass, trees, water, walls, fences, berries, doors, npcs };
+    return { grass, tallgrass, trees, water, walls, fences, berries, warps, doors, npcs, trainers };
   }, [map]);
 
   const centerX = (map.width - 1) / 2;
@@ -167,6 +173,22 @@ const StaticVillage = memo(function StaticVillage({ map, pickedBerries }: { map:
           <planeGeometry args={[1, 1]} />
           <meshStandardMaterial color="#1d5f8a" emissive="#1b8ec0" emissiveIntensity={0.25} roughness={0.3} />
         </mesh>
+      ))}
+
+      {layout.warps.map((warp) => (
+        <group key={`wp${warp.x},${warp.z}`} position={[warp.x, 0, warp.z]}>
+          <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+            <circleGeometry args={[0.46, 24]} />
+            <meshStandardMaterial color="#a855f7" emissive="#a855f7" emissiveIntensity={0.5} roughness={0.3} />
+          </mesh>
+          <mesh position={[0, 0.03, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+            <ringGeometry args={[0.3, 0.4, 24]} />
+            <meshStandardMaterial color="#e9d5ff" emissive="#e9d5ff" emissiveIntensity={0.6} />
+          </mesh>
+          <Html center position={[0, 1.4, 0]} className="unit-label" distanceFactor={11}>
+            <span>{warp.label} →</span>
+          </Html>
+        </group>
       ))}
 
       {layout.walls.map(([x, z]) => (
@@ -245,6 +267,22 @@ const StaticVillage = memo(function StaticVillage({ map, pickedBerries }: { map:
           </mesh>
           <Html center position={[0, 1.45, 0]} className="unit-label" distanceFactor={11}>
             <span>{npc.name}</span>
+          </Html>
+        </group>
+      ))}
+
+      {layout.trainers.map((trainer) => (
+        <group key={`tr${trainer.x},${trainer.z}`} position={[trainer.x, 0, trainer.z]}>
+          <mesh castShadow position={[0, 0.4, 0]}>
+            <capsuleGeometry args={[0.24, 0.4, 4, 10]} />
+            <meshStandardMaterial color="#f97316" roughness={0.55} />
+          </mesh>
+          <mesh castShadow position={[0, 0.92, 0]}>
+            <sphereGeometry args={[0.19, 12, 10]} />
+            <meshStandardMaterial color="#f1d4b0" roughness={0.6} />
+          </mesh>
+          <Html center position={[0, 1.5, 0]} className="unit-label" distanceFactor={11}>
+            <span>⚔ {trainer.name}</span>
           </Html>
         </group>
       ))}

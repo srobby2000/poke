@@ -11,7 +11,7 @@ export type BattleStatus = "playing" | "won" | "lost" | "captured" | "fled";
 
 export type TargetMode = "auto" | "manual";
 
-export type BattleMode = "ladder" | "daily" | "wild";
+export type BattleMode = "ladder" | "daily" | "wild" | "trainer";
 
 export type StatusCondition = "burn" | "poison" | "paralysis";
 
@@ -1352,7 +1352,9 @@ export const createInitialBattleState = (seed?: number, config?: Partial<BattleC
         ? `A ${activeEnemyTemplates[0].name} (Lv ${stage}) appeared!`
         : battleMode === "daily"
           ? `Daily ${dailyKey ?? "challenge"} - ${enemyTeam?.name} started.`
-          : `Stage ${stage} - ${enemyTeam?.name} started.`,
+          : battleMode === "trainer"
+            ? `Trainer battle - ${enemyTeam?.name} sent out their team!`
+            : `Stage ${stage} - ${enemyTeam?.name} started.`,
     ],
     elapsed: 0,
     rng: seed ?? Math.floor(Math.random() * 0xffffffff),

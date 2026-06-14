@@ -1,7 +1,7 @@
 import { Suspense, lazy, useEffect, useReducer, useRef, useState } from "react";
 import type { TileKind, WorldMap } from "../game/maps";
 import type { PlayerProgress } from "../game/progress";
-import type { WildEncounter, WorldInteraction } from "../game/worldState";
+import type { TrainerChallenge, WildEncounter, WorldInteraction } from "../game/worldState";
 import { createInitialWorldState, worldReducer } from "../game/worldState";
 
 const LOGIC_STEP_SECONDS = 1 / 30;
@@ -15,9 +15,10 @@ type WorldScreenProps = {
   progress: PlayerProgress;
   pickedBerries: string[];
   onEnterBuilding: (building: string) => void;
-  onSavePosition: (position: { x: number; z: number }) => void;
+  onSavePosition: (position: { mapId: string; x: number; z: number }) => void;
   onPickBerry: (tileKey: string) => string;
   onStartWild: (encounter: WildEncounter) => void;
+  onStartTrainer: (trainer: TrainerChallenge) => void;
 };
 
 function promptFor(nearby: WorldInteraction): string {
@@ -26,6 +27,9 @@ function promptFor(nearby: WorldInteraction): string {
   }
   if (nearby.kind === "npc") {
     return `Talk to ${nearby.name}`;
+  }
+  if (nearby.kind === "trainer") {
+    return `Challenge ${nearby.name}`;
   }
   return "Check berry tree";
 }
@@ -37,9 +41,10 @@ export function WorldScreen({
   onSavePosition,
   onPickBerry,
   onStartWild,
+  onStartTrainer,
 }: WorldScreenProps) {
   const [world, dispatch] = useReducer(worldReducer, undefined, () =>
-    createInitialWorldState(progress.worldPosition),
+    createInitialWorldState(progress.worldPosition, undefined, progress.defeatedTrainers),
   );
 
   const worldRef = useRef(world);
@@ -115,11 +120,11 @@ export function WorldScreen({
   useEffect(() => {
     if (world.enteredBuilding) {
       const building = world.enteredBuilding;
-      onSavePosition({ x: world.x, z: world.z });
+      onSavePosition({ mapId: world.map.id, x: world.x, z: world.z });
       dispatch({ type: "clearEntry" });
       onEnterBuilding(building);
     }
-  }, [world.enteredBuilding, world.x, world.z, onEnterBuilding, onSavePosition]);
+  }, [world.enteredBuilding, world.map.id, world.x, world.z, onEnterBuilding, onSavePosition]);
 
   // Checking a berry tree resolves against the save file in App, which
   // reports back what (if anything) was picked.
@@ -136,19 +141,40 @@ export function WorldScreen({
   useEffect(() => {
     if (world.encounter && !encounterStartedRef.current) {
       encounterStartedRef.current = true;
-      onSavePosition({ x: world.x, z: world.z });
+      onSavePosition({ mapId: world.map.id, x: world.x, z: world.z });
       onStartWild(world.encounter);
     }
-  }, [world.encounter, world.x, world.z, onSavePosition, onStartWild]);
+  }, [world.encounter, world.map.id, world.x, world.z, onSavePosition, onStartWild]);
+
+  // Challenging an overworld trainer pauses the world and launches the battle.
+  const trainerStartedRef = useRef(false);
+  useEffect(() => {
+    if (world.trainerBattle && !trainerStartedRef.current) {
+      trainerStartedRef.current = true;
+      onSavePosition({ mapId: world.map.id, x: world.x, z: world.z });
+      onStartTrainer(world.trainerBattle);
+    }
+  }, [world.trainerBattle, world.map.id, world.x, world.z, onSavePosition, onStartTrainer]);
+
+  // Stepping onto a warp tile saves the destination and transitions the map.
+  useEffect(() => {
+    if (world.pendingWarp) {
+      const { toMap, toX, toZ } = world.pendingWarp;
+      onSavePosition({ mapId: toMap, x: toX, z: toZ });
+      dispatch({ type: "warp", toMap, toX, toZ });
+    }
+  }, [world.pendingWarp, onSavePosition]);
 
   // Periodic position save so refreshes resume where you stood.
   useEffect(() => {
     const interval = setInterval(() => {
-      onSavePosition({ x: worldRef.current.x, z: worldRef.current.z });
+      const current = worldRef.current;
+      onSavePosition({ mapId: current.map.id, x: current.x, z: current.z });
     }, POSITION_SAVE_INTERVAL_MS);
     return () => {
       clearInterval(interval);
-      onSavePosition({ x: worldRef.current.x, z: worldRef.current.z });
+      const current = worldRef.current;
+      onSavePosition({ mapId: current.map.id, x: current.x, z: current.z });
     };
   }, [onSavePosition]);
 
@@ -161,8 +187,8 @@ export function WorldScreen({
       <div className="hud-layer world-hud">
         <section className="top-strip" aria-label="Village status">
           <div className="objective-chip">
-            <strong>Rift Village</strong>
-            <span>Explore, then enter the Arena</span>
+            <strong>{world.map.name}</strong>
+            <span>{world.map.id === "village" ? "Explore, then enter the Arena" : "Beat the trainers, catch the wild ones"}</span>
           </div>
           <span className="gems-chip">💎 {progress.gems}</span>
           <div className="control-chip world-hint">
@@ -210,6 +236,8 @@ const MINIMAP_COLORS: Record<TileKind, string> = {
   fence: "#7c5f46",
   berry: "#b91c1c",
   npc: "#fbbf24",
+  warp: "#a855f7",
+  trainer: "#f97316",
 };
 
 function Minimap({ map, x, z }: { map: WorldMap; x: number; z: number }) {

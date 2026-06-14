@@ -38,13 +38,17 @@ const BattleCanvas = lazy(() => preloadCanvas().then((module) => ({ default: mod
 
 type WildSession = { speciesId: string; level: number; balls: Record<string, number> };
 
+type TrainerSession = { id: string; name: string; teamId: string; level: number; reward: number };
+
 type Session = {
   allyIds: string[];
   stage: number;
   runId: number;
   battleMode: BattleMode;
   dailyKey?: string;
+  enemyTeamId?: string;
   wild?: WildSession;
+  trainer?: TrainerSession;
 };
 
 const BALL_ITEM_IDS = ["poke-ball", "great-ball"];
@@ -63,7 +67,7 @@ export default function App() {
   const [screen, setScreen] = useState<"world" | "hub" | "shop">("world");
   const todayKey = dailyChallengeKey();
 
-  const savePosition = useCallback((position: { x: number; z: number }) => {
+  const savePosition = useCallback((position: { mapId: string; x: number; z: number }) => {
     setProgress((current) => ({ ...current, worldPosition: position }));
   }, []);
 
@@ -151,6 +155,17 @@ export default function App() {
             runId: 1,
             battleMode: "wild",
             wild: { speciesId: encounter.speciesId, level: encounter.level, balls },
+          });
+        }}
+        onStartTrainer={(trainer) => {
+          const team = lastTeamRef.current?.filter((id) => progress.unlockedAllies.includes(id));
+          setSession({
+            allyIds: team && team.length === 3 ? team : progress.unlockedAllies.slice(0, 3),
+            stage: trainer.level,
+            runId: 1,
+            battleMode: "trainer",
+            enemyTeamId: trainer.teamId,
+            trainer,
           });
         }}
       />
@@ -244,12 +259,14 @@ export default function App() {
 
   return (
     <Battle
-      key={`${session.runId}-${session.battleMode}-${session.stage}-${session.dailyKey ?? session.wild?.speciesId ?? "ladder"}`}
+      key={`${session.runId}-${session.battleMode}-${session.stage}-${session.dailyKey ?? session.wild?.speciesId ?? session.trainer?.id ?? "ladder"}`}
       allyIds={session.allyIds}
       stage={session.stage}
       battleMode={session.battleMode}
       dailyKey={session.dailyKey}
+      enemyTeamId={session.enemyTeamId}
       wild={session.wild}
+      isTrainer={!!session.trainer}
       speciesStats={speciesStats}
       allyLevels={progress.allyLevels}
       items={progress.inventory}
@@ -289,6 +306,19 @@ export default function App() {
         setScreen("world");
       }}
       onBattleCleared={(summary) => {
+        const trainer = session.trainer;
+        if (trainer) {
+          // Trainers pay a flat reward once and stay beaten (they step aside in
+          // the overworld). No ladder progression.
+          const defeated = progress.defeatedTrainers.includes(trainer.id)
+            ? progress.defeatedTrainers
+            : [...progress.defeatedTrainers, trainer.id];
+          commitProgress(
+            { ...progress, gems: progress.gems + trainer.reward, defeatedTrainers: defeated },
+            summary,
+          );
+          return;
+        }
         const rewarded =
           session.battleMode === "daily" && session.dailyKey
             ? applyDailyChallengeClear(progress, session.dailyKey)
@@ -296,10 +326,14 @@ export default function App() {
         commitProgress(rewarded, summary);
       }}
       onNextStage={
-        session.battleMode === "daily"
+        session.battleMode === "daily" || session.trainer
           ? undefined
           : () => setSession((current) => current && { ...current, stage: current.stage + 1, runId: current.runId + 1 })
       }
+      onExitToWorld={() => {
+        setSession(null);
+        setScreen("world");
+      }}
       onRetry={() => setSession((current) => current && { ...current, runId: current.runId + 1 })}
       onChangeTeam={() => setSession(null)}
     />
@@ -311,13 +345,16 @@ type BattleProps = {
   stage: number;
   battleMode: BattleMode;
   dailyKey?: string;
+  enemyTeamId?: string;
   wild?: WildSession;
+  isTrainer?: boolean;
   speciesStats: Record<string, PokemonBaseStats> | null;
   allyLevels: Record<string, number>;
   items: Record<string, number>;
   onItemUsed: (itemId: string, quantity: number) => void;
   onBattleCleared: (summary: BattleSummary) => void;
   onWildEnd?: (summary: WildEndSummary) => void;
+  onExitToWorld?: () => void;
   onNextStage?: () => void;
   onRetry: () => void;
   onChangeTeam: () => void;
@@ -328,13 +365,16 @@ function Battle({
   stage,
   battleMode,
   dailyKey,
+  enemyTeamId,
   wild,
+  isTrainer,
   speciesStats,
   allyLevels,
   items,
   onItemUsed,
   onBattleCleared,
   onWildEnd,
+  onExitToWorld,
   onNextStage,
   onRetry,
   onChangeTeam,
@@ -345,6 +385,7 @@ function Battle({
       stage,
       battleMode,
       dailyKey,
+      enemyTeamId,
       wild,
       speciesStats: speciesStats ?? undefined,
       allyLevels,
@@ -456,7 +497,9 @@ function Battle({
               : "fled";
           onWildEnd({ outcome, ballsRemaining: current.balls, droppedItem: current.droppedItem });
         }
-      : undefined;
+      : isTrainer
+        ? onExitToWorld
+        : undefined;
 
   return (
     <main className="app-shell">
@@ -468,7 +511,7 @@ function Battle({
         dispatch={dispatch}
         onNextStage={onNextStage}
         onRetry={onRetry}
-        onChangeTeam={battleMode === "wild" ? undefined : onChangeTeam}
+        onChangeTeam={battleMode === "wild" || isTrainer ? undefined : onChangeTeam}
         onReturnToWorld={handleReturnToWorld}
       />
     </main>

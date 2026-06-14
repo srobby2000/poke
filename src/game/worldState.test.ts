@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { VILLAGE_MAP, encountersAt, isWalkableTile, tileAt, tileKey } from "./maps";
+import { ROUTE2_MAP, VILLAGE_MAP, encountersAt, isWalkableTile, tileAt, tileKey } from "./maps";
 import type { WorldState } from "./worldState";
 import { WORLD_BALANCE, createInitialWorldState, worldReducer } from "./worldState";
 
@@ -220,5 +220,71 @@ describe("wild encounters", () => {
     expect(Math.min(...deep.map((entry) => entry.minLevel))).toBeGreaterThanOrEqual(4);
     const dratini = deep.find((entry) => entry.speciesId === "dratini");
     expect(dratini?.maxLevel).toBe(8);
+  });
+});
+
+describe("overworld trainers", () => {
+  it("blocks an undefeated trainer's tile and offers a challenge", () => {
+    // The gatekeeper stands at (38,9); approach from the west facing east.
+    let state = createInitialWorldState({ mapId: "village", x: 37, z: 9 });
+    state = worldReducer(state, { type: "setMoveInput", x: 1, z: 0 });
+    state = tickFor(state, 1.5);
+
+    // The trainer is impassable, so the player cannot walk onto their tile.
+    expect(state.x).toBeLessThan(38);
+    expect(state.nearby?.kind).toBe("trainer");
+
+    state = worldReducer(state, { type: "interact" });
+    expect(state.trainerBattle?.id).toBe("village-gate");
+    expect(state.trainerBattle?.teamId).toBe("kanto-rivals");
+
+    expect(worldReducer(state, { type: "clearTrainer" }).trainerBattle).toBeNull();
+  });
+
+  it("lets a defeated trainer be walked through to reach the warp", () => {
+    let state = createInitialWorldState({ mapId: "village", x: 37, z: 9 }, 1, ["village-gate"]);
+    // No challenge prompt once they have been beaten.
+    state = worldReducer(state, { type: "setMoveInput", x: 1, z: 0 });
+    state = tick(state);
+    expect(state.nearby?.kind).not.toBe("trainer");
+
+    for (let step = 0; step < 30 * 3 && !state.pendingWarp; step += 1) {
+      state = tick(state);
+    }
+    expect(state.x).toBeGreaterThan(38);
+    expect(state.pendingWarp?.toMap).toBe("route2");
+  });
+});
+
+describe("map warps", () => {
+  it("queues a warp when stepping onto a warp tile and pauses the world", () => {
+    // Arrive in Route 2 next to the western warp back to the village.
+    let state = createInitialWorldState({ mapId: "route2", x: 2, z: 8 }, 1);
+    expect(state.map.id).toBe("route2");
+
+    state = worldReducer(state, { type: "setMoveInput", x: -1, z: 0 });
+    for (let step = 0; step < 30 * 2 && !state.pendingWarp; step += 1) {
+      state = tick(state);
+    }
+
+    expect(state.pendingWarp?.toMap).toBe("village");
+    // The world freezes until the warp is applied.
+    expect(tick(state)).toBe(state);
+  });
+
+  it("applies a warp action by rebuilding state on the destination map", () => {
+    let state = createInitialWorldState({ mapId: "route2", x: 2, z: 8 }, 1);
+    state = worldReducer(state, { type: "warp", toMap: "village", toX: 37, toZ: 9 });
+
+    expect(state.map.id).toBe("village");
+    expect(state.x).toBe(37);
+    expect(state.z).toBe(9);
+    expect(state.pendingWarp).toBeNull();
+  });
+
+  it("defines Route 2 with trainers and a warp back to the village", () => {
+    expect(Object.keys(ROUTE2_MAP.trainers).length).toBeGreaterThanOrEqual(3);
+    expect(Object.values(ROUTE2_MAP.warps).some((warp) => warp.toMap === "village")).toBe(true);
+    expect(ROUTE2_MAP.encounters.some((entry) => entry.speciesId === "lapras")).toBe(true);
   });
 });

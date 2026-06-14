@@ -25,6 +25,7 @@ export function BattleHud({ state, dispatch, onNextStage, onRetry, onChangeTeam,
   const unityPercent = (state.unityGauge / state.maxUnityGauge) * 100;
   const isDaily = state.config.battleMode === "daily";
   const isWild = state.config.battleMode === "wild";
+  const isTrainer = state.config.battleMode === "trainer";
   const usableItems = Object.entries(state.items).filter(([itemId, count]) => count > 0 && isBattleItem(itemId));
   const hasDamagedAlly = allies.some((unit) => isAlive(unit) && unit.hp < unit.maxHp);
   const wildTarget = isWild ? enemies.find(isAlive) : undefined;
@@ -338,14 +339,20 @@ export function BattleHud({ state, dispatch, onNextStage, onRetry, onChangeTeam,
                       ? "The wild creature fainted."
                       : isDaily
                         ? "Daily challenge cleared!"
-                        : `Stage ${state.config.stage} cleared!`
+                        : isTrainer
+                          ? `You defeated ${state.config.enemyTeamName ?? "the trainer"}!`
+                          : `Stage ${state.config.stage} cleared!`
                     : isWild
                       ? "Your team has fallen. The wild creature wanders off."
                       : isDaily
                         ? "Your team has fallen in the daily challenge."
-                        : `Your team has fallen on stage ${state.config.stage}.`}
+                        : isTrainer
+                          ? "Your team has fallen. Regroup and challenge them again."
+                          : `Your team has fallen on stage ${state.config.stage}.`}
             </strong>
-            {isWild && onReturnToWorld ? <button onClick={onReturnToWorld}>Return to Village</button> : null}
+            {(isWild || isTrainer) && onReturnToWorld ? (
+              <button onClick={onReturnToWorld}>Return to Village</button>
+            ) : null}
             {isWild && state.status === "won" && availableBalls.length > 0 ? (
               <div className="last-chance-grid" aria-label="Last chance capture">
                 <small>Last chance throw before it gets away</small>
@@ -376,7 +383,9 @@ export function BattleHud({ state, dispatch, onNextStage, onRetry, onChangeTeam,
             </div>
             {!isWild && state.status === "lost" ? (
               onRetry ? (
-                <button onClick={onRetry}>{isDaily ? "Retry Daily" : `Retry Stage ${state.config.stage}`}</button>
+                <button onClick={onRetry}>
+                  {isDaily ? "Retry Daily" : isTrainer ? "Retry Battle" : `Retry Stage ${state.config.stage}`}
+                </button>
               ) : (
                 <button onClick={() => dispatch({ type: "restart" })}>Restart Battle</button>
               )

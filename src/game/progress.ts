@@ -10,7 +10,8 @@ export type PlayerProgress = {
   allyLevels: Record<string, number>;
   dailyClearedDate: string | null;
   achievements: string[];
-  worldPosition: { x: number; z: number } | null;
+  worldPosition: { mapId: string; x: number; z: number } | null;
+  defeatedTrainers: string[];
   inventory: Record<string, number>;
   berryPicks: { date: string; picked: string[] };
   captures: number;
@@ -25,6 +26,7 @@ export function defaultProgress(): PlayerProgress {
     dailyClearedDate: null,
     achievements: [],
     worldPosition: null,
+    defeatedTrainers: [],
     inventory: {},
     berryPicks: { date: "", picked: [] },
     captures: 0,
@@ -46,8 +48,16 @@ function sanitizeProgress(parsed: Partial<PlayerProgress>): PlayerProgress {
       : [],
     worldPosition:
       parsed.worldPosition && typeof parsed.worldPosition.x === "number" && typeof parsed.worldPosition.z === "number"
-        ? { x: parsed.worldPosition.x, z: parsed.worldPosition.z }
+        ? {
+            // Saves that predate multi-map default to the village.
+            mapId: typeof parsed.worldPosition.mapId === "string" ? parsed.worldPosition.mapId : "village",
+            x: parsed.worldPosition.x,
+            z: parsed.worldPosition.z,
+          }
         : null,
+    defeatedTrainers: Array.isArray(parsed.defeatedTrainers)
+      ? parsed.defeatedTrainers.filter((id): id is string => typeof id === "string")
+      : [],
     inventory:
       parsed.inventory && typeof parsed.inventory === "object"
         ? Object.fromEntries(
