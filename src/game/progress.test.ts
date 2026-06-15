@@ -7,6 +7,7 @@ const progress: PlayerProgress = {
   gems: 320,
   unlockedAllies: ["squirtle", "bulbasaur", "charmander"],
   allyLevels: { squirtle: 3 },
+  allyXp: { squirtle: 40 },
   dailyClearedDate: "2026-06-14",
   achievements: ["first-victory"],
   worldPosition: { mapId: "village", x: 2, z: 3 },
@@ -17,6 +18,7 @@ const progress: PlayerProgress = {
   inventory: { "potion-item": 2 },
   berryPicks: { date: "2026-06-14", picked: ["1,2"] },
   captures: 1,
+  settings: { usePokeApiRates: true },
 };
 
 describe("progress import/export", () => {

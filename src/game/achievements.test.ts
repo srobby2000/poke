@@ -8,6 +8,7 @@ const baseProgress = (overrides: Partial<PlayerProgress> = {}): PlayerProgress =
   gems: 0,
   unlockedAllies: ["squirtle", "bulbasaur", "charmander"],
   allyLevels: {},
+  allyXp: {},
   dailyClearedDate: null,
   achievements: [],
   worldPosition: null,
@@ -18,6 +19,7 @@ const baseProgress = (overrides: Partial<PlayerProgress> = {}): PlayerProgress =
   inventory: {},
   berryPicks: { date: "", picked: [] },
   captures: 0,
+  settings: { usePokeApiRates: false },
   ...overrides,
 });
 

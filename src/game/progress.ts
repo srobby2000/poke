@@ -8,6 +8,9 @@ export type PlayerProgress = {
   gems: number;
   unlockedAllies: string[];
   allyLevels: Record<string, number>;
+  // XP accumulated toward each ally's next level (battles grant XP; gems still
+  // buy instant levels).
+  allyXp: Record<string, number>;
   dailyClearedDate: string | null;
   achievements: string[];
   worldPosition: { mapId: string; x: number; z: number } | null;
@@ -21,6 +24,17 @@ export type PlayerProgress = {
   inventory: Record<string, number>;
   berryPicks: { date: string; picked: string[] };
   captures: number;
+  settings: PlayerSettings;
+};
+
+export type PlayerSettings = {
+  // When on, PokeAPI capture_rate drives catch odds and growth_rate scales the
+  // XP curve. Off by default so play matches the hand-tuned defaults.
+  usePokeApiRates: boolean;
+};
+
+export const DEFAULT_SETTINGS: PlayerSettings = {
+  usePokeApiRates: false,
 };
 
 export function defaultProgress(): PlayerProgress {
@@ -29,6 +43,7 @@ export function defaultProgress(): PlayerProgress {
     gems: 200,
     unlockedAllies: [...DEFAULT_ALLY_IDS],
     allyLevels: {},
+    allyXp: {},
     dailyClearedDate: null,
     achievements: [],
     worldPosition: null,
@@ -39,6 +54,7 @@ export function defaultProgress(): PlayerProgress {
     inventory: {},
     berryPicks: { date: "", picked: [] },
     captures: 0,
+    settings: { ...DEFAULT_SETTINGS },
   };
 }
 
@@ -51,6 +67,14 @@ function sanitizeProgress(parsed: Partial<PlayerProgress>): PlayerProgress {
         ? parsed.unlockedAllies.filter((id): id is string => typeof id === "string")
         : [...DEFAULT_ALLY_IDS],
     allyLevels: parsed.allyLevels && typeof parsed.allyLevels === "object" ? parsed.allyLevels : {},
+    allyXp:
+      parsed.allyXp && typeof parsed.allyXp === "object"
+        ? Object.fromEntries(
+            Object.entries(parsed.allyXp).filter(
+              (entry): entry is [string, number] => typeof entry[1] === "number" && entry[1] >= 0,
+            ),
+          )
+        : {},
     dailyClearedDate: typeof parsed.dailyClearedDate === "string" ? parsed.dailyClearedDate : null,
     achievements: Array.isArray(parsed.achievements)
       ? parsed.achievements.filter((id): id is string => typeof id === "string")
@@ -102,6 +126,12 @@ function sanitizeProgress(parsed: Partial<PlayerProgress>): PlayerProgress {
           }
         : { date: "", picked: [] },
     captures: typeof parsed.captures === "number" && parsed.captures > 0 ? Math.floor(parsed.captures) : 0,
+    settings: {
+      usePokeApiRates:
+        typeof parsed.settings?.usePokeApiRates === "boolean"
+          ? parsed.settings.usePokeApiRates
+          : DEFAULT_SETTINGS.usePokeApiRates,
+    },
   };
 }
 

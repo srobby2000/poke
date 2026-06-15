@@ -41,6 +41,88 @@ export function levelUpCost(currentLevel: number): number {
   return 40 * Math.max(1, currentLevel);
 }
 
+// PokeAPI growth-rate names → an XP-curve multiplier (only applied when the
+// "use PokeAPI rates" setting is on).
+const GROWTH_RATE_FACTOR: Record<string, number> = {
+  fast: 0.8,
+  "medium-fast": 1,
+  medium: 1,
+  "medium-slow": 1.1,
+  slow: 1.25,
+  erratic: 1,
+  fluctuating: 1.15,
+};
+
+export function growthRateFactor(rate?: string): number {
+  return rate ? GROWTH_RATE_FACTOR[rate] ?? 1 : 1;
+}
+
+// Optional PokeAPI-driven tuning for XP: per-ally growth rates, applied only
+// when usePokeApiRates is on.
+export type XpTuning = { usePokeApiRates: boolean; growthRates: Record<string, string> };
+
+function growthRateFor(allyId: string, tuning?: XpTuning): string | undefined {
+  return tuning?.usePokeApiRates ? tuning.growthRates[allyId] : undefined;
+}
+
+// XP needed to advance from the given level to the next one.
+export function xpToNextLevel(level: number, growthRate?: string): number {
+  return Math.round((60 + 40 * Math.max(1, level)) * growthRateFactor(growthRate));
+}
+
+// XP a battle awards to each participating ally. Scales with the battle's level
+// and, when available, the defeated species' base experience.
+export function battleXpReward(stage: number, baseExperience?: number): number {
+  const base = 20 + 8 * Math.max(1, Math.floor(stage));
+  if (baseExperience && baseExperience > 0) {
+    const factor = Math.min(2, Math.max(0.6, baseExperience / 80));
+    return Math.round(base * factor);
+  }
+  return base;
+}
+
+export type AllyXpInfo = { level: number; current: number; needed: number; atMax: boolean };
+
+// XP-bar info for an ally: progress toward the next level (or maxed out).
+export function xpInfo(progress: PlayerProgress, allyId: string, tuning?: XpTuning): AllyXpInfo {
+  const level = levelOf(progress, allyId);
+  const atMax = level >= BALANCE.maxAllyLevel;
+  const needed = atMax ? 0 : xpToNextLevel(level, growthRateFor(allyId, tuning));
+  const current = atMax ? 0 : Math.min(Math.max(0, progress.allyXp[allyId] ?? 0), needed);
+  return { level, current, needed, atMax };
+}
+
+// Award battle XP to each participating ally, auto-leveling as thresholds are
+// crossed (carrying the remainder). Allies already at the cap stay maxed.
+export function grantBattleXp(
+  progress: PlayerProgress,
+  allyIds: string[],
+  amount: number,
+  tuning?: XpTuning,
+): PlayerProgress {
+  const allyLevels = { ...progress.allyLevels };
+  const allyXp = { ...progress.allyXp };
+  for (const id of allyIds) {
+    if (!progress.unlockedAllies.includes(id)) {
+      continue;
+    }
+    const rate = growthRateFor(id, tuning);
+    let level = Math.max(1, Math.min(BALANCE.maxAllyLevel, Math.floor(allyLevels[id] ?? 1)));
+    if (level >= BALANCE.maxAllyLevel) {
+      allyXp[id] = 0;
+      continue;
+    }
+    let xp = (allyXp[id] ?? 0) + amount;
+    while (level < BALANCE.maxAllyLevel && xp >= xpToNextLevel(level, rate)) {
+      xp -= xpToNextLevel(level, rate);
+      level += 1;
+    }
+    allyLevels[id] = level;
+    allyXp[id] = level >= BALANCE.maxAllyLevel ? 0 : xp;
+  }
+  return { ...progress, allyLevels, allyXp };
+}
+
 // Wild-source allies are capture-only; the scout machine never dispenses them.
 function gachaPool(): AllyOption[] {
   return getAllyOptions().filter((option) => option.source !== "wild");

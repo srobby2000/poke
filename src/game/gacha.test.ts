@@ -10,7 +10,9 @@ import {
   applyStageClear,
   canMultiPull,
   canPull,
+  battleXpReward,
   dailyChallengeReward,
+  grantBattleXp,
   levelOf,
   levelUpCost,
   performLevelUp,
@@ -18,6 +20,8 @@ import {
   performPull,
   stageClearReward,
   wildVictoryReward,
+  xpInfo,
+  xpToNextLevel,
 } from "./gacha";
 import type { PlayerProgress } from "./progress";
 
@@ -26,6 +30,7 @@ const baseProgress = (overrides: Partial<PlayerProgress> = {}): PlayerProgress =
   gems: 200,
   unlockedAllies: ["squirtle", "bulbasaur", "charmander"],
   allyLevels: {},
+  allyXp: {},
   dailyClearedDate: null,
   achievements: [],
   worldPosition: null,
@@ -36,6 +41,7 @@ const baseProgress = (overrides: Partial<PlayerProgress> = {}): PlayerProgress =
   inventory: {},
   berryPicks: { date: "", picked: [] },
   captures: 0,
+  settings: { usePokeApiRates: false },
   ...overrides,
 });
 
@@ -228,5 +234,59 @@ describe("stage rewards", () => {
     expect(dailyChallengeReward(cleared, "2026-06-11")).toBe(0);
     expect(repeated.gems).toBe(cleared.gems);
     expect(nextDay.gems).toBe(cleared.gems + DAILY_CHALLENGE_REWARD);
+  });
+});
+
+describe("battle XP (hybrid leveling)", () => {
+  it("grants XP only to unlocked participating allies", () => {
+    const progress = baseProgress({ unlockedAllies: ["squirtle", "bulbasaur"] });
+    const next = grantBattleXp(progress, ["squirtle", "pidgey"], 1);
+    expect(next.allyXp.squirtle).toBeGreaterThan(0);
+    // pidgey is not unlocked, so it earns nothing.
+    expect(next.allyXp.pidgey ?? 0).toBe(0);
+  });
+
+  it("levels up an ally once XP crosses the threshold, carrying the remainder", () => {
+    const need = xpToNextLevel(1);
+    let progress = baseProgress({ allyXp: { squirtle: need - 1 } });
+    // A single small reward nudges squirtle just past the level-1 threshold.
+    progress = grantBattleXp(progress, ["squirtle"], 1);
+    expect(progress.allyLevels.squirtle).toBe(2);
+    expect(progress.allyXp.squirtle).toBeLessThan(xpToNextLevel(2));
+  });
+
+  it("scales the XP reward by base experience", () => {
+    const baseline = battleXpReward(5);
+    expect(battleXpReward(5, 240)).toBeGreaterThan(baseline);
+    expect(battleXpReward(5, 36)).toBeLessThan(baseline);
+  });
+
+  it("stretches the XP curve for slow growth rates only when tuning is on", () => {
+    expect(xpToNextLevel(3, "slow")).toBeGreaterThan(xpToNextLevel(3));
+    expect(xpToNextLevel(3, "fast")).toBeLessThan(xpToNextLevel(3));
+
+    const tuning = { usePokeApiRates: true, growthRates: { squirtle: "slow" } };
+    const off = { usePokeApiRates: false, growthRates: { squirtle: "slow" } };
+    // XP that clears the default threshold but not the stretched slow one.
+    const xp = { squirtle: xpToNextLevel(1) };
+    const tuned = grantBattleXp(baseProgress({ allyXp: { ...xp } }), ["squirtle"], 1, tuning);
+    const untuned = grantBattleXp(baseProgress({ allyXp: { ...xp } }), ["squirtle"], 1, off);
+    expect(tuned.allyLevels.squirtle ?? 1).toBe(1); // not enough for the slow curve
+    expect(untuned.allyLevels.squirtle).toBe(2); // default curve already cleared
+  });
+
+  it("reports XP-bar info and caps a maxed ally", () => {
+    const leveled = baseProgress({ allyLevels: { squirtle: 1 }, allyXp: { squirtle: 30 } });
+    const info = xpInfo(leveled, "squirtle");
+    expect(info.level).toBe(1);
+    expect(info.current).toBe(30);
+    expect(info.needed).toBe(xpToNextLevel(1));
+    expect(info.atMax).toBe(false);
+
+    const maxed = baseProgress({ allyLevels: { squirtle: BALANCE.maxAllyLevel }, allyXp: { squirtle: 999 } });
+    const maxedInfo = xpInfo(maxed, "squirtle");
+    expect(maxedInfo.atMax).toBe(true);
+    // A maxed ally banks no further XP.
+    expect(grantBattleXp(maxed, ["squirtle"], 99).allyXp.squirtle).toBe(0);
   });
 });

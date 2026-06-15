@@ -20,6 +20,8 @@ type WorldScreenProps = {
   onPickBerry: (tileKey: string) => string;
   onStartWild: (encounter: WildEncounter) => void;
   onStartTrainer: (trainer: TrainerChallenge) => void;
+  onOpenPokedex: () => void;
+  onOpenSettings: () => void;
 };
 
 function promptFor(nearby: WorldInteraction): string {
@@ -47,6 +49,8 @@ export function WorldScreen({
   onPickBerry,
   onStartWild,
   onStartTrainer,
+  onOpenPokedex,
+  onOpenSettings,
 }: WorldScreenProps) {
   const [world, dispatch] = useReducer(worldReducer, undefined, () =>
     createInitialWorldState(progress.worldPosition, undefined, progress.defeatedTrainers, rematchedToday),
@@ -56,6 +60,12 @@ export function WorldScreen({
   useEffect(() => {
     worldRef.current = world;
   }, [world]);
+
+  // Kept in a ref so the one-time keyboard listener always calls the latest handler.
+  const openPokedexRef = useRef(onOpenPokedex);
+  useEffect(() => {
+    openPokedexRef.current = onOpenPokedex;
+  }, [onOpenPokedex]);
 
   // Fixed-rate logic tick, same pattern as the battle loop.
   useEffect(() => {
@@ -100,6 +110,8 @@ export function WorldScreen({
         }
       } else if ((key === "e" || key === "enter") && !event.repeat) {
         dispatch({ type: "interact" });
+      } else if (key === "b" && !event.repeat) {
+        openPokedexRef.current();
       } else if (key === "escape") {
         dispatch({ type: "dismissMessage" });
       }
@@ -196,8 +208,14 @@ export function WorldScreen({
             <span>{world.map.id === "village" ? "Explore, then enter the Arena" : "Beat the trainers, catch the wild ones"}</span>
           </div>
           <span className="gems-chip">💎 {progress.gems}</span>
+          <button className="control-chip world-pokedex-button" onClick={onOpenPokedex}>
+            📕 Pokédex <kbd>B</kbd>
+          </button>
+          <button className="control-chip world-settings-button" onClick={onOpenSettings} aria-label="Settings">
+            ⚙️
+          </button>
           <div className="control-chip world-hint">
-            <span>WASD move · E interact</span>
+            <span>WASD move · E interact · B Pokédex</span>
           </div>
         </section>
 

@@ -774,6 +774,9 @@ describe("battle simulation", () => {
     expect(captureChanceFor(weakened, "great-ball")).toBeGreaterThan(captureChanceFor(weakened, "poke-ball"));
     expect(captureChanceFor(weakened, "poke-ball")).toBeGreaterThan(captureChanceFor(fullHp, "poke-ball"));
     expect(captureChanceFor(statused, "poke-ball")).toBeGreaterThan(captureChanceFor(weakened, "poke-ball"));
+
+    // A high PokeAPI capture_rate eases catches; a low one makes them harder.
+    expect(captureChanceFor(fullHp, "poke-ball", 255)).toBeGreaterThan(captureChanceFor(fullHp, "poke-ball", 3));
   });
 
   it("refuses ball throws outside wild battles or without balls", () => {

@@ -13,16 +13,17 @@ A real-time, Pokémon Masters-inspired 3v3 battle game built with React, TypeScr
 - **Overworld trainers** — line-of-sight trainers spot you and battle; beat one and they step aside (gating progress). A Gatekeeper guards Route 2 and the Psychic Sage guards the cave. Defeated trainers can be **rematched once per day** for bonus gems
 - **Fishing** — cast a line on any pond's water tiles for a chance at water types (Psyduck, Squirtle, and rare Lapras)
 - **Held items** — equip an ally with a held item for a passive battle effect: type-boost charms (Charcoal, Mystic Water, Soft Sand, Hard Stone…) that amp a move type by 20%, Life Orb (+25% damage), Leftovers (HP regen each turn), and Focus Sash (survive one knockout from full HP). Buy them at the shop, find them as drops from strong wild creatures, or earn the Focus Sash from the Cave Warden — a lever for patching type coverage against the rock/ground cave
-- **Pokédex** — a seen/caught collection screen (open from the Arena) tracking every creature you've encountered in the wild, fishing, or in battle
+- **Pokédex** — a blurred-backdrop modal tracking every creature you've encountered (wild, fishing, or battle); open it from the Arena or the overworld (📕 button or `B` key). Click an entry for a detail page with **PokeAPI official artwork** (silhouette until caught), Pokédex flavor text, genus, height/weight/habitat, stat bars, passive, and moves
+- **Settings** — a ⚙️ panel (overworld or Arena) with a **"use PokeAPI capture & growth rates"** toggle: when on, real `capture_rate` drives catch odds and `growth_rate` scales the XP curve; off keeps the hand-tuned defaults
 - **Minimap & capture achievements** — an in-world minimap tracks your position; capture milestones (Gotcha!, Seasoned Catcher, Route Researcher) pay gem rewards
 - **Gacha scouting** — earn gems by clearing stages and spend them on pulls (×1 or discounted ×10) with an animated rarity reveal; new allies are guaranteed while any remain locked (weighted by ★ rarity), then pulls become level-ups
 - **Rotating rival squads** — four enemy teams rotate by stage, with a Boss Aura team every fifth stage, plus a once-per-day seeded Daily Challenge for bonus gems
 - **16-ally roster** — from 3★ starters to the 5★ chase units Dratini and Lapras, each with a distinct role, rarity, passive, and moveset
-- **Leveling & evolution** — raise allies with gems or duplicate pulls (+6% stats per level, cap 10); allies evolve at level thresholds (Charmander → Charmeleon → Charizard) with real evolved-form stats
+- **Leveling & evolution (hybrid XP)** — allies earn XP from every battle they fight (an XP bar tracks progress to the next level), and you can still spend gems or duplicate pulls for instant levels (+6% stats per level, cap 10); allies evolve at level thresholds (Charmander → Charmeleon → Charizard) with real evolved-form stats
 - **Battle report** — the result screen shows damage dealt per ally, so you can judge team compositions
 - **Achievements** — eight one-time missions (Flawless, League Champion, Full Roster…) that pay gem rewards and persist in the save
 - **Stage progression** — enemies grow stronger every stage, with a first-clear gem bonus; your best cleared stage is saved between sessions
-- **Live PokeAPI stats** — base stats are fetched from [pokeapi.co](https://pokeapi.co) (cached for 7 days) with identical bundled values as an offline fallback
+- **Live PokeAPI data** — base stats, official artwork, and species detail (flavor text, genus, height/weight, base experience, capture/growth rates) are fetched from [pokeapi.co](https://pokeapi.co) and cached for 7 days; battles use identical bundled stats as an offline fallback, and base experience scales battle XP rewards
 - **Real-time combat** — a shared move gauge fills over time; spend it on moves while enemies act on their own cooldowns
 - **Full 18-type chart** — main-series type effectiveness, same-type attack bonus, and role-based damage modifiers
 - **Per-ally sync moves** — each ally charges its own sync countdown by acting; unleash big sync attacks with a team-wide damage boost

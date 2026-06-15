@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mapPokeApiStats } from "./pokeApi";
+import { mapPokeApiDetail, mapPokeApiSprite, mapPokeApiStats } from "./pokeApi";
 
 const payloadFor = (stats: Record<string, number>) => ({
   stats: Object.entries(stats).map(([name, base_stat]) => ({ base_stat, stat: { name } })),
@@ -32,5 +32,43 @@ describe("pokeApi stat mapping", () => {
     const mapped = mapPokeApiStats(payloadFor({ hp: 50 }));
 
     expect(mapped).toEqual({ hp: 50, attack: 0, defense: 0, speed: 0 });
+  });
+});
+
+describe("pokeApi sprite + detail mapping", () => {
+  it("prefers official artwork, then the default sprite", () => {
+    expect(
+      mapPokeApiSprite({
+        stats: [],
+        sprites: { front_default: "classic.png", other: { "official-artwork": { front_default: "art.png" } } },
+      }),
+    ).toBe("art.png");
+    expect(mapPokeApiSprite({ stats: [], sprites: { front_default: "classic.png" } })).toBe("classic.png");
+    expect(mapPokeApiSprite({ stats: [] })).toBeNull();
+  });
+
+  it("maps detail with unit conversions and cleaned flavor text", () => {
+    const detail = mapPokeApiDetail(
+      { stats: [], height: 7, weight: 90, base_experience: 142 },
+      {
+        capture_rate: 45,
+        growth_rate: { name: "medium-slow" },
+        habitat: { name: "mountain" },
+        genera: [
+          { genus: "Flame Pokémon", language: { name: "en" } },
+          { genus: "Feu", language: { name: "fr" } },
+        ],
+        flavor_text_entries: [{ flavor_text: "Spits\nfire that\fis hot.", language: { name: "en" } }],
+      },
+    );
+
+    expect(detail.heightM).toBeCloseTo(0.7);
+    expect(detail.weightKg).toBeCloseTo(9);
+    expect(detail.baseExperience).toBe(142);
+    expect(detail.captureRate).toBe(45);
+    expect(detail.growthRate).toBe("medium-slow");
+    expect(detail.habitat).toBe("mountain");
+    expect(detail.genus).toBe("Flame Pokémon");
+    expect(detail.flavorText).toBe("Spits fire that is hot.");
   });
 });

@@ -204,6 +204,8 @@ export type WildConfig = {
   speciesId: string;
   level: number;
   balls: Record<string, number>;
+  // PokeAPI capture_rate (0-255), used only when usePokeApiRates is on.
+  captureRate?: number;
 };
 
 export type BattleConfig = {
@@ -219,6 +221,8 @@ export type BattleConfig = {
   items?: Record<string, number>;
   // allyId -> equipped held-item id.
   heldItems?: Record<string, string>;
+  // When on, capture_rate from the wild config influences catch odds.
+  usePokeApiRates?: boolean;
 };
 
 export type BattleState = {
@@ -1334,6 +1338,7 @@ export const createInitialBattleState = (seed?: number, config?: Partial<BattleC
       speciesStats: config?.speciesStats,
       allyLevels: config?.allyLevels,
       heldItems: config?.heldItems,
+      usePokeApiRates: config?.usePokeApiRates,
     },
     selectedAllyId: allies[0]?.id ?? DEFAULT_ALLY_IDS[0],
     selectedEnemyId: enemies[1]?.id ?? enemies[0]?.id ?? "snorlax",
@@ -1652,7 +1657,7 @@ function performThrowBall(state: BattleState, ballId: string): BattleState {
     return state;
   }
 
-  const chance = captureChanceFor(wild, ballId);
+  const chance = captureChanceFor(wild, ballId, configuredCaptureRate(state));
   const [roll, rng] = nextRandom(state.rng);
   const balls = { ...state.balls, [ballId]: count - 1 };
 
@@ -1689,7 +1694,7 @@ function performLastChanceBall(state: BattleState, ballId: string): BattleState 
 
   const [roll, rng] = nextRandom(state.rng);
   const balls = { ...state.balls, [ballId]: count - 1 };
-  const chance = captureChanceFor({ ...wild, hp: 1 }, ballId) * BALANCE.lastChanceCaptureMultiplier;
+  const chance = captureChanceFor({ ...wild, hp: 1 }, ballId, configuredCaptureRate(state)) * BALANCE.lastChanceCaptureMultiplier;
   if (roll < chance) {
     return {
       ...state,
@@ -1708,11 +1713,20 @@ function performLastChanceBall(state: BattleState, ballId: string): BattleState 
   };
 }
 
-export function captureChanceFor(wild: Unit, ballId: string) {
+// The capture_rate to apply in this battle: the wild config's value when the
+// PokeAPI-rates setting is on, otherwise none (hand-tuned odds).
+function configuredCaptureRate(state: BattleState): number | undefined {
+  return state.config.usePokeApiRates ? state.config.wild?.captureRate : undefined;
+}
+
+export function captureChanceFor(wild: Unit, ballId: string, captureRate?: number) {
   const ballPower = BALANCE.ballPower[ballId] ?? 0.3;
   const hpFactor = 1 - (wild.hp / wild.maxHp) * BALANCE.captureHpWeight;
   const statusFactor = wild.statusCondition ? BALANCE.captureStatusBonus : 1;
-  return clamp(ballPower * hpFactor * statusFactor, BALANCE.captureMinChance, BALANCE.captureMaxChance);
+  // PokeAPI capture_rate (0-255) nudges odds when the setting is on: common
+  // species get easier, rare ones harder, around a ~120 baseline.
+  const rateFactor = captureRate && captureRate > 0 ? Math.min(1.6, Math.max(0.4, captureRate / 120)) : 1;
+  return clamp(ballPower * hpFactor * statusFactor * rateFactor, BALANCE.captureMinChance, BALANCE.captureMaxChance);
 }
 
 function tickPlayingBattle(state: BattleState, deltaSeconds: number): BattleState {

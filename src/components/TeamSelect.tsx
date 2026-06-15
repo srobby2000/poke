@@ -4,7 +4,8 @@ import { ACHIEVEMENTS } from "../game/achievements";
 import type { PokemonBaseStats } from "../game/battleState";
 import { BALANCE, getAllyOptions } from "../game/battleState";
 import type { PullResult } from "../game/gacha";
-import { MULTI_PULL_COST, MULTI_PULL_COUNT, PULL_COST, canMultiPull, canPull, levelOf, levelUpCost } from "../game/gacha";
+import type { XpTuning } from "../game/gacha";
+import { MULTI_PULL_COST, MULTI_PULL_COUNT, PULL_COST, canMultiPull, canPull, levelOf, levelUpCost, xpInfo } from "../game/gacha";
 import { isHeldItem } from "../game/heldItems";
 import { ITEMS } from "../game/items";
 import type { PlayerProgress } from "../game/progress";
@@ -34,6 +35,8 @@ type TeamSelectProps = {
   onImportSave: (raw: string) => boolean;
   onBack?: () => void;
   onOpenPokedex?: () => void;
+  onOpenSettings?: () => void;
+  xpTuning?: XpTuning;
   onEquipHeld?: (allyId: string, itemId: string | null) => void;
 };
 
@@ -56,6 +59,8 @@ export function TeamSelect({
   onImportSave,
   onBack,
   onOpenPokedex,
+  onOpenSettings,
+  xpTuning,
   onEquipHeld,
 }: TeamSelectProps) {
   // Held items currently in the bag, available to equip.
@@ -107,6 +112,11 @@ export function TeamSelect({
         {onOpenPokedex ? (
           <button className="back-button pokedex-button" onClick={onOpenPokedex}>
             📕 Pokédex
+          </button>
+        ) : null}
+        {onOpenSettings ? (
+          <button className="back-button" onClick={onOpenSettings}>
+            ⚙️ Settings
           </button>
         ) : null}
         <h1>Creature Masters Battle</h1>
@@ -256,6 +266,7 @@ export function TeamSelect({
           const unlocked = progress.unlockedAllies.includes(option.id);
           const level = levelOf(progress, option.id);
           const cost = levelUpCost(level);
+          const xp = xpInfo(progress, option.id, xpTuning);
           const isSelected = selected.includes(option.id);
           const slot = selected.indexOf(option.id);
 
@@ -324,6 +335,20 @@ export function TeamSelect({
                   <small className="level-max">MAX</small>
                 )}
               </span>
+              {xp.atMax ? null : (
+                <div
+                  className="xp-bar"
+                  role="progressbar"
+                  aria-valuenow={xp.current}
+                  aria-valuemax={xp.needed}
+                  title={`${xp.current} / ${xp.needed} XP to next level`}
+                >
+                  <span style={{ width: `${Math.min(100, Math.round((xp.current / xp.needed) * 100))}%` }} />
+                  <small>
+                    XP {xp.current}/{xp.needed}
+                  </small>
+                </div>
+              )}
               {onEquipHeld ? (
                 <label className="held-item-line" onClick={(event) => event.stopPropagation()}>
                   Held

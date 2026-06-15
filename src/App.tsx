@@ -1,6 +1,7 @@
 import { Suspense, lazy, useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { BattleHud } from "./components/BattleHud";
-import { PokedexScreen } from "./components/PokedexScreen";
+import { PokedexModal } from "./components/PokedexModal";
+import { SettingsModal } from "./components/SettingsModal";
 import { ShopScreen } from "./components/ShopScreen";
 import { TeamSelect } from "./components/TeamSelect";
 import { WorldScreen } from "./components/WorldScreen";
@@ -14,6 +15,8 @@ import {
   applyCapture,
   applyDailyChallengeClear,
   applyStageClear,
+  battleXpReward,
+  grantBattleXp,
   performLevelUp,
   performMultiPull,
   performPull,
@@ -21,7 +24,8 @@ import {
 } from "./game/gacha";
 import { equipHeldItem, unequipHeldItem } from "./game/heldItems";
 import { ITEMS, addItem, itemCount, pickBerry, pickedBerryTiles } from "./game/items";
-import { fetchSpeciesStats } from "./game/pokeApi";
+import type { SpeciesDetail } from "./game/pokeApi";
+import { fetchSpeciesData } from "./game/pokeApi";
 import { defaultProgress, exportProgress, importProgress, loadProgress, saveProgress } from "./game/progress";
 import { buyItem, sellItem } from "./game/shop";
 import { playFeedbackSound, playKoSound } from "./game/sound";
@@ -38,7 +42,7 @@ const MAX_DELTA_SECONDS = 0.08;
 const preloadCanvas = () => import("./components/BattleCanvas");
 const BattleCanvas = lazy(() => preloadCanvas().then((module) => ({ default: module.BattleCanvas })));
 
-type WildSession = { speciesId: string; level: number; balls: Record<string, number> };
+type WildSession = { speciesId: string; level: number; balls: Record<string, number>; captureRate?: number };
 
 type TrainerSession = {
   id: string;
@@ -71,11 +75,34 @@ export type WildEndSummary = {
 
 export default function App() {
   const [speciesStats, setSpeciesStats] = useState<Record<string, PokemonBaseStats> | null>(null);
+  const [speciesSprites, setSpeciesSprites] = useState<Record<string, string> | null>(null);
+  const [speciesDetails, setSpeciesDetails] = useState<Record<string, SpeciesDetail> | null>(null);
   const [progress, setProgress] = useState(loadProgress);
   const [lastPulls, setLastPulls] = useState<PullResult[] | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [screen, setScreen] = useState<"world" | "hub" | "shop" | "pokedex">("world");
+  const [screen, setScreen] = useState<"world" | "hub" | "shop">("world");
+  // The Pokédex and Settings are modals that overlay whichever screen is open.
+  const [pokedexOpen, setPokedexOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const todayKey = dailyChallengeKey();
+
+  // Per-ally growth rates + XP tuning derived from the live PokeAPI details.
+  const growthRates: Record<string, string> = {};
+  if (speciesDetails) {
+    for (const [name, detail] of Object.entries(speciesDetails)) {
+      growthRates[name] = detail.growthRate;
+    }
+  }
+  const xpTuning = { usePokeApiRates: progress.settings.usePokeApiRates, growthRates };
+
+  // XP a battle awards each ally, scaled by the (average) defeated base experience.
+  const battleXp = (stage: number, enemySpeciesIds: string[]) => {
+    const exps = enemySpeciesIds
+      .map((id) => speciesDetails?.[id]?.baseExperience)
+      .filter((value): value is number => typeof value === "number" && value > 0);
+    const avg = exps.length > 0 ? exps.reduce((sum, value) => sum + value, 0) / exps.length : undefined;
+    return battleXpReward(stage, avg);
+  };
 
   const savePosition = useCallback((position: { mapId: string; x: number; z: number }) => {
     setProgress((current) => ({ ...current, worldPosition: position }));
@@ -133,10 +160,12 @@ export default function App() {
   useEffect(() => {
     let cancelled = false;
     void preloadCanvas();
-    fetchSpeciesStats(speciesNames)
-      .then((stats) => {
+    fetchSpeciesData(speciesNames)
+      .then((data) => {
         if (!cancelled) {
-          setSpeciesStats(stats);
+          setSpeciesStats(data.stats);
+          setSpeciesSprites(data.sprites);
+          setSpeciesDetails(data.details);
         }
       })
       .catch(() => {
@@ -147,12 +176,40 @@ export default function App() {
     };
   }, []);
 
+  const pokedexModal = pokedexOpen ? (
+    <PokedexModal
+      progress={progress}
+      speciesStats={speciesStats}
+      sprites={speciesSprites}
+      details={speciesDetails}
+      onClose={() => setPokedexOpen(false)}
+    />
+  ) : null;
+
+  const settingsModal = settingsOpen ? (
+    <SettingsModal
+      settings={progress.settings}
+      onChange={(settings) => setProgress((current) => ({ ...current, settings }))}
+      onClose={() => setSettingsOpen(false)}
+    />
+  ) : null;
+
+  const overlays = (
+    <>
+      {pokedexModal}
+      {settingsModal}
+    </>
+  );
+
   if (!session && screen === "world") {
     return (
+      <>
       <WorldScreen
         progress={progress}
         pickedBerries={pickedBerryTiles(progress, todayKey)}
         rematchedToday={rematchedToday}
+        onOpenPokedex={() => setPokedexOpen(true)}
+        onOpenSettings={() => setSettingsOpen(true)}
         onSavePosition={savePosition}
         onEnterBuilding={(building) => {
           if (building === "arena") {
@@ -179,7 +236,12 @@ export default function App() {
             stage: encounter.level,
             runId: 1,
             battleMode: "wild",
-            wild: { speciesId: encounter.speciesId, level: encounter.level, balls },
+            wild: {
+              speciesId: encounter.speciesId,
+              level: encounter.level,
+              balls,
+              captureRate: speciesDetails?.[encounter.speciesId]?.captureRate,
+            },
           });
         }}
         onStartTrainer={(trainer) => {
@@ -205,6 +267,8 @@ export default function App() {
           });
         }}
       />
+      {overlays}
+      </>
     );
   }
 
@@ -229,17 +293,16 @@ export default function App() {
     );
   }
 
-  if (!session && screen === "pokedex") {
-    return <PokedexScreen progress={progress} speciesStats={speciesStats} onBack={() => setScreen("hub")} />;
-  }
-
   if (!session) {
     return (
+      <>
       <TeamSelect
         progress={progress}
         lastPulls={lastPulls}
         onBack={() => setScreen("world")}
-        onOpenPokedex={() => setScreen("pokedex")}
+        onOpenPokedex={() => setPokedexOpen(true)}
+        onOpenSettings={() => setSettingsOpen(true)}
+        xpTuning={xpTuning}
         onEquipHeld={(allyId, itemId) => {
           const next = itemId ? equipHeldItem(progress, allyId, itemId) : unequipHeldItem(progress, allyId);
           if (next) {
@@ -301,6 +364,8 @@ export default function App() {
           return true;
         }}
       />
+      {overlays}
+      </>
     );
   }
 
@@ -317,6 +382,7 @@ export default function App() {
       speciesStats={speciesStats}
       allyLevels={progress.allyLevels}
       heldItems={progress.heldItems}
+      usePokeApiRates={progress.settings.usePokeApiRates}
       items={progress.inventory}
       onItemUsed={(itemId, quantity) => {
         setProgress((current) => ({
@@ -349,6 +415,10 @@ export default function App() {
             next = addItem(next, summary.droppedItem.itemId, summary.droppedItem.quantity);
           }
         }
+        // Fighting a wild creature (won or caught) trains the team.
+        if (summary.outcome === "won" || summary.outcome === "captured") {
+          next = grantBattleXp(next, session.allyIds, battleXp(wild.level, [wild.speciesId]), xpTuning);
+        }
         commitProgress(next);
         setSession(null);
         setScreen("world");
@@ -373,13 +443,15 @@ export default function App() {
           if (firstWin && trainer.itemReward) {
             next = addItem(next, trainer.itemReward, 1);
           }
+          next = grantBattleXp(next, session.allyIds, battleXp(session.stage, enemyTeamSpeciesIds(trainer.teamId)), xpTuning);
           commitProgress(next, summary);
           return;
         }
-        const rewarded =
+        let rewarded =
           session.battleMode === "daily" && session.dailyKey
             ? applyDailyChallengeClear(progress, session.dailyKey)
             : applyStageClear(progress, session.stage);
+        rewarded = grantBattleXp(rewarded, session.allyIds, battleXp(session.stage, []), xpTuning);
         commitProgress(rewarded, summary);
       }}
       onNextStage={
@@ -408,6 +480,7 @@ type BattleProps = {
   speciesStats: Record<string, PokemonBaseStats> | null;
   allyLevels: Record<string, number>;
   heldItems: Record<string, string>;
+  usePokeApiRates: boolean;
   items: Record<string, number>;
   onItemUsed: (itemId: string, quantity: number) => void;
   onBattleCleared: (summary: BattleSummary) => void;
@@ -429,6 +502,7 @@ function Battle({
   speciesStats,
   allyLevels,
   heldItems,
+  usePokeApiRates,
   items,
   onItemUsed,
   onBattleCleared,
@@ -449,6 +523,7 @@ function Battle({
       speciesStats: speciesStats ?? undefined,
       allyLevels,
       heldItems,
+      usePokeApiRates,
       items,
     }),
   );

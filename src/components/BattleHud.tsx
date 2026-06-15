@@ -29,11 +29,15 @@ export function BattleHud({ state, dispatch, onNextStage, onRetry, onChangeTeam,
   const usableItems = Object.entries(state.items).filter(([itemId, count]) => count > 0 && isBattleItem(itemId));
   const hasDamagedAlly = allies.some((unit) => isAlive(unit) && unit.hp < unit.maxHp);
   const wildTarget = isWild ? enemies.find(isAlive) : undefined;
+  const captureRate = state.config.usePokeApiRates ? state.config.wild?.captureRate : undefined;
   const enemyIntent = previewEnemyIntents(state)[0];
   const bestBall = wildTarget
     ? Object.entries(state.balls)
         .filter(([, count]) => count > 0)
-        .sort((left, right) => captureChanceFor(wildTarget, right[0]) - captureChanceFor(wildTarget, left[0]))[0]?.[0]
+        .sort(
+          (left, right) =>
+            captureChanceFor(wildTarget, right[0], captureRate) - captureChanceFor(wildTarget, left[0], captureRate),
+        )[0]?.[0]
     : undefined;
   const availableBalls = Object.entries(state.balls).filter(([, count]) => count > 0);
   const canUseItem = (itemId: string) => {
@@ -220,7 +224,7 @@ export function BattleHud({ state, dispatch, onNextStage, onRetry, onChangeTeam,
                 <span>{ITEMS[ballId]?.name ?? ballId}</span>
                 <strong>
                   ×{count}
-                  {wildTarget ? ` | ${Math.round(captureChanceFor(wildTarget, ballId) * 100)}%` : ""}
+                  {wildTarget ? ` | ${Math.round(captureChanceFor(wildTarget, ballId, captureRate) * 100)}%` : ""}
                 </strong>
               </button>
             ))}
@@ -304,6 +308,16 @@ export function BattleHud({ state, dispatch, onNextStage, onRetry, onChangeTeam,
             </button>
           </div>
         ) : null}
+      </section>
+
+      <section className="controls-legend" aria-label="Keyboard controls">
+        <span><kbd>Q</kbd><kbd>W</kbd><kbd>E</kbd> switch ally</span>
+        <span><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> moves</span>
+        <span><kbd>Space</kbd> sync</span>
+        <span><kbd>T</kbd> trainer</span>
+        <span><kbd>U</kbd> unity</span>
+        <span><kbd>M</kbd> target</span>
+        <span><kbd>P</kbd> pause · <kbd>F</kbd> speed</span>
       </section>
 
       <section className="battle-log" aria-label="Battle log">
