@@ -9,13 +9,24 @@ import { isSoundMuted, setSoundMuted } from "../game/sound";
 type BattleHudProps = {
   state: BattleState;
   dispatch: Dispatch<BattleAction>;
+  autoFight?: boolean;
   onNextStage?: () => void;
   onRetry?: () => void;
   onChangeTeam?: () => void;
+  onBackToLobby?: () => void;
   onReturnToWorld?: () => void;
 };
 
-export function BattleHud({ state, dispatch, onNextStage, onRetry, onChangeTeam, onReturnToWorld }: BattleHudProps) {
+export function BattleHud({
+  state,
+  dispatch,
+  autoFight = false,
+  onNextStage,
+  onRetry,
+  onChangeTeam,
+  onBackToLobby,
+  onReturnToWorld,
+}: BattleHudProps) {
   const [muted, setMuted] = useState(isSoundMuted);
   const allies = teamUnits(state, "ally");
   const enemies = teamUnits(state, "enemy");
@@ -110,6 +121,7 @@ export function BattleHud({ state, dispatch, onNextStage, onRetry, onChangeTeam,
           <strong>{state.unityGauge} / {state.maxUnityGauge}</strong>
         </div>
         <div className="control-chip" aria-label="Battle controls">
+          {autoFight ? <span className="auto-fight-badge">Auto Fight</span> : null}
           <button onClick={() => dispatch({ type: "togglePause" })}>
             {state.paused ? "Resume" : "Pause"} <kbd>P</kbd>
           </button>
@@ -407,6 +419,11 @@ export function BattleHud({ state, dispatch, onNextStage, onRetry, onChangeTeam,
             {onChangeTeam ? (
               <button className="secondary-button" onClick={onChangeTeam}>
                 Change Team
+              </button>
+            ) : null}
+            {onBackToLobby ? (
+              <button className="secondary-button" onClick={onBackToLobby}>
+                Back to Lobby
               </button>
             ) : null}
           </div>

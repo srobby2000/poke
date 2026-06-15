@@ -62,6 +62,14 @@ export type Move = {
   statChange?: StatChange;
 };
 
+// Raw PokeAPI move data used to optionally override a curated move's numbers.
+export type ApiMoveData = {
+  type: string;
+  power: number | null;
+  ailment: string | null;
+  statChanges: { stat: string; change: number }[];
+};
+
 export type Rarity = 3 | 4 | 5;
 
 export type Unit = {
@@ -223,6 +231,9 @@ export type BattleConfig = {
   heldItems?: Record<string, string>;
   // When on, capture_rate from the wild config influences catch odds.
   usePokeApiRates?: boolean;
+  // When on, ally movesets are overridden with normalized PokeAPI move data.
+  usePokeApiMovesets?: boolean;
+  moveData?: Record<string, ApiMoveData>;
 };
 
 export type BattleState = {
@@ -1289,6 +1300,8 @@ type StatScale = { hp: number; attack: number; defense: number };
 export type AllyOption = {
   id: string;
   name: string;
+  // The current form's species key (for sprite lookup) — changes on evolution.
+  spriteId: string;
   role: BattleRole;
   rarity: Rarity;
   source: "gacha" | "wild";
@@ -1311,6 +1324,7 @@ export function getAllyOptions(
     return {
       id: template.id,
       name: form?.name ?? template.name,
+      spriteId: form?.sourcePokemon ?? template.sourcePokemon,
       role: template.role,
       rarity: template.rarity,
       source: template.source ?? "gacha",
@@ -1322,6 +1336,69 @@ export function getAllyOptions(
       nextEvolutionLevel: nextEvolutionLevel(template.id, level),
     };
   });
+}
+
+const AILMENT_TO_STATUS: Record<string, StatusCondition> = {
+  burn: "burn",
+  poison: "poison",
+  paralysis: "paralysis",
+};
+
+// Normalizes one PokeAPI move into our gauge/power model, keeping the move's
+// id/name/accent so projectiles, sync charging, and tests stay anchored.
+export function normalizeApiMove(move: Move, data: ApiMoveData): Move {
+  const power = data.power ? Math.min(60, Math.max(18, Math.round(data.power * 0.55))) : 0;
+  const cost = power === 0 ? 1 : power <= 30 ? 1 : power <= 48 ? 2 : 3;
+  const status = data.ailment ? AILMENT_TO_STATUS[data.ailment] : undefined;
+  const change = data.statChanges.find((entry) => entry.stat === "attack" || entry.stat === "defense");
+  const statChange: StatChange | undefined = change
+    ? { stat: change.stat as "attack" | "defense", stages: change.change, target: change.change >= 0 ? "self" : "enemy" }
+    : undefined;
+  return {
+    ...move,
+    type: (data.type as PokemonType) || move.type,
+    power,
+    cost,
+    statusEffect: status,
+    // Keep a mapped stat change; for non-damaging moves fall back to the bundled one.
+    statChange: statChange ?? (data.power ? undefined : move.statChange),
+  };
+}
+
+export function applyApiMoveset(moves: Move[], moveData: Record<string, ApiMoveData>): Move[] {
+  return moves.map((move) => {
+    const data = moveData[move.id];
+    return data ? normalizeApiMove(move, data) : move;
+  });
+}
+
+// The species forms an owned ally has obtained at the given level: its base
+// plus every evolution stage it has reached. Used so the Pokédex registers
+// evolved forms (e.g. Bulbasaur AND Ivysaur) without adding them as separately
+// selectable roster units.
+export function reachedFormsFor(allyId: string, level: number): string[] {
+  const template = allyTemplates.find((candidate) => candidate.id === allyId);
+  if (!template) {
+    return [];
+  }
+  const forms = [template.sourcePokemon as string];
+  for (const stage of allyEvolutions[allyId] ?? []) {
+    if (level >= levelForStage(allyId, stage)) {
+      forms.push(stage.sourcePokemon);
+    }
+  }
+  return forms;
+}
+
+// The distinct ally battle-move ids (excludes sync/trainer), for prefetching.
+export function getBattleMoveIds(): string[] {
+  const ids = new Set<string>();
+  for (const template of allyTemplates) {
+    for (const move of template.moves) {
+      ids.add(move.id);
+    }
+  }
+  return [...ids];
 }
 
 export const createInitialBattleState = (seed?: number, config?: Partial<BattleConfig>): BattleState => {
@@ -1354,13 +1431,16 @@ export const createInitialBattleState = (seed?: number, config?: Partial<BattleC
     const form = allyFormForLevel(template.id, level);
     const effectiveTemplate = form ? { ...template, name: form.name, sourcePokemon: form.sourcePokemon } : template;
     const levelFactor = 1 + BALANCE.allyLevelGrowth * (level - 1);
-    const unit = makeUnit(
+    let unit = makeUnit(
       effectiveTemplate,
       ALLY_SLOTS[index % ALLY_SLOTS.length],
       statsLookup,
       { hp: levelFactor, attack: levelFactor, defense: levelFactor },
       level,
     );
+    if (config?.usePokeApiMovesets && config.moveData) {
+      unit = { ...unit, moves: applyApiMoveset(unit.moves, config.moveData) };
+    }
     const heldItem = config?.heldItems?.[template.id];
     return heldItem ? { ...unit, heldItem, heldItemUsed: false } : unit;
   });

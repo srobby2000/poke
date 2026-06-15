@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mapPokeApiDetail, mapPokeApiSprite, mapPokeApiStats, parseEvolutionChain } from "./pokeApi";
+import { mapPokeApiDetail, mapPokeApiMove, mapPokeApiSprite, mapPokeApiStats, parseEvolutionChain } from "./pokeApi";
 
 const payloadFor = (stats: Record<string, number>) => ({
   stats: Object.entries(stats).map(([name, base_stat]) => ({ base_stat, stat: { name } })),
@@ -49,7 +49,7 @@ describe("pokeApi sprite + detail mapping", () => {
 
   it("maps detail with unit conversions and cleaned flavor text", () => {
     const detail = mapPokeApiDetail(
-      { stats: [], height: 7, weight: 90, base_experience: 142 },
+      { id: 6, stats: [], height: 7, weight: 90, base_experience: 142 },
       {
         capture_rate: 45,
         growth_rate: { name: "medium-slow" },
@@ -62,6 +62,7 @@ describe("pokeApi sprite + detail mapping", () => {
       },
     );
 
+    expect(detail.number).toBe(6);
     expect(detail.heightM).toBeCloseTo(0.7);
     expect(detail.weightKg).toBeCloseTo(9);
     expect(detail.baseExperience).toBe(142);
@@ -115,5 +116,29 @@ describe("pokeApi evolution chains", () => {
     });
 
     expect(links.eevee[0]).toEqual({ to: "vaporeon", minLevel: null, trigger: "use-item", item: "water-stone" });
+  });
+});
+
+describe("pokeApi move mapping", () => {
+  it("maps damaging moves with ailments and stat changes", () => {
+    const move = mapPokeApiMove({
+      type: { name: "fire" },
+      power: 90,
+      meta: { ailment: { name: "burn" } },
+      stat_changes: [{ change: -1, stat: { name: "defense" } }],
+    });
+    expect(move).toEqual({
+      type: "fire",
+      power: 90,
+      ailment: "burn",
+      statChanges: [{ stat: "defense", change: -1 }],
+    });
+  });
+
+  it("treats the 'none' ailment and null power as empty", () => {
+    const move = mapPokeApiMove({ type: { name: "normal" }, power: null, meta: { ailment: { name: "none" } } });
+    expect(move.ailment).toBeNull();
+    expect(move.power).toBeNull();
+    expect(move.statChanges).toEqual([]);
   });
 });

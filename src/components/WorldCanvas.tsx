@@ -11,6 +11,8 @@ type WorldCanvasProps = {
   pickedBerries: string[];
 };
 
+const WORLD_LABEL_Z_INDEX_RANGE: [number, number] = [20, 0];
+
 export function WorldCanvas({ state, pickedBerries }: WorldCanvasProps) {
   return (
     <Canvas className="battle-canvas" shadows camera={{ position: [state.x, 8.2, state.z + 7.4], fov: 50 }}>
@@ -202,8 +204,8 @@ const StaticVillage = memo(function StaticVillage({
             <ringGeometry args={[0.3, 0.4, 24]} />
             <meshStandardMaterial color="#e9d5ff" emissive="#e9d5ff" emissiveIntensity={0.6} />
           </mesh>
-          <Html center position={[0, 1.4, 0]} className="unit-label" distanceFactor={11}>
-            <span>{warp.label} →</span>
+          <Html center zIndexRange={WORLD_LABEL_Z_INDEX_RANGE} position={[0, 1.4, 0]} className="unit-label" distanceFactor={11}>
+            <span>{warp.label}{" \u2192"}</span>
           </Html>
         </group>
       ))}
@@ -235,7 +237,7 @@ const StaticVillage = memo(function StaticVillage({
             <boxGeometry args={[0.55, 1.1, 0.06]} />
             <meshStandardMaterial color="#d9a066" emissive="#d9a066" emissiveIntensity={0.18} roughness={0.6} />
           </mesh>
-          <Html center position={[0, 2.25, 0]} className="unit-label" distanceFactor={11}>
+          <Html center zIndexRange={WORLD_LABEL_Z_INDEX_RANGE} position={[0, 2.25, 0]} className="unit-label" distanceFactor={11}>
             <span>{door.label}</span>
           </Html>
         </group>
@@ -282,7 +284,7 @@ const StaticVillage = memo(function StaticVillage({
             <sphereGeometry args={[0.18, 12, 10]} />
             <meshStandardMaterial color="#f1d4b0" roughness={0.6} />
           </mesh>
-          <Html center position={[0, 1.45, 0]} className="unit-label" distanceFactor={11}>
+          <Html center zIndexRange={WORLD_LABEL_Z_INDEX_RANGE} position={[0, 1.45, 0]} className="unit-label" distanceFactor={11}>
             <span>{npc.name}</span>
           </Html>
         </group>
@@ -303,8 +305,8 @@ const StaticVillage = memo(function StaticVillage({
               <meshStandardMaterial color="#f1d4b0" roughness={0.6} />
             </mesh>
             {beaten ? null : (
-              <Html center position={[0, 1.5, 0]} className="unit-label" distanceFactor={11}>
-                <span>⚔ {trainer.name}</span>
+              <Html center zIndexRange={WORLD_LABEL_Z_INDEX_RANGE} position={[0, 1.5, 0]} className="unit-label" distanceFactor={11}>
+                <span>{"! "}{trainer.name}</span>
               </Html>
             )}
           </group>
