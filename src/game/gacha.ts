@@ -8,6 +8,10 @@ export const MULTI_PULL_COUNT = 10;
 // Ten pulls for the price of nine.
 export const MULTI_PULL_COST = 900;
 export const DAILY_CHALLENGE_REWARD = 180;
+// Gems handed back when a scout has nothing left to unlock or level — the
+// duplicate is converted to gems so scouting is never blocked. Matches the
+// maxed-capture consolation for consistency.
+export const DUPLICATE_SCOUT_GEMS = 25;
 
 // Progression-flavored gacha: while any ally is still locked, a pull is
 // guaranteed to unlock a NEW unit (weighted by rarity). Once everything is
@@ -20,6 +24,10 @@ export type PullResult = {
   rarity: Rarity;
   isNew: boolean;
   level: number;
+  // Set when the whole roster is already unlocked and maxed: the pull is a
+  // duplicate converted into gems instead of an unlock or level-up.
+  isDuplicate?: boolean;
+  gemsAwarded?: number;
 };
 
 export type PullOutcome = {
@@ -129,28 +137,19 @@ function gachaPool(): AllyOption[] {
   return getAllyOptions().filter((option) => option.source !== "wild");
 }
 
-function hasPullTargets(progress: PlayerProgress): boolean {
-  const roster = gachaPool();
-  if (roster.some((option) => !progress.unlockedAllies.includes(option.id))) {
-    return true;
-  }
-  return roster.some((option) => levelOf(progress, option.id) < BALANCE.maxAllyLevel);
-}
-
+// Scouting is only gated on affording the gem cost. When there's nothing left
+// to unlock or level, a pull still resolves — as a gem-paying duplicate — so the
+// scout button is never disabled.
 export function canPull(progress: PlayerProgress): boolean {
-  return progress.gems >= PULL_COST && hasPullTargets(progress);
+  return progress.gems >= PULL_COST;
 }
 
 export function canMultiPull(progress: PlayerProgress): boolean {
-  return progress.gems >= MULTI_PULL_COST && hasPullTargets(progress);
+  return progress.gems >= MULTI_PULL_COST;
 }
 
 // One pull without the gem charge; performPull/performMultiPull handle cost.
-function pullOnce(progress: PlayerProgress, seed: number): PullOutcome | null {
-  if (!hasPullTargets(progress)) {
-    return null;
-  }
-
+function pullOnce(progress: PlayerProgress, seed: number): PullOutcome {
   const roster = gachaPool();
   const locked = roster.filter((option) => !progress.unlockedAllies.includes(option.id));
   const [roll, nextSeed] = nextRandom(seed);
@@ -168,14 +167,32 @@ function pullOnce(progress: PlayerProgress, seed: number): PullOutcome | null {
   }
 
   const candidates = roster.filter((option) => levelOf(progress, option.id) < BALANCE.maxAllyLevel);
-  const pick = candidates[Math.min(candidates.length - 1, Math.floor(roll * candidates.length))];
-  const level = levelOf(progress, pick.id) + 1;
+  if (candidates.length > 0) {
+    const pick = candidates[Math.min(candidates.length - 1, Math.floor(roll * candidates.length))];
+    const level = levelOf(progress, pick.id) + 1;
+    return {
+      progress: {
+        ...progress,
+        allyLevels: { ...progress.allyLevels, [pick.id]: level },
+      },
+      result: { allyId: pick.id, name: pick.name, rarity: pick.rarity, isNew: false, level },
+      nextSeed,
+    };
+  }
+
+  // Fully unlocked and maxed: the duplicate is converted into gems.
+  const pick = roster[Math.min(roster.length - 1, Math.floor(roll * roster.length))];
   return {
-    progress: {
-      ...progress,
-      allyLevels: { ...progress.allyLevels, [pick.id]: level },
+    progress: { ...progress, gems: progress.gems + DUPLICATE_SCOUT_GEMS },
+    result: {
+      allyId: pick.id,
+      name: pick.name,
+      rarity: pick.rarity,
+      isNew: false,
+      level: levelOf(progress, pick.id),
+      isDuplicate: true,
+      gemsAwarded: DUPLICATE_SCOUT_GEMS,
     },
-    result: { allyId: pick.id, name: pick.name, rarity: pick.rarity, isNew: false, level },
     nextSeed,
   };
 }
@@ -204,12 +221,6 @@ export function performMultiPull(progress: PlayerProgress, seed: number): MultiP
 
   for (let index = 0; index < MULTI_PULL_COUNT; index += 1) {
     const outcome = pullOnce(current, currentSeed);
-    if (!outcome) {
-      // Everything hit the cap mid-batch: refund the unused pulls pro rata.
-      const refund = Math.round((MULTI_PULL_COST / MULTI_PULL_COUNT) * (MULTI_PULL_COUNT - index));
-      current = { ...current, gems: current.gems + refund };
-      break;
-    }
     current = outcome.progress;
     currentSeed = outcome.nextSeed;
     results.push(outcome.result);

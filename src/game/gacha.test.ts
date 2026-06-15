@@ -12,6 +12,7 @@ import {
   canPull,
   battleXpReward,
   chooseEvolution,
+  DUPLICATE_SCOUT_GEMS,
   dailyChallengeReward,
   grantBattleXp,
   levelOf,
@@ -31,6 +32,7 @@ const baseProgress = (overrides: Partial<PlayerProgress> = {}): PlayerProgress =
   bestStage: 0,
   gems: 200,
   unlockedAllies: ["squirtle", "bulbasaur", "charmander"],
+  activeTeam: ["squirtle", "bulbasaur", "charmander"],
   allyLevels: {},
   evolutionChoices: {},
   allyXp: {},
@@ -98,14 +100,17 @@ describe("gacha pulls", () => {
     expect(outcome?.progress.unlockedAllies).toHaveLength(allAllyIds.length);
   });
 
-  it("refuses to pull when every ally is at the level cap", () => {
+  it("converts a pull to a gem duplicate when every ally is at the level cap", () => {
     const maxed = baseProgress({
       unlockedAllies: [...allAllyIds],
       allyLevels: Object.fromEntries(allAllyIds.map((id) => [id, BALANCE.maxAllyLevel])),
     });
 
-    expect(canPull(maxed)).toBe(false);
-    expect(performPull(maxed, 1)).toBeNull();
+    // Still pullable as long as you can afford it; the duplicate pays gems.
+    expect(canPull(maxed)).toBe(true);
+    expect(performPull(maxed, 1)?.result.isDuplicate).toBe(true);
+    // Only refused when you can't cover the gem cost.
+    expect(canPull(baseProgress({ gems: PULL_COST - 1, unlockedAllies: [...allAllyIds] }))).toBe(false);
   });
 });
 
@@ -136,8 +141,9 @@ describe("multi pulls", () => {
     expect(performMultiPull(baseProgress({ gems: MULTI_PULL_COST - 1 }), 1)).toBeNull();
   });
 
-  it("refunds unused pulls when targets run out mid-batch", () => {
-    // Everything unlocked; only one ally has level-up room, so one pull lands.
+  it("converts over-cap pulls into gem duplicates mid-batch", () => {
+    // Everything unlocked; only one ally has level-up room, so one pull levels
+    // and the remaining nine resolve as gem-paying duplicates.
     const nearlyMaxed = baseProgress({
       gems: 1000,
       unlockedAllies: [...allAllyIds],
@@ -147,11 +153,30 @@ describe("multi pulls", () => {
     });
 
     const outcome = performMultiPull(nearlyMaxed, 7);
-    const perPull = MULTI_PULL_COST / MULTI_PULL_COUNT;
 
-    expect(outcome?.results).toHaveLength(1);
+    expect(outcome?.results).toHaveLength(MULTI_PULL_COUNT);
     expect(outcome?.results[0].allyId).toBe("squirtle");
-    expect(outcome?.progress.gems).toBe(1000 - MULTI_PULL_COST + perPull * (MULTI_PULL_COUNT - 1));
+    expect(outcome?.results[0].isDuplicate).toBeUndefined();
+    const dupes = outcome!.results.slice(1);
+    expect(dupes.every((pull) => pull.isDuplicate && pull.gemsAwarded === DUPLICATE_SCOUT_GEMS)).toBe(true);
+    expect(outcome?.progress.gems).toBe(1000 - MULTI_PULL_COST + DUPLICATE_SCOUT_GEMS * (MULTI_PULL_COUNT - 1));
+  });
+
+  it("keeps scouting available once everything is unlocked and maxed", () => {
+    const maxed = baseProgress({
+      gems: 1000,
+      unlockedAllies: [...allAllyIds],
+      allyLevels: Object.fromEntries(allAllyIds.map((id) => [id, BALANCE.maxAllyLevel])),
+    });
+
+    // The button stays enabled — gems are the only requirement now.
+    expect(canPull(maxed)).toBe(true);
+    expect(canMultiPull(maxed)).toBe(true);
+
+    const outcome = performPull(maxed, 99);
+    expect(outcome?.result.isDuplicate).toBe(true);
+    expect(outcome?.result.gemsAwarded).toBe(DUPLICATE_SCOUT_GEMS);
+    expect(outcome?.progress.gems).toBe(1000 - PULL_COST + DUPLICATE_SCOUT_GEMS);
   });
 });
 

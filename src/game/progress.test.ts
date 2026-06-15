@@ -6,6 +6,7 @@ const progress: PlayerProgress = {
   bestStage: 4,
   gems: 320,
   unlockedAllies: ["squirtle", "bulbasaur", "charmander"],
+  activeTeam: ["squirtle", "bulbasaur", "charmander"],
   allyLevels: { squirtle: 3 },
   evolutionChoices: {},
   allyXp: { squirtle: 40 },

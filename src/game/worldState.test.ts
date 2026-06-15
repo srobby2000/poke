@@ -341,4 +341,19 @@ describe("line-of-sight trainers", () => {
     }
     expect(state.trainerBattle?.id).toBe("route2-maya");
   });
+
+  it("does not re-trigger a sight-line trainer when you respawn inside its line", () => {
+    // Returning to the overworld already inside Maya's sight line (e.g. after
+    // losing or fleeing her battle) must not immediately re-launch it...
+    let state = createInitialWorldState({ mapId: "route2", x: 22, z: 5 }, 5);
+    expect(state.spottingTrainers).toContain("22,3");
+    expect(state.trainerBattle).toBeNull();
+
+    // ...nor while moving around still inside the line.
+    state = worldReducer(state, { type: "setMoveInput", x: 0, z: -1 });
+    for (let step = 0; step < 5; step += 1) {
+      state = tick(state);
+    }
+    expect(state.trainerBattle).toBeNull();
+  });
 });

@@ -210,7 +210,13 @@ export function TeamSelect({
                 >
                   <span className="reveal-stars">{"★".repeat(pull.rarity)}</span>
                   <strong>{pull.name}</strong>
-                  <small>{pull.isNew ? "NEW recruit!" : `Level up → Lv ${pull.level}`}</small>
+                  <small>
+                    {pull.isNew
+                      ? "NEW recruit!"
+                      : pull.isDuplicate
+                        ? `Duplicate · +${pull.gemsAwarded} 💎`
+                        : `Level up → Lv ${pull.level}`}
+                  </small>
                 </div>
               ))}
             </div>

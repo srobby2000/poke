@@ -22,6 +22,7 @@ type WorldScreenProps = {
   onStartTrainer: (trainer: TrainerChallenge) => void;
   onOpenPokedex: () => void;
   onOpenSettings: () => void;
+  onOpenTeam: () => void;
 };
 
 function promptFor(nearby: WorldInteraction): string {
@@ -51,6 +52,7 @@ export function WorldScreen({
   onStartTrainer,
   onOpenPokedex,
   onOpenSettings,
+  onOpenTeam,
 }: WorldScreenProps) {
   const [world, dispatch] = useReducer(worldReducer, undefined, () =>
     createInitialWorldState(progress.worldPosition, undefined, progress.defeatedTrainers, rematchedToday),
@@ -208,6 +210,9 @@ export function WorldScreen({
             <span>{world.map.id === "village" ? "Explore, then enter the Arena" : "Beat the trainers, catch the wild ones"}</span>
           </div>
           <span className="gems-chip">💎 {progress.gems}</span>
+          <button className="control-chip world-team-button" onClick={onOpenTeam}>
+            🛡️ Team
+          </button>
           <button className="control-chip world-pokedex-button" onClick={onOpenPokedex}>
             📕 Pokédex <kbd>B</kbd>
           </button>
