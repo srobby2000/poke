@@ -12,10 +12,12 @@ import {
   dailyChallengeKey,
   dailyChallengeStage,
   enemyTeamForStage,
+  evolutionChoicesFor,
   focusSashSurvives,
   getAllyOptions,
   getTypeEffectiveness,
   nextEvolutionLevel,
+  reachedFormsFor,
   previewEnemyIntents,
   previewPlayerMove,
   tickBattle,
@@ -880,8 +882,23 @@ describe("battle simulation", () => {
     expect(allyFormForLevel("pidgey", 4)?.name).toBe("Pidgeotto");
     expect(allyFormForLevel("pidgey", 8)?.name).toBe("Pidgeot");
     expect(allyFormForLevel("rattata", 6)?.name).toBe("Raticate");
-    expect(allyFormForLevel("oddish", 8)?.name).toBe("Vileplume");
+    // Oddish reaches Gloom from level alone, but Vileplume is a Leaf Stone
+    // evolution: it stays Gloom until the stone is used.
+    expect(allyFormForLevel("oddish", 8)?.name).toBe("Gloom");
+    expect(allyFormForLevel("oddish", 8, { oddish: "vileplume" })?.name).toBe("Vileplume");
     expect(nextEvolutionLevel("oddish", 4)).toBe(8);
+  });
+
+  it("gates stone evolutions behind an explicit choice", () => {
+    // Vulpix needs a Fire Stone — no auto-evolve at the threshold level.
+    expect(allyFormForLevel("vulpix", 6)).toBeNull();
+    expect(allyFormForLevel("vulpix", 6, { vulpix: "ninetales" })?.name).toBe("Ninetales");
+    expect(evolutionChoicesFor("vulpix", 6).map((stage) => stage.requiresStone)).toEqual(["fire-stone"]);
+
+    // Reached-forms registers the pre-stone form (Gloom) but not the un-used
+    // stone form (Vileplume) until it's chosen.
+    expect(reachedFormsFor("oddish", 8)).toEqual(["oddish", "gloom"]);
+    expect(reachedFormsFor("oddish", 8, { oddish: "vileplume" })).toEqual(["oddish", "gloom", "vileplume"]);
   });
 
   it("shows evolved forms on the roster screen", () => {
@@ -893,6 +910,28 @@ describe("battle simulation", () => {
     expect(squirtle?.nextEvolutionLevel).toBe(8);
     expect(charmander?.name).toBe("Charmander");
     expect(charmander?.nextEvolutionLevel).toBe(4);
+  });
+
+  it("requires a player choice for Eevee branch evolutions", () => {
+    expect(allyFormForLevel("eevee", 6)).toBeNull();
+
+    const options = getAllyOptions(undefined, { eevee: 6 });
+    const eevee = options.find((option) => option.id === "eevee");
+    expect(eevee?.name).toBe("Eevee");
+    expect(eevee?.evolutionChoices.map((choice) => choice.name)).toEqual(["Vaporeon", "Jolteon", "Flareon"]);
+
+    const chosenOptions = getAllyOptions(undefined, { eevee: 6 }, { eevee: "jolteon" });
+    const jolteon = chosenOptions.find((option) => option.id === "eevee");
+    expect(jolteon?.name).toBe("Jolteon");
+    expect(jolteon?.spriteId).toBe("jolteon");
+    expect(jolteon?.types).toEqual(["electric"]);
+
+    const battle = createInitialBattleState(1, {
+      allyIds: ["eevee", "squirtle", "bulbasaur"],
+      allyLevels: { eevee: 6 },
+      evolutionChoices: { eevee: "flareon" },
+    });
+    expect(battle.units.find((unit) => unit.id === "eevee")?.name).toBe("Flareon");
   });
 
   it("tracks damage dealt per unit for the battle report", () => {
@@ -989,7 +1028,8 @@ describe("API-driven evolution levels", () => {
     expect(nextEvolutionLevel("charmander", 4)).toBe(9);
     // A stone evolution (null level) lands on the mid default of 6.
     expect(allyFormForLevel("eevee", 5)).toBeNull();
-    expect(allyFormForLevel("eevee", 6)?.name).toBe("Vaporeon");
+    expect(allyFormForLevel("eevee", 6)).toBeNull();
+    expect(allyFormForLevel("eevee", 6, { eevee: "vaporeon" })?.name).toBe("Vaporeon");
 
     // Clearing the override restores the bundled thresholds.
     applyApiEvolutionLevels({});

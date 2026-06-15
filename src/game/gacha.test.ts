@@ -11,6 +11,7 @@ import {
   canMultiPull,
   canPull,
   battleXpReward,
+  chooseEvolution,
   dailyChallengeReward,
   grantBattleXp,
   levelOf,
@@ -19,6 +20,7 @@ import {
   performMultiPull,
   performPull,
   stageClearReward,
+  stageClearStoneReward,
   wildVictoryReward,
   xpInfo,
   xpToNextLevel,
@@ -30,6 +32,7 @@ const baseProgress = (overrides: Partial<PlayerProgress> = {}): PlayerProgress =
   gems: 200,
   unlockedAllies: ["squirtle", "bulbasaur", "charmander"],
   allyLevels: {},
+  evolutionChoices: {},
   allyXp: {},
   dailyClearedDate: null,
   achievements: [],
@@ -207,6 +210,55 @@ describe("leveling", () => {
     expect(performLevelUp(baseProgress({ gems: 0 }), "squirtle")).toBeNull();
   });
 
+  it("saves an eligible Eevee evolution choice and consumes the stone", () => {
+    const progress = baseProgress({
+      unlockedAllies: ["eevee"],
+      allyLevels: { eevee: 6 },
+      inventory: { "thunder-stone": 1 },
+    });
+
+    const next = chooseEvolution(progress, "eevee", "jolteon");
+
+    expect(next?.evolutionChoices.eevee).toBe("jolteon");
+    // The matching stone is spent on evolution.
+    expect(next?.inventory["thunder-stone"]).toBe(0);
+    expect(chooseEvolution(progress, "eevee", "alakazam")).toBeNull();
+    expect(chooseEvolution(baseProgress({ unlockedAllies: ["eevee"], allyLevels: { eevee: 5 } }), "eevee", "jolteon")).toBeNull();
+  });
+
+  it("rejects a stone evolution without the matching stone", () => {
+    const progress = baseProgress({ unlockedAllies: ["eevee"], allyLevels: { eevee: 6 } });
+    // No stone in the bag: choosing fails and nothing is spent.
+    expect(chooseEvolution(progress, "eevee", "jolteon")).toBeNull();
+    // The wrong stone doesn't satisfy the requirement either.
+    expect(
+      chooseEvolution(baseProgress({ unlockedAllies: ["eevee"], allyLevels: { eevee: 6 }, inventory: { "fire-stone": 1 } }), "eevee", "jolteon"),
+    ).toBeNull();
+  });
+
+  it("locks an evolution choice in permanently", () => {
+    const progress = baseProgress({
+      unlockedAllies: ["eevee"],
+      allyLevels: { eevee: 6 },
+      inventory: { "thunder-stone": 1, "fire-stone": 1 },
+    });
+    const evolved = chooseEvolution(progress, "eevee", "jolteon");
+    expect(evolved?.evolutionChoices.eevee).toBe("jolteon");
+    // Already committed: a second choice is rejected and no further stone is spent.
+    expect(chooseEvolution(evolved!, "eevee", "flareon")).toBeNull();
+  });
+
+  it("evolves a linear stone species (Vulpix → Ninetales)", () => {
+    const progress = baseProgress({
+      unlockedAllies: ["vulpix"],
+      allyLevels: { vulpix: 6 },
+      inventory: { "fire-stone": 1 },
+    });
+    const evolved = chooseEvolution(progress, "vulpix", "ninetales");
+    expect(evolved?.evolutionChoices.vulpix).toBe("ninetales");
+    expect(evolved?.inventory["fire-stone"]).toBe(0);
+  });
+
   it("charges more for higher levels", () => {
     expect(levelUpCost(5)).toBeGreaterThan(levelUpCost(1));
   });
@@ -222,6 +274,21 @@ describe("stage rewards", () => {
 
   it("adds a first-clear bonus only for new stages", () => {
     expect(stageClearReward(3, 2)).toBeGreaterThan(stageClearReward(3, 3));
+  });
+
+  it("awards an evolution stone on milestone first-clears only", () => {
+    // Non-milestone stages give no stone.
+    expect(stageClearStoneReward(4, 3)).toBeNull();
+    // Every fifth stage cycles through the stone set.
+    expect(stageClearStoneReward(5, 4)).toBe("fire-stone");
+    expect(stageClearStoneReward(10, 9)).toBe("water-stone");
+    expect(stageClearStoneReward(25, 24)).toBe("moon-stone");
+    expect(stageClearStoneReward(30, 29)).toBe("fire-stone");
+    // Re-clearing an already-beaten milestone yields nothing.
+    expect(stageClearStoneReward(5, 9)).toBeNull();
+
+    const cleared = applyStageClear(baseProgress(), 5);
+    expect(cleared.inventory["fire-stone"]).toBe(1);
   });
 
   it("pays the daily challenge reward once per date", () => {

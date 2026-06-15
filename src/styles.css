@@ -1850,9 +1850,94 @@ kbd {
 }
 
 .upgrade-card .xp-bar,
+.upgrade-card .evolution-choice-grid,
 .upgrade-card .level-button,
 .upgrade-card .level-max {
   grid-column: 1 / -1;
+}
+
+.evolution-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+  gap: 6px;
+}
+
+.evolution-choice-button {
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 5px 6px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 8px;
+  color: #cbd5e1;
+  text-align: left;
+  background: rgba(15, 23, 42, 0.78);
+}
+
+.evolution-choice-button:hover:not(:disabled) {
+  border-color: rgba(125, 211, 252, 0.62);
+  color: #f8fafc;
+}
+
+.evolution-choice-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.evolution-choice-button-active {
+  border-color: rgba(250, 204, 21, 0.9);
+  color: #fef9c3;
+  background: rgba(113, 63, 18, 0.48);
+}
+
+.evolution-choice-button-active:disabled {
+  opacity: 1;
+}
+
+.evolution-stone-req {
+  color: #7dd3fc;
+}
+
+.evolution-stone-req-missing {
+  color: #f87171;
+}
+
+.evolution-choice-sprite {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.evolution-choice-sprite img {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.evolution-choice-sprite > span {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+}
+
+.evolution-choice-button span:last-child {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.evolution-choice-button strong,
+.evolution-choice-button small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .unit-label {

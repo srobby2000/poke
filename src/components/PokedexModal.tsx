@@ -61,11 +61,11 @@ export function PokedexModal({ progress, speciesStats, sprites, details, evoluti
 
   const allyById = useMemo(() => {
     const map = new Map<string, AllyOption>();
-    for (const option of getAllyOptions(speciesStats ?? undefined, progress.allyLevels)) {
+    for (const option of getAllyOptions(speciesStats ?? undefined, progress.allyLevels, progress.evolutionChoices)) {
       map.set(option.id, option);
     }
     return map;
-  }, [speciesStats, progress.allyLevels]);
+  }, [speciesStats, progress.allyLevels, progress.evolutionChoices]);
 
   // Owning an ally registers every form it has evolved through (Bulbasaur AND
   // Ivysaur, etc.) 驕ｯ・ｶ郢晢ｽｻdisplay-only, so it never becomes a selectable roster unit.
@@ -73,12 +73,12 @@ export function PokedexModal({ progress, speciesStats, sprites, details, evoluti
     const set = new Set<string>();
     for (const allyId of progress.unlockedAllies) {
       const level = Math.max(1, Math.floor(progress.allyLevels[allyId] ?? 1));
-      for (const form of reachedFormsFor(allyId, level)) {
+      for (const form of reachedFormsFor(allyId, level, progress.evolutionChoices)) {
         set.add(form);
       }
     }
     return set;
-  }, [progress.unlockedAllies, progress.allyLevels]);
+  }, [progress.unlockedAllies, progress.allyLevels, progress.evolutionChoices]);
 
   const statusOf = (speciesId: string): DexStatus =>
     caughtSpecies.has(speciesId) ? "caught" : progress.seenSpecies.includes(speciesId) ? "seen" : "missing";
@@ -103,7 +103,7 @@ export function PokedexModal({ progress, speciesStats, sprites, details, evoluti
         .sort((left, right) => left.number - right.number);
     }
     // Offline fallback: just the roster.
-    return getAllyOptions(speciesStats ?? undefined, progress.allyLevels).map((option, index) => ({
+    return getAllyOptions(speciesStats ?? undefined, progress.allyLevels, progress.evolutionChoices).map((option, index) => ({
       speciesId: option.id,
       number: index + 1,
       name: option.name,
@@ -114,7 +114,16 @@ export function PokedexModal({ progress, speciesStats, sprites, details, evoluti
       status: statusOf(option.id),
     }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [details, types, speciesStats, allyById, progress.unlockedAllies, progress.seenSpecies, progress.allyLevels]);
+  }, [
+    details,
+    types,
+    speciesStats,
+    allyById,
+    progress.unlockedAllies,
+    progress.seenSpecies,
+    progress.allyLevels,
+    progress.evolutionChoices,
+  ]);
 
   const caughtCount = entries.filter((entry) => entry.status === "caught").length;
   const seenCount = entries.filter((entry) => entry.status !== "missing").length;

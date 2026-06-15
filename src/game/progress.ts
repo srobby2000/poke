@@ -8,6 +8,8 @@ export type PlayerProgress = {
   gems: number;
   unlockedAllies: string[];
   allyLevels: Record<string, number>;
+  // allyId -> chosen evolved species for branching evolutions (for example Eevee).
+  evolutionChoices: Record<string, string>;
   // XP accumulated toward each ally's next level (battles grant XP; gems still
   // buy instant levels).
   allyXp: Record<string, number>;
@@ -46,6 +48,7 @@ export function defaultProgress(): PlayerProgress {
     gems: 200,
     unlockedAllies: [...DEFAULT_ALLY_IDS],
     allyLevels: {},
+    evolutionChoices: {},
     allyXp: {},
     dailyClearedDate: null,
     achievements: [],
@@ -70,6 +73,14 @@ function sanitizeProgress(parsed: Partial<PlayerProgress>): PlayerProgress {
         ? parsed.unlockedAllies.filter((id): id is string => typeof id === "string")
         : [...DEFAULT_ALLY_IDS],
     allyLevels: parsed.allyLevels && typeof parsed.allyLevels === "object" ? parsed.allyLevels : {},
+    evolutionChoices:
+      parsed.evolutionChoices && typeof parsed.evolutionChoices === "object"
+        ? Object.fromEntries(
+            Object.entries(parsed.evolutionChoices).filter(
+              (entry): entry is [string, string] => typeof entry[1] === "string",
+            ),
+          )
+        : {},
     allyXp:
       parsed.allyXp && typeof parsed.allyXp === "object"
         ? Object.fromEntries(

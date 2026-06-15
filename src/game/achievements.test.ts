@@ -8,6 +8,7 @@ const baseProgress = (overrides: Partial<PlayerProgress> = {}): PlayerProgress =
   gems: 0,
   unlockedAllies: ["squirtle", "bulbasaur", "charmander"],
   allyLevels: {},
+  evolutionChoices: {},
   allyXp: {},
   dailyClearedDate: null,
   achievements: [],

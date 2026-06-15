@@ -7,6 +7,7 @@ const progress: PlayerProgress = {
   gems: 320,
   unlockedAllies: ["squirtle", "bulbasaur", "charmander"],
   allyLevels: { squirtle: 3 },
+  evolutionChoices: {},
   allyXp: { squirtle: 40 },
   dailyClearedDate: "2026-06-14",
   achievements: ["first-victory"],

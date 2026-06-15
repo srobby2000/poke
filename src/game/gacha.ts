@@ -1,5 +1,6 @@
 import type { AllyOption, Rarity } from "./battleState";
-import { BALANCE, getAllyOptions } from "./battleState";
+import { BALANCE, evolutionChoicesFor, getAllyOptions } from "./battleState";
+import { addItem, itemCount } from "./items";
 import type { PlayerProgress } from "./progress";
 
 export const PULL_COST = 100;
@@ -248,17 +249,63 @@ export function performLevelUp(progress: PlayerProgress, allyId: string): Player
   };
 }
 
+export function chooseEvolution(progress: PlayerProgress, allyId: string, sourcePokemon: string): PlayerProgress | null {
+  if (!progress.unlockedAllies.includes(allyId)) {
+    return null;
+  }
+  // Evolutions are permanent: once an ally has committed to a form it can't be
+  // re-rolled into a different one.
+  if (progress.evolutionChoices[allyId]) {
+    return null;
+  }
+  const choices = evolutionChoicesFor(allyId, levelOf(progress, allyId));
+  const choice = choices.find((entry) => entry.sourcePokemon === sourcePokemon);
+  if (!choice) {
+    return null;
+  }
+  let next = progress;
+  // Stone evolutions consume one matching stone from the inventory.
+  if (choice.requiresStone) {
+    if (itemCount(progress, choice.requiresStone) < 1) {
+      return null;
+    }
+    next = addItem(next, choice.requiresStone, -1);
+  }
+  return {
+    ...next,
+    evolutionChoices: { ...next.evolutionChoices, [allyId]: sourcePokemon },
+  };
+}
+
 export function stageClearReward(stage: number, bestStage: number): number {
   const firstClearBonus = stage > bestStage ? 60 : 0;
   return 40 + 20 * stage + firstClearBonus;
 }
 
+// Evolution stones, in the order milestone clears hand them out.
+const STONE_REWARD_CYCLE = ["fire-stone", "water-stone", "thunder-stone", "leaf-stone", "moon-stone"];
+
+// Every fifth stage, the first time it's cleared, awards one evolution stone —
+// cycling through the set so the whole roster's stone forms are reachable from
+// the Battle Streak ladder alone. Returns null on non-milestone or repeat clears.
+export function stageClearStoneReward(stage: number, bestStage: number): string | null {
+  if (stage <= bestStage || stage % 5 !== 0) {
+    return null;
+  }
+  return STONE_REWARD_CYCLE[(stage / 5 - 1) % STONE_REWARD_CYCLE.length];
+}
+
 export function applyStageClear(progress: PlayerProgress, stage: number): PlayerProgress {
-  return {
+  let next: PlayerProgress = {
     ...progress,
     gems: progress.gems + stageClearReward(stage, progress.bestStage),
     bestStage: Math.max(progress.bestStage, stage),
   };
+  const stone = stageClearStoneReward(stage, progress.bestStage);
+  if (stone) {
+    next = addItem(next, stone, 1);
+  }
+  return next;
 }
 
 export type CaptureOutcome = {

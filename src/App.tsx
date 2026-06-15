@@ -17,6 +17,7 @@ import {
   applyDailyChallengeClear,
   applyStageClear,
   battleXpReward,
+  chooseEvolution,
   grantBattleXp,
   performLevelUp,
   performMultiPull,
@@ -380,6 +381,12 @@ export default function App() {
             commitProgress(next);
           }
         }}
+        onChooseEvolution={(allyId, sourcePokemon) => {
+          const next = chooseEvolution(progress, allyId, sourcePokemon);
+          if (next) {
+            commitProgress(next);
+          }
+        }}
         onResetSave={() => {
           setProgress(defaultProgress());
           setLastPulls(null);
@@ -415,6 +422,7 @@ export default function App() {
       autoFight={!!session.autoFight}
       speciesStats={speciesStats}
       allyLevels={progress.allyLevels}
+      evolutionChoices={progress.evolutionChoices}
       heldItems={progress.heldItems}
       usePokeApiRates={progress.settings.usePokeApiRates}
       usePokeApiMovesets={progress.settings.usePokeApiMovesets}
@@ -524,6 +532,7 @@ type BattleProps = {
   autoFight?: boolean;
   speciesStats: Record<string, PokemonBaseStats> | null;
   allyLevels: Record<string, number>;
+  evolutionChoices: Record<string, string>;
   heldItems: Record<string, string>;
   usePokeApiRates: boolean;
   usePokeApiMovesets: boolean;
@@ -550,6 +559,7 @@ function Battle({
   autoFight = false,
   speciesStats,
   allyLevels,
+  evolutionChoices,
   heldItems,
   usePokeApiRates,
   usePokeApiMovesets,
@@ -574,6 +584,7 @@ function Battle({
       wild,
       speciesStats: speciesStats ?? undefined,
       allyLevels,
+      evolutionChoices,
       heldItems,
       usePokeApiRates,
       usePokeApiMovesets,

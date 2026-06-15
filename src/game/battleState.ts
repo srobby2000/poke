@@ -226,6 +226,7 @@ export type BattleConfig = {
   wild?: WildConfig;
   speciesStats?: Record<string, PokemonBaseStats>;
   allyLevels?: Record<string, number>;
+  evolutionChoices?: Record<string, string>;
   items?: Record<string, number>;
   // allyId -> equipped held-item id.
   heldItems?: Record<string, string>;
@@ -326,6 +327,8 @@ const pokeApiBaseStats = {
   machoke: { hp: 80, attack: 100, defense: 70, speed: 45 },
   machamp: { hp: 90, attack: 130, defense: 80, speed: 55 },
   vaporeon: { hp: 130, attack: 110, defense: 60, speed: 65 },
+  jolteon: { hp: 65, attack: 110, defense: 60, speed: 130 },
+  flareon: { hp: 65, attack: 130, defense: 60, speed: 65 },
   kadabra: { hp: 40, attack: 120, defense: 30, speed: 105 },
   alakazam: { hp: 55, attack: 135, defense: 45, speed: 120 },
   graveler: { hp: 55, attack: 95, defense: 115, speed: 35 },
@@ -345,14 +348,20 @@ const pokeApiBaseStats = {
   vileplume: { hp: 75, attack: 110, defense: 85, speed: 50 },
 } satisfies Record<string, PokemonBaseStats>;
 
-type EvolutionStage = {
+export type EvolutionStage = {
   atLevel: number;
   name: string;
   sourcePokemon: keyof typeof pokeApiBaseStats;
+  types?: PokemonType[];
+  // When set, this evolution only applies once the player uses the named
+  // evolution stone item (consumed in chooseEvolution); it never auto-applies
+  // from level alone.
+  requiresStone?: string;
 };
 
 // Allies evolve as they level up; evolved forms swap name and base stats
-// (and therefore derived HP/attack/defense) while keeping moves and types.
+// (and therefore derived HP/attack/defense) while keeping moves unless a form
+// overrides its type.
 const allyEvolutions: Record<string, EvolutionStage[]> = {
   squirtle: [
     { atLevel: 4, name: "Wartortle", sourcePokemon: "wartortle" },
@@ -366,12 +375,16 @@ const allyEvolutions: Record<string, EvolutionStage[]> = {
     { atLevel: 4, name: "Charmeleon", sourcePokemon: "charmeleon" },
     { atLevel: 8, name: "Charizard", sourcePokemon: "charizard" },
   ],
-  vulpix: [{ atLevel: 6, name: "Ninetales", sourcePokemon: "ninetales" }],
+  vulpix: [{ atLevel: 6, name: "Ninetales", sourcePokemon: "ninetales", requiresStone: "fire-stone" }],
   machop: [
     { atLevel: 4, name: "Machoke", sourcePokemon: "machoke" },
     { atLevel: 8, name: "Machamp", sourcePokemon: "machamp" },
   ],
-  eevee: [{ atLevel: 6, name: "Vaporeon", sourcePokemon: "vaporeon" }],
+  eevee: [
+    { atLevel: 6, name: "Vaporeon", sourcePokemon: "vaporeon", types: ["water"], requiresStone: "water-stone" },
+    { atLevel: 6, name: "Jolteon", sourcePokemon: "jolteon", types: ["electric"], requiresStone: "thunder-stone" },
+    { atLevel: 6, name: "Flareon", sourcePokemon: "flareon", types: ["fire"], requiresStone: "fire-stone" },
+  ],
   abra: [
     { atLevel: 4, name: "Kadabra", sourcePokemon: "kadabra" },
     { atLevel: 8, name: "Alakazam", sourcePokemon: "alakazam" },
@@ -380,8 +393,8 @@ const allyEvolutions: Record<string, EvolutionStage[]> = {
     { atLevel: 4, name: "Graveler", sourcePokemon: "graveler" },
     { atLevel: 8, name: "Golem", sourcePokemon: "golem" },
   ],
-  jigglypuff: [{ atLevel: 6, name: "Wigglytuff", sourcePokemon: "wigglytuff" }],
-  growlithe: [{ atLevel: 6, name: "Arcanine", sourcePokemon: "arcanine" }],
+  jigglypuff: [{ atLevel: 6, name: "Wigglytuff", sourcePokemon: "wigglytuff", requiresStone: "moon-stone" }],
+  growlithe: [{ atLevel: 6, name: "Arcanine", sourcePokemon: "arcanine", requiresStone: "fire-stone" }],
   psyduck: [{ atLevel: 6, name: "Golduck", sourcePokemon: "golduck" }],
   meowth: [{ atLevel: 6, name: "Persian", sourcePokemon: "persian" }],
   cubone: [{ atLevel: 6, name: "Marowak", sourcePokemon: "marowak" }],
@@ -397,7 +410,7 @@ const allyEvolutions: Record<string, EvolutionStage[]> = {
   rattata: [{ atLevel: 6, name: "Raticate", sourcePokemon: "raticate" }],
   oddish: [
     { atLevel: 4, name: "Gloom", sourcePokemon: "gloom" },
-    { atLevel: 8, name: "Vileplume", sourcePokemon: "vileplume" },
+    { atLevel: 8, name: "Vileplume", sourcePokemon: "vileplume", requiresStone: "leaf-stone" },
   ],
 };
 
@@ -444,9 +457,65 @@ function levelForStage(allyId: string, stage: EvolutionStage): number {
   return apiEvolutionLevels?.[allyId]?.[stage.sourcePokemon] ?? stage.atLevel;
 }
 
-export function allyFormForLevel(allyId: string, level: number): EvolutionStage | null {
+export function allyFormForLevel(
+  allyId: string,
+  level: number,
+  evolutionChoices?: Record<string, string>,
+): EvolutionStage | null {
+  return selectedAllyFormForLevel(allyId, level, evolutionChoices);
+}
+
+// The evolutions offered to the player as explicit choices at this level: a
+// branch (several forms unlocked at the same level, e.g. Eevee) or any
+// stone-gated form. Pure linear, level-only evolutions auto-apply and are not
+// returned here.
+export function evolutionChoicesFor(allyId: string, level: number): EvolutionStage[] {
   const stages = allyEvolutions[allyId] ?? [];
-  return [...stages].reverse().find((stage) => level >= levelForStage(allyId, stage)) ?? null;
+  const reached = stages.filter((stage) => level >= levelForStage(allyId, stage));
+  if (reached.length === 0) {
+    return [];
+  }
+  const latestLevel = Math.max(...reached.map((stage) => levelForStage(allyId, stage)));
+  const atLatest = reached.filter((stage) => levelForStage(allyId, stage) === latestLevel);
+  if (atLatest.length > 1 || atLatest.some((stage) => stage.requiresStone)) {
+    return atLatest;
+  }
+  return [];
+}
+
+// An evolution requires an explicit player choice when it's a branch sibling
+// (another form is unlocked at the same level) or it needs a stone. Such forms
+// never apply from level alone.
+function stageNeedsChoice(allyId: string, stage: EvolutionStage, reached: EvolutionStage[]): boolean {
+  if (stage.requiresStone) {
+    return true;
+  }
+  const stageLevel = levelForStage(allyId, stage);
+  return reached.filter((other) => levelForStage(allyId, other) === stageLevel).length > 1;
+}
+
+export function selectedAllyFormForLevel(
+  allyId: string,
+  level: number,
+  evolutionChoices?: Record<string, string>,
+): EvolutionStage | null {
+  const selected = evolutionChoices?.[allyId];
+  const reached = (allyEvolutions[allyId] ?? [])
+    .filter((stage) => level >= levelForStage(allyId, stage))
+    .sort((left, right) => levelForStage(allyId, right) - levelForStage(allyId, left));
+  // Walk from the highest reached form down: forms needing a choice only apply
+  // once the player has committed to them; otherwise fall through to the next
+  // lower form the ally has actually reached.
+  for (const stage of reached) {
+    if (stageNeedsChoice(allyId, stage, reached)) {
+      if (selected === stage.sourcePokemon) {
+        return stage;
+      }
+      continue;
+    }
+    return stage;
+  }
+  return null;
 }
 
 export function nextEvolutionLevel(allyId: string, level: number): number | undefined {
@@ -1311,16 +1380,19 @@ export type AllyOption = {
   moveNames: string[];
   baseStats: PokemonBaseStats;
   nextEvolutionLevel?: number;
+  evolutionChoices: EvolutionStage[];
+  selectedEvolution?: string;
 };
 
 export function getAllyOptions(
   speciesStats?: Record<string, PokemonBaseStats>,
   allyLevels?: Record<string, number>,
+  evolutionChoices?: Record<string, string>,
 ): AllyOption[] {
   const statsLookup: Record<string, PokemonBaseStats> = { ...pokeApiBaseStats, ...(speciesStats ?? {}) };
   return allyTemplates.map((template) => {
     const level = clamp(Math.floor(allyLevels?.[template.id] ?? 1), 1, BALANCE.maxAllyLevel);
-    const form = allyFormForLevel(template.id, level);
+    const form = selectedAllyFormForLevel(template.id, level, evolutionChoices);
     return {
       id: template.id,
       name: form?.name ?? template.name,
@@ -1328,12 +1400,14 @@ export function getAllyOptions(
       role: template.role,
       rarity: template.rarity,
       source: template.source ?? "gacha",
-      types: template.types,
+      types: form?.types ?? template.types,
       passive: template.passive,
       color: template.color,
       moveNames: template.moves.map((move) => move.name),
       baseStats: statsLookup[form?.sourcePokemon ?? template.sourcePokemon],
       nextEvolutionLevel: nextEvolutionLevel(template.id, level),
+      evolutionChoices: evolutionChoicesFor(template.id, level),
+      selectedEvolution: evolutionChoices?.[template.id],
     };
   });
 }
@@ -1376,16 +1450,35 @@ export function applyApiMoveset(moves: Move[], moveData: Record<string, ApiMoveD
 // plus every evolution stage it has reached. Used so the Pokédex registers
 // evolved forms (e.g. Bulbasaur AND Ivysaur) without adding them as separately
 // selectable roster units.
-export function reachedFormsFor(allyId: string, level: number): string[] {
+export function reachedFormsFor(allyId: string, level: number, evolutionChoices?: Record<string, string>): string[] {
   const template = allyTemplates.find((candidate) => candidate.id === allyId);
   if (!template) {
     return [];
   }
   const forms = [template.sourcePokemon as string];
+  const current = selectedAllyFormForLevel(allyId, level, evolutionChoices);
+  if (!current) {
+    return forms;
+  }
+  // Register every form on the chosen path: forms reached at or below the
+  // current form's level, skipping un-chosen branch siblings and stone forms
+  // that haven't been used.
+  const currentLevel = levelForStage(allyId, current);
   for (const stage of allyEvolutions[allyId] ?? []) {
-    if (level >= levelForStage(allyId, stage)) {
-      forms.push(stage.sourcePokemon);
+    const stageLevel = levelForStage(allyId, stage);
+    if (level < stageLevel || stageLevel > currentLevel) {
+      continue;
     }
+    if (stageLevel === currentLevel) {
+      if (stage.sourcePokemon === current.sourcePokemon) {
+        forms.push(stage.sourcePokemon);
+      }
+      continue;
+    }
+    if (stage.requiresStone && evolutionChoices?.[allyId] !== stage.sourcePokemon) {
+      continue;
+    }
+    forms.push(stage.sourcePokemon);
   }
   return forms;
 }
@@ -1428,8 +1521,10 @@ export const createInitialBattleState = (seed?: number, config?: Partial<BattleC
   const allies = allyIds.map((allyId, index) => {
     const template = allyTemplates.find((candidate) => candidate.id === allyId) ?? allyTemplates[index];
     const level = clamp(Math.floor(config?.allyLevels?.[template.id] ?? 1), 1, BALANCE.maxAllyLevel);
-    const form = allyFormForLevel(template.id, level);
-    const effectiveTemplate = form ? { ...template, name: form.name, sourcePokemon: form.sourcePokemon } : template;
+    const form = selectedAllyFormForLevel(template.id, level, config?.evolutionChoices);
+    const effectiveTemplate = form
+      ? { ...template, name: form.name, sourcePokemon: form.sourcePokemon, types: form.types ?? template.types }
+      : template;
     const levelFactor = 1 + BALANCE.allyLevelGrowth * (level - 1);
     let unit = makeUnit(
       effectiveTemplate,
@@ -1463,6 +1558,7 @@ export const createInitialBattleState = (seed?: number, config?: Partial<BattleC
       wild: wild ?? undefined,
       speciesStats: config?.speciesStats,
       allyLevels: config?.allyLevels,
+      evolutionChoices: config?.evolutionChoices,
       heldItems: config?.heldItems,
       usePokeApiRates: config?.usePokeApiRates,
     },
