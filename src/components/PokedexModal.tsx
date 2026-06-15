@@ -135,7 +135,7 @@ function DexSprite({
   if (status === "missing") {
     return <span className="pokedex-portrait pokedex-portrait-missing">?</span>;
   }
-  const url = sprites?.[option.id];
+  const url = sprites?.[option.spriteId] ?? sprites?.[option.id];
   const className = `pokedex-portrait ${status === "seen" ? "pokedex-portrait-silhouette" : ""}`;
   if (url) {
     return <img className={className} src={url} alt={option.name} loading="lazy" />;

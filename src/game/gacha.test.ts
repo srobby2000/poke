@@ -41,7 +41,7 @@ const baseProgress = (overrides: Partial<PlayerProgress> = {}): PlayerProgress =
   inventory: {},
   berryPicks: { date: "", picked: [] },
   captures: 0,
-  settings: { usePokeApiRates: false },
+  settings: { usePokeApiRates: false, usePokeApiMovesets: false },
   ...overrides,
 });
 

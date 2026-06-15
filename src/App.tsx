@@ -5,8 +5,8 @@ import { SettingsModal } from "./components/SettingsModal";
 import { ShopScreen } from "./components/ShopScreen";
 import { TeamSelect } from "./components/TeamSelect";
 import { WorldScreen } from "./components/WorldScreen";
-import type { BattleMode, BattleState, PokemonBaseStats } from "./game/battleState";
-import { applyApiEvolutionLevels, battleReducer, createInitialBattleState, dailyChallengeKey, dailyChallengeStage, enemyTeamSpeciesIds, isAlive, speciesNames, tickBattle } from "./game/battleState";
+import type { ApiMoveData, BattleMode, BattleState, PokemonBaseStats } from "./game/battleState";
+import { applyApiEvolutionLevels, battleReducer, createInitialBattleState, dailyChallengeKey, dailyChallengeStage, enemyTeamSpeciesIds, getBattleMoveIds, isAlive, speciesNames, tickBattle } from "./game/battleState";
 import type { AchievementDef, BattleSummary } from "./game/achievements";
 import { evaluateAchievements } from "./game/achievements";
 import type { PullResult } from "./game/gacha";
@@ -25,7 +25,7 @@ import {
 import { equipHeldItem, unequipHeldItem } from "./game/heldItems";
 import { ITEMS, addItem, itemCount, pickBerry, pickedBerryTiles } from "./game/items";
 import type { EvolutionLink, SpeciesDetail } from "./game/pokeApi";
-import { fetchSpeciesData } from "./game/pokeApi";
+import { fetchMoveData, fetchSpeciesData } from "./game/pokeApi";
 import { defaultProgress, exportProgress, importProgress, loadProgress, saveProgress } from "./game/progress";
 import { buyItem, sellItem } from "./game/shop";
 import { playFeedbackSound, playKoSound } from "./game/sound";
@@ -78,6 +78,7 @@ export default function App() {
   const [speciesSprites, setSpeciesSprites] = useState<Record<string, string> | null>(null);
   const [speciesDetails, setSpeciesDetails] = useState<Record<string, SpeciesDetail> | null>(null);
   const [speciesEvolutions, setSpeciesEvolutions] = useState<Record<string, EvolutionLink[]> | null>(null);
+  const [moveData, setMoveData] = useState<Record<string, ApiMoveData> | null>(null);
   const [progress, setProgress] = useState(loadProgress);
   const [lastPulls, setLastPulls] = useState<PullResult[] | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -174,6 +175,16 @@ export default function App() {
       })
       .catch(() => {
         // Offline or API down — bundled stats are identical, so play continues.
+      });
+    // Move data is only needed for the optional "PokeAPI movesets" setting.
+    fetchMoveData(getBattleMoveIds())
+      .then((moves) => {
+        if (!cancelled) {
+          setMoveData(moves);
+        }
+      })
+      .catch(() => {
+        // Best-effort — without it, the moveset toggle just keeps bundled moves.
       });
     return () => {
       cancelled = true;
@@ -388,6 +399,8 @@ export default function App() {
       allyLevels={progress.allyLevels}
       heldItems={progress.heldItems}
       usePokeApiRates={progress.settings.usePokeApiRates}
+      usePokeApiMovesets={progress.settings.usePokeApiMovesets}
+      moveData={moveData}
       items={progress.inventory}
       onItemUsed={(itemId, quantity) => {
         setProgress((current) => ({
@@ -486,6 +499,8 @@ type BattleProps = {
   allyLevels: Record<string, number>;
   heldItems: Record<string, string>;
   usePokeApiRates: boolean;
+  usePokeApiMovesets: boolean;
+  moveData: Record<string, ApiMoveData> | null;
   items: Record<string, number>;
   onItemUsed: (itemId: string, quantity: number) => void;
   onBattleCleared: (summary: BattleSummary) => void;
@@ -508,6 +523,8 @@ function Battle({
   allyLevels,
   heldItems,
   usePokeApiRates,
+  usePokeApiMovesets,
+  moveData,
   items,
   onItemUsed,
   onBattleCleared,
@@ -529,6 +546,8 @@ function Battle({
       allyLevels,
       heldItems,
       usePokeApiRates,
+      usePokeApiMovesets,
+      moveData: moveData ?? undefined,
       items,
     }),
   );

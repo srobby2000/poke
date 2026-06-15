@@ -18,7 +18,7 @@ const progress: PlayerProgress = {
   inventory: { "potion-item": 2 },
   berryPicks: { date: "2026-06-14", picked: ["1,2"] },
   captures: 1,
-  settings: { usePokeApiRates: true },
+  settings: { usePokeApiRates: true, usePokeApiMovesets: false },
 };
 
 describe("progress import/export", () => {

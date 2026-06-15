@@ -31,6 +31,21 @@ export function SettingsModal({ settings, onChange, onClose }: SettingsModalProp
             onChange={(event) => onChange({ ...settings, usePokeApiRates: event.target.checked })}
           />
         </label>
+
+        <label className="settings-row">
+          <span className="settings-row-text">
+            <strong>Use PokéAPI movesets</strong>
+            <small>
+              When on, each ally's moves use normalized real move data (type, power, ailment). Off uses the hand-tuned
+              movesets. Changes battle balance.
+            </small>
+          </span>
+          <input
+            type="checkbox"
+            checked={settings.usePokeApiMovesets}
+            onChange={(event) => onChange({ ...settings, usePokeApiMovesets: event.target.checked })}
+          />
+        </label>
       </div>
     </div>
   );

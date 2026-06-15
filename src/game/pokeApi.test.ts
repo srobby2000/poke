@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mapPokeApiDetail, mapPokeApiSprite, mapPokeApiStats, parseEvolutionChain } from "./pokeApi";
+import { mapPokeApiDetail, mapPokeApiMove, mapPokeApiSprite, mapPokeApiStats, parseEvolutionChain } from "./pokeApi";
 
 const payloadFor = (stats: Record<string, number>) => ({
   stats: Object.entries(stats).map(([name, base_stat]) => ({ base_stat, stat: { name } })),
@@ -115,5 +115,29 @@ describe("pokeApi evolution chains", () => {
     });
 
     expect(links.eevee[0]).toEqual({ to: "vaporeon", minLevel: null, trigger: "use-item", item: "water-stone" });
+  });
+});
+
+describe("pokeApi move mapping", () => {
+  it("maps damaging moves with ailments and stat changes", () => {
+    const move = mapPokeApiMove({
+      type: { name: "fire" },
+      power: 90,
+      meta: { ailment: { name: "burn" } },
+      stat_changes: [{ change: -1, stat: { name: "defense" } }],
+    });
+    expect(move).toEqual({
+      type: "fire",
+      power: 90,
+      ailment: "burn",
+      statChanges: [{ stat: "defense", change: -1 }],
+    });
+  });
+
+  it("treats the 'none' ailment and null power as empty", () => {
+    const move = mapPokeApiMove({ type: { name: "normal" }, power: null, meta: { ailment: { name: "none" } } });
+    expect(move.ailment).toBeNull();
+    expect(move.power).toBeNull();
+    expect(move.statChanges).toEqual([]);
   });
 });

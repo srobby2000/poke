@@ -1,6 +1,7 @@
-import type { PokemonBaseStats } from "./battleState";
+import type { ApiMoveData, PokemonBaseStats } from "./battleState";
 
 const CACHE_KEY = "creature-masters-pokeapi-v4";
+const MOVE_CACHE_KEY = "creature-masters-pokeapi-moves-v1";
 const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 export type PokeApiStatEntry = { base_stat: number; stat: { name: string } };
@@ -150,6 +151,24 @@ function writeCache(data: SpeciesData) {
   }
 }
 
+export type PokeApiMove = {
+  type?: { name: string };
+  power?: number | null;
+  meta?: { ailment?: { name: string } | null } | null;
+  stat_changes?: { change: number; stat: { name: string } }[];
+};
+
+export function mapPokeApiMove(payload: PokeApiMove): ApiMoveData {
+  const ailment = payload.meta?.ailment?.name;
+  return {
+    type: payload.type?.name ?? "",
+    power: payload.power ?? null,
+    // PokeAPI uses "none" for moves with no ailment.
+    ailment: ailment && ailment !== "none" ? ailment : null,
+    statChanges: (payload.stat_changes ?? []).map((entry) => ({ stat: entry.stat.name, change: entry.change })),
+  };
+}
+
 async function fetchJson<T>(url: string): Promise<T | null> {
   try {
     const response = await fetch(url);
@@ -214,4 +233,40 @@ export async function fetchSpeciesData(names: string[]): Promise<SpeciesData> {
 
   writeCache(data);
   return data;
+}
+
+type MoveCachePayload = { fetchedAt: number; moves: Record<string, ApiMoveData> };
+
+// Fetches normalized data for the given move ids, cached for a week. Best-effort
+// per move (a missing one is simply not overridden in battle).
+export async function fetchMoveData(ids: string[]): Promise<Record<string, ApiMoveData>> {
+  try {
+    const raw = globalThis.localStorage?.getItem(MOVE_CACHE_KEY);
+    if (raw) {
+      const payload = JSON.parse(raw) as MoveCachePayload;
+      if (Date.now() - payload.fetchedAt <= CACHE_TTL_MS && ids.every((id) => payload.moves[id])) {
+        return payload.moves;
+      }
+    }
+  } catch {
+    // Ignore cache read failures and refetch.
+  }
+
+  const entries = await Promise.all(
+    ids.map(async (id) => [id, await fetchJson<PokeApiMove>(`https://pokeapi.co/api/v2/move/${id}`)] as const),
+  );
+  const moves: Record<string, ApiMoveData> = {};
+  for (const [id, payload] of entries) {
+    if (payload) {
+      moves[id] = mapPokeApiMove(payload);
+    }
+  }
+
+  try {
+    const payload: MoveCachePayload = { fetchedAt: Date.now(), moves };
+    globalThis.localStorage?.setItem(MOVE_CACHE_KEY, JSON.stringify(payload));
+  } catch {
+    // Storage unavailable; data still returned for this session.
+  }
+  return moves;
 }

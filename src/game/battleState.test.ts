@@ -3,9 +3,12 @@ import {
   BALANCE,
   allyFormForLevel,
   applyApiEvolutionLevels,
+  applyApiMoveset,
   battleReducer,
   captureChanceFor,
   createInitialBattleState,
+  getBattleMoveIds,
+  normalizeApiMove,
   dailyChallengeKey,
   dailyChallengeStage,
   enemyTeamForStage,
@@ -991,5 +994,62 @@ describe("API-driven evolution levels", () => {
     // Clearing the override restores the bundled thresholds.
     applyApiEvolutionLevels({});
     expect(allyFormForLevel("charmander", 8)?.name).toBe("Charizard");
+  });
+});
+
+describe("PokeAPI movesets (curated override)", () => {
+  it("normalizes a damaging move into the gauge/power band", () => {
+    const base = { id: "ember", name: "Ember", type: "fire" as const, cost: 1, power: 30, accent: "#f87171" };
+    const move = normalizeApiMove(base, { type: "fire", power: 90, ailment: "burn", statChanges: [] });
+
+    expect(move.id).toBe("ember"); // id/name/accent preserved
+    expect(move.power).toBeGreaterThanOrEqual(18);
+    expect(move.power).toBeLessThanOrEqual(60);
+    expect(move.cost).toBeGreaterThanOrEqual(1);
+    expect(move.cost).toBeLessThanOrEqual(3);
+    expect(move.statusEffect).toBe("burn");
+  });
+
+  it("drops unsupported ailments and maps stat changes by sign", () => {
+    const base = { id: "growl", name: "Growl", type: "normal" as const, cost: 1, power: 0, accent: "#fff" };
+    const debuff = normalizeApiMove(base, {
+      type: "normal",
+      power: null,
+      ailment: null,
+      statChanges: [{ stat: "attack", change: -1 }],
+    });
+    expect(debuff.power).toBe(0);
+    expect(debuff.statChange).toEqual({ stat: "attack", stages: -1, target: "enemy" });
+
+    const frozen = normalizeApiMove({ ...base, power: 40 }, { type: "ice", power: 60, ailment: "freeze", statChanges: [] });
+    expect(frozen.statusEffect).toBeUndefined(); // freeze isn't supported
+  });
+
+  it("only overrides moves present in the data, leaving others intact", () => {
+    const moves = [
+      { id: "water-gun", name: "Water Gun", type: "water" as const, cost: 2, power: 40, accent: "#38bdf8" },
+      { id: "made-up", name: "Made Up", type: "water" as const, cost: 1, power: 25, accent: "#38bdf8" },
+    ];
+    const result = applyApiMoveset(moves, { "water-gun": { type: "water", power: 120, ailment: null, statChanges: [] } });
+    expect(result[0].power).not.toBe(40); // overridden
+    expect(result[1].power).toBe(25); // untouched
+  });
+
+  it("applies overrides to ally units only when the setting is on", () => {
+    const moveData = { "water-gun": { type: "water", power: 120, ailment: null, statChanges: [] } };
+    const ids = getBattleMoveIds();
+    expect(ids).toContain("water-gun");
+
+    const off = createInitialBattleState(1, { allyIds: ["squirtle", "bulbasaur", "charmander"], moveData });
+    const offGun = off.units.find((u) => u.id === "squirtle")!.moves.find((m) => m.id === "water-gun");
+    expect(offGun?.power).toBe(40);
+
+    const on = createInitialBattleState(1, {
+      allyIds: ["squirtle", "bulbasaur", "charmander"],
+      usePokeApiMovesets: true,
+      moveData,
+    });
+    const onGun = on.units.find((u) => u.id === "squirtle")!.moves.find((m) => m.id === "water-gun");
+    expect(onGun?.power).toBe(60); // round(120*0.55)=66 clamped to 60
   });
 });

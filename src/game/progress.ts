@@ -31,10 +31,13 @@ export type PlayerSettings = {
   // When on, PokeAPI capture_rate drives catch odds and growth_rate scales the
   // XP curve. Off by default so play matches the hand-tuned defaults.
   usePokeApiRates: boolean;
+  // When on, ally movesets are overridden with normalized PokeAPI move data.
+  usePokeApiMovesets: boolean;
 };
 
 export const DEFAULT_SETTINGS: PlayerSettings = {
   usePokeApiRates: false,
+  usePokeApiMovesets: false,
 };
 
 export function defaultProgress(): PlayerProgress {
@@ -131,6 +134,10 @@ function sanitizeProgress(parsed: Partial<PlayerProgress>): PlayerProgress {
         typeof parsed.settings?.usePokeApiRates === "boolean"
           ? parsed.settings.usePokeApiRates
           : DEFAULT_SETTINGS.usePokeApiRates,
+      usePokeApiMovesets:
+        typeof parsed.settings?.usePokeApiMovesets === "boolean"
+          ? parsed.settings.usePokeApiMovesets
+          : DEFAULT_SETTINGS.usePokeApiMovesets,
     },
   };
 }
