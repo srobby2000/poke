@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   BALANCE,
   allyFormForLevel,
+  applyApiEvolutionLevels,
   battleReducer,
   captureChanceFor,
   createInitialBattleState,
@@ -967,5 +968,28 @@ describe("held items", () => {
     expect(focusSashSurvives({ heldItem: "leftovers", heldItemUsed: false, hp: 100, maxHp: 100 }, 0)).toBe(false);
     // Not on a non-lethal hit.
     expect(focusSashSurvives(sashed, 30)).toBe(false);
+  });
+});
+
+describe("API-driven evolution levels", () => {
+  it("scales real evolution levels into the cap, then restores when cleared", () => {
+    applyApiEvolutionLevels({
+      charmander: [{ to: "charmeleon", minLevel: 16 }],
+      charmeleon: [{ to: "charizard", minLevel: 36 }],
+      eevee: [{ to: "vaporeon", minLevel: null }],
+    });
+
+    // 16*10/40 = 4, 36*10/40 = 9.
+    expect(allyFormForLevel("charmander", 4)?.name).toBe("Charmeleon");
+    expect(allyFormForLevel("charmander", 8)?.name).toBe("Charmeleon");
+    expect(allyFormForLevel("charmander", 9)?.name).toBe("Charizard");
+    expect(nextEvolutionLevel("charmander", 4)).toBe(9);
+    // A stone evolution (null level) lands on the mid default of 6.
+    expect(allyFormForLevel("eevee", 5)).toBeNull();
+    expect(allyFormForLevel("eevee", 6)?.name).toBe("Vaporeon");
+
+    // Clearing the override restores the bundled thresholds.
+    applyApiEvolutionLevels({});
+    expect(allyFormForLevel("charmander", 8)?.name).toBe("Charizard");
   });
 });

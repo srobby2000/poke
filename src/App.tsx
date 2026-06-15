@@ -6,7 +6,7 @@ import { ShopScreen } from "./components/ShopScreen";
 import { TeamSelect } from "./components/TeamSelect";
 import { WorldScreen } from "./components/WorldScreen";
 import type { BattleMode, BattleState, PokemonBaseStats } from "./game/battleState";
-import { battleReducer, createInitialBattleState, dailyChallengeKey, dailyChallengeStage, enemyTeamSpeciesIds, isAlive, speciesNames, tickBattle } from "./game/battleState";
+import { applyApiEvolutionLevels, battleReducer, createInitialBattleState, dailyChallengeKey, dailyChallengeStage, enemyTeamSpeciesIds, isAlive, speciesNames, tickBattle } from "./game/battleState";
 import type { AchievementDef, BattleSummary } from "./game/achievements";
 import { evaluateAchievements } from "./game/achievements";
 import type { PullResult } from "./game/gacha";
@@ -24,7 +24,7 @@ import {
 } from "./game/gacha";
 import { equipHeldItem, unequipHeldItem } from "./game/heldItems";
 import { ITEMS, addItem, itemCount, pickBerry, pickedBerryTiles } from "./game/items";
-import type { SpeciesDetail } from "./game/pokeApi";
+import type { EvolutionLink, SpeciesDetail } from "./game/pokeApi";
 import { fetchSpeciesData } from "./game/pokeApi";
 import { defaultProgress, exportProgress, importProgress, loadProgress, saveProgress } from "./game/progress";
 import { buyItem, sellItem } from "./game/shop";
@@ -77,6 +77,7 @@ export default function App() {
   const [speciesStats, setSpeciesStats] = useState<Record<string, PokemonBaseStats> | null>(null);
   const [speciesSprites, setSpeciesSprites] = useState<Record<string, string> | null>(null);
   const [speciesDetails, setSpeciesDetails] = useState<Record<string, SpeciesDetail> | null>(null);
+  const [speciesEvolutions, setSpeciesEvolutions] = useState<Record<string, EvolutionLink[]> | null>(null);
   const [progress, setProgress] = useState(loadProgress);
   const [lastPulls, setLastPulls] = useState<PullResult[] | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -166,6 +167,9 @@ export default function App() {
           setSpeciesStats(data.stats);
           setSpeciesSprites(data.sprites);
           setSpeciesDetails(data.details);
+          setSpeciesEvolutions(data.evolutions);
+          // Drive evolution thresholds from the real chains (scaled to our cap).
+          applyApiEvolutionLevels(data.evolutions);
         }
       })
       .catch(() => {
@@ -182,6 +186,7 @@ export default function App() {
       speciesStats={speciesStats}
       sprites={speciesSprites}
       details={speciesDetails}
+      evolutions={speciesEvolutions}
       onClose={() => setPokedexOpen(false)}
     />
   ) : null;

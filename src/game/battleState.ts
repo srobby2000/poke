@@ -390,13 +390,59 @@ const allyEvolutions: Record<string, EvolutionStage[]> = {
   ],
 };
 
+// Optional API-derived evolution levels (allyId -> evolved sourcePokemon ->
+// level), scaled into our 1..maxAllyLevel range and applied once species data
+// loads. Falls back to the bundled atLevel thresholds when absent (offline).
+let apiEvolutionLevels: Record<string, Record<string, number>> | null = null;
+
+type EvolutionLinkInput = { to: string; minLevel: number | null };
+
+// Real evolution levels (16-55) far exceed our level cap, so scale them into
+// range; non-level triggers (stones/trades, minLevel null) land on a default.
+function scaleEvolutionLevel(minLevel: number | null): number {
+  const raw = minLevel ? Math.round((minLevel * BALANCE.maxAllyLevel) / 40) : 6;
+  return Math.min(BALANCE.maxAllyLevel, Math.max(2, raw));
+}
+
+// Replaces the hardcoded evolution thresholds with API-derived, scaled levels.
+// Keeps the curated form list (so bundled stats always exist); only the level
+// at which each form is reached changes.
+export function applyApiEvolutionLevels(links: Record<string, EvolutionLinkInput[]>): void {
+  const incoming: Record<string, number | null> = {};
+  for (const from of Object.keys(links)) {
+    for (const link of links[from]) {
+      incoming[link.to] = link.minLevel;
+    }
+  }
+  const result: Record<string, Record<string, number>> = {};
+  for (const [allyId, stages] of Object.entries(allyEvolutions)) {
+    const perForm: Record<string, number> = {};
+    for (const stage of stages) {
+      if (stage.sourcePokemon in incoming) {
+        perForm[stage.sourcePokemon] = scaleEvolutionLevel(incoming[stage.sourcePokemon]);
+      }
+    }
+    if (Object.keys(perForm).length > 0) {
+      result[allyId] = perForm;
+    }
+  }
+  apiEvolutionLevels = result;
+}
+
+function levelForStage(allyId: string, stage: EvolutionStage): number {
+  return apiEvolutionLevels?.[allyId]?.[stage.sourcePokemon] ?? stage.atLevel;
+}
+
 export function allyFormForLevel(allyId: string, level: number): EvolutionStage | null {
   const stages = allyEvolutions[allyId] ?? [];
-  return [...stages].reverse().find((stage) => level >= stage.atLevel) ?? null;
+  return [...stages].reverse().find((stage) => level >= levelForStage(allyId, stage)) ?? null;
 }
 
 export function nextEvolutionLevel(allyId: string, level: number): number | undefined {
-  return (allyEvolutions[allyId] ?? []).find((stage) => stage.atLevel > level)?.atLevel;
+  return (allyEvolutions[allyId] ?? [])
+    .map((stage) => levelForStage(allyId, stage))
+    .sort((left, right) => left - right)
+    .find((stageLevel) => stageLevel > level);
 }
 
 export const speciesNames = Object.keys(pokeApiBaseStats);

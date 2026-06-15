@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mapPokeApiDetail, mapPokeApiSprite, mapPokeApiStats } from "./pokeApi";
+import { mapPokeApiDetail, mapPokeApiSprite, mapPokeApiStats, parseEvolutionChain } from "./pokeApi";
 
 const payloadFor = (stats: Record<string, number>) => ({
   stats: Object.entries(stats).map(([name, base_stat]) => ({ base_stat, stat: { name } })),
@@ -70,5 +70,50 @@ describe("pokeApi sprite + detail mapping", () => {
     expect(detail.habitat).toBe("mountain");
     expect(detail.genus).toBe("Flame Pokémon");
     expect(detail.flavorText).toBe("Spits fire that is hot.");
+  });
+});
+
+describe("pokeApi evolution chains", () => {
+  it("flattens a chain into per-species links with levels and triggers", () => {
+    const links = parseEvolutionChain({
+      chain: {
+        species: { name: "charmander" },
+        evolution_details: [],
+        evolves_to: [
+          {
+            species: { name: "charmeleon" },
+            evolution_details: [{ min_level: 16, trigger: { name: "level-up" }, item: null }],
+            evolves_to: [
+              {
+                species: { name: "charizard" },
+                evolution_details: [{ min_level: 36, trigger: { name: "level-up" }, item: null }],
+                evolves_to: [],
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    expect(links.charmander[0]).toEqual({ to: "charmeleon", minLevel: 16, trigger: "level-up", item: null });
+    expect(links.charmeleon[0]).toEqual({ to: "charizard", minLevel: 36, trigger: "level-up", item: null });
+  });
+
+  it("captures stone/item evolutions with a null level", () => {
+    const links = parseEvolutionChain({
+      chain: {
+        species: { name: "eevee" },
+        evolution_details: [],
+        evolves_to: [
+          {
+            species: { name: "vaporeon" },
+            evolution_details: [{ min_level: null, trigger: { name: "use-item" }, item: { name: "water-stone" } }],
+            evolves_to: [],
+          },
+        ],
+      },
+    });
+
+    expect(links.eevee[0]).toEqual({ to: "vaporeon", minLevel: null, trigger: "use-item", item: "water-stone" });
   });
 });

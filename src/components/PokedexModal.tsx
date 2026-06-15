@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import type { AllyOption, PokemonBaseStats } from "../game/battleState";
 import { getAllyOptions } from "../game/battleState";
-import type { SpeciesDetail } from "../game/pokeApi";
+import type { EvolutionLink, SpeciesDetail } from "../game/pokeApi";
 import type { PlayerProgress } from "../game/progress";
 
 type PokedexModalProps = {
@@ -9,14 +9,38 @@ type PokedexModalProps = {
   speciesStats: Record<string, PokemonBaseStats> | null;
   sprites: Record<string, string> | null;
   details: Record<string, SpeciesDetail> | null;
+  evolutions: Record<string, EvolutionLink[]> | null;
   onClose: () => void;
 };
+
+const titleCase = (name: string) => name.charAt(0).toUpperCase() + name.slice(1).replace(/-/g, " ");
+
+function evolutionTrigger(link: EvolutionLink): string {
+  if (link.minLevel) return `Lv ${link.minLevel}`;
+  if (link.item) return titleCase(link.item);
+  return titleCase(link.trigger);
+}
+
+// Walks the evolution line for a species, following the first branch.
+function evolutionLine(speciesId: string, evolutions: Record<string, EvolutionLink[]> | null) {
+  if (!evolutions) return [];
+  const steps: { name: string; trigger: string }[] = [{ name: titleCase(speciesId), trigger: "" }];
+  let current = speciesId;
+  const seen = new Set<string>([current]);
+  while (evolutions[current]?.length && !seen.has(evolutions[current][0].to)) {
+    const link = evolutions[current][0];
+    steps.push({ name: titleCase(link.to), trigger: evolutionTrigger(link) });
+    seen.add(link.to);
+    current = link.to;
+  }
+  return steps;
+}
 
 type DexFilter = "all" | "caught" | "seen" | "missing";
 type DexStatus = "caught" | "seen" | "missing";
 type DexEntry = { option: AllyOption; status: DexStatus };
 
-export function PokedexModal({ progress, speciesStats, sprites, details, onClose }: PokedexModalProps) {
+export function PokedexModal({ progress, speciesStats, sprites, details, evolutions, onClose }: PokedexModalProps) {
   const [filter, setFilter] = useState<DexFilter>("all");
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
@@ -59,6 +83,7 @@ export function PokedexModal({ progress, speciesStats, sprites, details, onClose
             entry={selected}
             sprites={sprites}
             detail={details?.[selected.option.id] ?? null}
+            line={evolutionLine(selected.option.id, evolutions)}
             onBack={() => setSelectedId(null)}
           />
         ) : (
@@ -127,11 +152,13 @@ function DexDetail({
   entry,
   sprites,
   detail,
+  line,
   onBack,
 }: {
   entry: DexEntry;
   sprites: Record<string, string> | null;
   detail: SpeciesDetail | null;
+  line: { name: string; trigger: string }[];
   onBack: () => void;
 }) {
   const { option, status } = entry;
@@ -182,6 +209,18 @@ function DexDetail({
               </p>
               <p className="select-moves">{option.moveNames.join(" · ")}</p>
             </>
+          ) : null}
+
+          {line.length > 1 ? (
+            <p className="pokedex-evo-line" aria-label="Evolution line">
+              {line.map((step, index) => (
+                <span key={step.name}>
+                  {index > 0 ? <em className="pokedex-evo-arrow"> → </em> : null}
+                  {step.name}
+                  {step.trigger ? <small className="pokedex-evo-trigger"> ({step.trigger})</small> : null}
+                </span>
+              ))}
+            </p>
           ) : null}
         </div>
       </div>

@@ -1,6 +1,6 @@
 import type { PokemonBaseStats } from "./battleState";
 
-const CACHE_KEY = "creature-masters-pokeapi-v3";
+const CACHE_KEY = "creature-masters-pokeapi-v4";
 const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 export type PokeApiStatEntry = { base_stat: number; stat: { name: string } };
@@ -21,7 +21,41 @@ export type PokeApiSpecies = {
   habitat?: { name: string } | null;
   genera?: { genus: string; language: { name: string } }[];
   flavor_text_entries?: { flavor_text: string; language: { name: string } }[];
+  evolution_chain?: { url: string } | null;
 };
+
+type PokeApiChainNode = {
+  species: { name: string };
+  evolution_details: {
+    min_level?: number | null;
+    trigger?: { name: string } | null;
+    item?: { name: string } | null;
+  }[];
+  evolves_to: PokeApiChainNode[];
+};
+export type PokeApiEvolutionChain = { chain: PokeApiChainNode };
+
+// One step in an evolution line: which species it becomes and how.
+export type EvolutionLink = { to: string; minLevel: number | null; trigger: string; item: string | null };
+
+// Flattens a PokeAPI evolution-chain tree into per-species links.
+export function parseEvolutionChain(chain: PokeApiEvolutionChain): Record<string, EvolutionLink[]> {
+  const links: Record<string, EvolutionLink[]> = {};
+  const walk = (node: PokeApiChainNode) => {
+    for (const child of node.evolves_to) {
+      const detail = child.evolution_details[0];
+      (links[node.species.name] ??= []).push({
+        to: child.species.name,
+        minLevel: detail?.min_level ?? null,
+        trigger: detail?.trigger?.name ?? "level-up",
+        item: detail?.item?.name ?? null,
+      });
+      walk(child);
+    }
+  };
+  walk(chain.chain);
+  return links;
+}
 
 // Per-species flavor + tuning data used by the Pokédex and (optionally) the
 // capture and XP systems. Best-effort — none of it is required to play.
@@ -40,6 +74,8 @@ export type SpeciesData = {
   stats: Record<string, PokemonBaseStats>;
   sprites: Record<string, string>;
   details: Record<string, SpeciesDetail>;
+  // Per-species evolution links (the to-side keyed by the from-species name).
+  evolutions: Record<string, EvolutionLink[]>;
 };
 
 // Prefer the high-res official artwork, falling back to the classic sprite.
@@ -94,7 +130,12 @@ function readCache(names: string[]): SpeciesData | null {
     if (!names.every((name) => payload.stats[name])) {
       return null;
     }
-    return { stats: payload.stats, sprites: payload.sprites ?? {}, details: payload.details ?? {} };
+    return {
+      stats: payload.stats,
+      sprites: payload.sprites ?? {},
+      details: payload.details ?? {},
+      evolutions: payload.evolutions ?? {},
+    };
   } catch {
     return null;
   }
@@ -136,18 +177,20 @@ export async function fetchSpeciesData(names: string[]): Promise<SpeciesData> {
       if (!pokemon) {
         throw new Error(`PokeAPI returned no data for ${name}`);
       }
-      // Detail comes from a second endpoint and is best-effort.
+      // Detail (and the evolution-chain link) come from a second endpoint.
       const species = await fetchJson<PokeApiSpecies>(`https://pokeapi.co/api/v2/pokemon-species/${name}`);
       return {
         name,
         stats: mapPokeApiStats(pokemon),
         sprite: mapPokeApiSprite(pokemon),
         detail: species ? mapPokeApiDetail(pokemon, species) : null,
+        chainUrl: species?.evolution_chain?.url ?? null,
       };
     }),
   );
 
-  const data: SpeciesData = { stats: {}, sprites: {}, details: {} };
+  const data: SpeciesData = { stats: {}, sprites: {}, details: {}, evolutions: {} };
+  const chainUrls = new Set<string>();
   for (const entry of entries) {
     data.stats[entry.name] = entry.stats;
     if (entry.sprite) {
@@ -156,7 +199,19 @@ export async function fetchSpeciesData(names: string[]): Promise<SpeciesData> {
     if (entry.detail) {
       data.details[entry.name] = entry.detail;
     }
+    if (entry.chainUrl) {
+      chainUrls.add(entry.chainUrl);
+    }
   }
+
+  // Fetch each distinct evolution chain once and flatten it into links.
+  const chains = await Promise.all([...chainUrls].map((url) => fetchJson<PokeApiEvolutionChain>(url)));
+  for (const chain of chains) {
+    if (chain) {
+      Object.assign(data.evolutions, parseEvolutionChain(chain));
+    }
+  }
+
   writeCache(data);
   return data;
 }
