@@ -49,7 +49,7 @@ describe("pokeApi sprite + detail mapping", () => {
 
   it("maps detail with unit conversions and cleaned flavor text", () => {
     const detail = mapPokeApiDetail(
-      { stats: [], height: 7, weight: 90, base_experience: 142 },
+      { id: 6, stats: [], height: 7, weight: 90, base_experience: 142 },
       {
         capture_rate: 45,
         growth_rate: { name: "medium-slow" },
@@ -62,6 +62,7 @@ describe("pokeApi sprite + detail mapping", () => {
       },
     );
 
+    expect(detail.number).toBe(6);
     expect(detail.heightM).toBeCloseTo(0.7);
     expect(detail.weightKg).toBeCloseTo(9);
     expect(detail.baseExperience).toBe(142);

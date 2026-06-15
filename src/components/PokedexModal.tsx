@@ -1,8 +1,11 @@
 import { useMemo, useState } from "react";
+import type { CSSProperties } from "react";
 import type { AllyOption, PokemonBaseStats } from "../game/battleState";
-import { getAllyOptions } from "../game/battleState";
+import { getAllyOptions, reachedFormsFor } from "../game/battleState";
 import type { EvolutionLink, SpeciesDetail } from "../game/pokeApi";
 import type { PlayerProgress } from "../game/progress";
+import { typeColor } from "../game/typeColors";
+import { ACTIVE_POKEDEX_SKIN } from "./pokedexSkins";
 
 type PokedexModalProps = {
   progress: PlayerProgress;
@@ -10,10 +13,26 @@ type PokedexModalProps = {
   sprites: Record<string, string> | null;
   details: Record<string, SpeciesDetail> | null;
   evolutions: Record<string, EvolutionLink[]> | null;
+  types: Record<string, string[]> | null;
   onClose: () => void;
 };
 
+type DexFilter = "all" | "caught" | "seen" | "missing";
+type DexStatus = "caught" | "seen" | "missing";
+
+type DexEntry = {
+  speciesId: string;
+  number: number;
+  name: string;
+  types: string[];
+  stats?: PokemonBaseStats;
+  color?: string;
+  ally?: AllyOption;
+  status: DexStatus;
+};
+
 const titleCase = (name: string) => name.charAt(0).toUpperCase() + name.slice(1).replace(/-/g, " ");
+const dexNumber = (n: number) => `#${String(n).padStart(3, "0")}`;
 
 function evolutionTrigger(link: EvolutionLink): string {
   if (link.minLevel) return `Lv ${link.minLevel}`;
@@ -21,7 +40,6 @@ function evolutionTrigger(link: EvolutionLink): string {
   return titleCase(link.trigger);
 }
 
-// Walks the evolution line for a species, following the first branch.
 function evolutionLine(speciesId: string, evolutions: Record<string, EvolutionLink[]> | null) {
   if (!evolutions) return [];
   const steps: { name: string; trigger: string }[] = [{ name: titleCase(speciesId), trigger: "" }];
@@ -36,21 +54,67 @@ function evolutionLine(speciesId: string, evolutions: Record<string, EvolutionLi
   return steps;
 }
 
-type DexFilter = "all" | "caught" | "seen" | "missing";
-type DexStatus = "caught" | "seen" | "missing";
-type DexEntry = { option: AllyOption; status: DexStatus };
-
-export function PokedexModal({ progress, speciesStats, sprites, details, evolutions, onClose }: PokedexModalProps) {
+export function PokedexModal({ progress, speciesStats, sprites, details, evolutions, types, onClose }: PokedexModalProps) {
+  const skin = ACTIVE_POKEDEX_SKIN;
   const [filter, setFilter] = useState<DexFilter>("all");
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
+  const allyById = useMemo(() => {
+    const map = new Map<string, AllyOption>();
+    for (const option of getAllyOptions(speciesStats ?? undefined, progress.allyLevels)) {
+      map.set(option.id, option);
+    }
+    return map;
+  }, [speciesStats, progress.allyLevels]);
+
+  // Owning an ally registers every form it has evolved through (Bulbasaur AND
+  // Ivysaur, etc.) 驕ｯ・ｶ郢晢ｽｻdisplay-only, so it never becomes a selectable roster unit.
+  const caughtSpecies = useMemo(() => {
+    const set = new Set<string>();
+    for (const allyId of progress.unlockedAllies) {
+      const level = Math.max(1, Math.floor(progress.allyLevels[allyId] ?? 1));
+      for (const form of reachedFormsFor(allyId, level)) {
+        set.add(form);
+      }
+    }
+    return set;
+  }, [progress.unlockedAllies, progress.allyLevels]);
+
+  const statusOf = (speciesId: string): DexStatus =>
+    caughtSpecies.has(speciesId) ? "caught" : progress.seenSpecies.includes(speciesId) ? "seen" : "missing";
+
   const entries = useMemo<DexEntry[]>(() => {
-    return getAllyOptions(speciesStats ?? undefined, progress.allyLevels).map((option) => {
-      const caught = progress.unlockedAllies.includes(option.id);
-      const status: DexStatus = caught ? "caught" : progress.seenSpecies.includes(option.id) ? "seen" : "missing";
-      return { option, status };
-    });
-  }, [speciesStats, progress.allyLevels, progress.unlockedAllies, progress.seenSpecies]);
+    // Full national dex from the loaded data; each species is its own entry.
+    if (details && Object.keys(details).length > 0) {
+      return Object.keys(details)
+        .map((speciesId) => {
+          const ally = allyById.get(speciesId);
+          return {
+            speciesId,
+            number: details[speciesId].number || 0,
+            name: titleCase(speciesId),
+            types: types?.[speciesId] ?? ally?.types ?? [],
+            stats: speciesStats?.[speciesId] ?? ally?.baseStats,
+            color: ally?.color,
+            ally,
+            status: statusOf(speciesId),
+          };
+        })
+        .sort((left, right) => left.number - right.number);
+    }
+    // Offline fallback: just the roster.
+    return getAllyOptions(speciesStats ?? undefined, progress.allyLevels).map((option, index) => ({
+      speciesId: option.id,
+      number: index + 1,
+      name: option.name,
+      types: option.types,
+      stats: option.baseStats,
+      color: option.color,
+      ally: option,
+      status: statusOf(option.id),
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [details, types, speciesStats, allyById, progress.unlockedAllies, progress.seenSpecies, progress.allyLevels]);
 
   const caughtCount = entries.filter((entry) => entry.status === "caught").length;
   const seenCount = entries.filter((entry) => entry.status !== "missing").length;
@@ -63,32 +127,32 @@ export function PokedexModal({ progress, speciesStats, sprites, details, evoluti
     return entry.status === "missing";
   });
 
-  const selected = selectedId ? entries.find((entry) => entry.option.id === selectedId) ?? null : null;
+  const selected = selectedId ? entries.find((entry) => entry.speciesId === selectedId) ?? null : null;
 
   return (
-    <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label="Pokédex" onClick={onClose}>
-      <div className="modal-panel pokedex-modal" onClick={(event) => event.stopPropagation()}>
-        <header className="pokedex-modal-header">
-          <h2>📕 Pokédex</h2>
+    <div className="modal-backdrop pokedex-backdrop" role="dialog" aria-modal="true" aria-label="Pokedex" onClick={onClose}>
+      <div
+        className="modal-panel pokedex-device"
+        data-skin={skin.id}
+        data-layout={skin.layout}
+        data-view={selected ? "detail" : "list"}
+        style={skin.vars as CSSProperties}
+        onClick={(event) => event.stopPropagation()}
+      >
+        <header className="pokedex-titlebar">
+          <span className="pokedex-led" aria-hidden />
+          <h2>{"Pok\u00e9dex"}</h2>
           <span className="pokedex-counts">
-            Caught <strong>{caughtCount}</strong> · Seen <strong>{seenCount}</strong> · Total <strong>{total}</strong>
+            Caught <strong>{caughtCount}</strong>{" \u00b7 "} Seen <strong>{seenCount}</strong> / {total}
           </span>
           <button className="modal-close" aria-label="Close" onClick={onClose}>
-            ✕
+            {"\u00d7"}
           </button>
         </header>
 
-        {selected ? (
-          <DexDetail
-            entry={selected}
-            sprites={sprites}
-            detail={details?.[selected.option.id] ?? null}
-            line={evolutionLine(selected.option.id, evolutions)}
-            onBack={() => setSelectedId(null)}
-          />
-        ) : (
-          <>
-            <section className="roster-tools" aria-label="Pokédex filter">
+        <div className="pokedex-panes">
+          <section className="pokedex-screen pokedex-list" aria-label="Entries">
+            <div className="pokedex-filter">
               <label>
                 Show
                 <select value={filter} onChange={(event) => setFilter(event.target.value as DexFilter)}>
@@ -98,52 +162,60 @@ export function PokedexModal({ progress, speciesStats, sprites, details, evoluti
                   <option value="missing">Undiscovered</option>
                 </select>
               </label>
-            </section>
-
+            </div>
             <div className="pokedex-grid">
-              {visible.map(({ option, status }) => (
+              {visible.map((entry) => (
                 <button
-                  key={option.id}
-                  className={`pokedex-cell pokedex-cell-${status}`}
-                  disabled={status === "missing"}
-                  onClick={() => setSelectedId(option.id)}
+                  key={entry.speciesId}
+                  className={`pokedex-cell pokedex-cell-${entry.status} ${
+                    entry.speciesId === selectedId ? "pokedex-cell-active" : ""
+                  }`}
+                  disabled={entry.status === "missing"}
+                  onClick={() => setSelectedId(entry.speciesId)}
                 >
-                  <DexSprite option={option} status={status} sprites={sprites} />
-                  <span className="pokedex-cell-name">{status === "missing" ? "???" : option.name}</span>
-                  <span className="rarity-stars">{"★".repeat(option.rarity)}</span>
+                  <span className="pokedex-cell-no">{dexNumber(entry.number)}</span>
+                  <DexSprite entry={entry} sprites={sprites} />
+                  <span className="pokedex-cell-name">{entry.status === "missing" ? "???" : entry.name}</span>
                 </button>
               ))}
             </div>
-          </>
-        )}
+          </section>
+
+          <section className="pokedex-screen pokedex-detail-pane" aria-label="Entry detail">
+            {selected ? (
+              <DexDetail
+                entry={selected}
+                sprites={sprites}
+                detail={details?.[selected.speciesId] ?? null}
+                line={evolutionLine(selected.speciesId, evolutions)}
+                onBack={() => setSelectedId(null)}
+              />
+            ) : (
+              <div className="pokedex-empty">
+                <span className="pokedex-empty-mark">?</span>
+                <p>Select an entry to view its data.</p>
+              </div>
+            )}
+          </section>
+        </div>
       </div>
     </div>
   );
 }
 
-// The creature portrait: PokeAPI artwork when available, a colored token
-// otherwise. Seen-but-uncaught creatures show as a darkened silhouette.
-function DexSprite({
-  option,
-  status,
-  sprites,
-}: {
-  option: AllyOption;
-  status: DexStatus;
-  sprites: Record<string, string> | null;
-}) {
-  if (status === "missing") {
-    return <span className="pokedex-portrait pokedex-portrait-missing">?</span>;
-  }
-  const url = sprites?.[option.spriteId] ?? sprites?.[option.id];
-  const className = `pokedex-portrait ${status === "seen" ? "pokedex-portrait-silhouette" : ""}`;
+function DexSprite({ entry, sprites, large }: { entry: DexEntry; sprites: Record<string, string> | null; large?: boolean }) {
+  // Anything not yet caught shows as a darkened silhouette (unseen included).
+  const className = `pokedex-portrait ${large ? "pokedex-portrait-large" : ""} ${
+    entry.status === "caught" ? "" : "pokedex-portrait-silhouette"
+  }`;
+  const url = sprites?.[entry.speciesId];
   if (url) {
-    return <img className={className} src={url} alt={option.name} loading="lazy" />;
+    return <img className={className} src={url} alt={entry.status === "caught" ? entry.name : "Unknown"} loading="lazy" />;
   }
   return (
     <span
       className={className}
-      style={{ backgroundColor: status === "caught" ? option.color : "#475569", borderRadius: "50%" }}
+      style={{ backgroundColor: entry.status === "caught" ? entry.color ?? "#94a3b8" : "#1f2937", borderRadius: "50%" }}
     />
   );
 }
@@ -161,69 +233,101 @@ function DexDetail({
   line: { name: string; trigger: string }[];
   onBack: () => void;
 }) {
-  const { option, status } = entry;
+  const { ally, status } = entry;
   const caught = status === "caught";
   return (
-    <div className="pokedex-detail">
-      <button className="back-button" onClick={onBack}>
-        ← All entries
+    <div className="pokedex-entry">
+      <button className="pokedex-back" onClick={onBack}>
+        {"\u2190 Entries"}
       </button>
-      <div className="pokedex-detail-body">
-        <DexSprite option={option} status={status} sprites={sprites} />
-        <div className="pokedex-detail-info">
-          <h3>
-            {option.name} <b className="rarity-stars">{"★".repeat(option.rarity)}</b>
-          </h3>
-          {detail?.genus ? <p className="pokedex-genus">{detail.genus}</p> : null}
-          <p className="pokedex-detail-meta">
-            <b className={`role-badge role-${option.role}`}>{option.role}</b>
-            <span className="select-types">{option.types.join(" / ")}</span>
-            <b className={`dex-badge dex-badge-${status}`}>{caught ? "✓ Caught" : "👁 Seen"}</b>
-          </p>
 
-          {detail?.flavorText ? <p className="pokedex-flavor">{detail.flavorText}</p> : null}
-
-          {detail && (detail.heightM > 0 || detail.weightKg > 0 || detail.habitat) ? (
-            <p className="pokedex-vitals">
-              {detail.heightM > 0 ? <span>📏 {detail.heightM.toFixed(1)} m</span> : null}
-              {detail.weightKg > 0 ? <span>⚖️ {detail.weightKg.toFixed(1)} kg</span> : null}
-              {detail.habitat ? <span>🌍 {detail.habitat}</span> : null}
-            </p>
-          ) : null}
-
-          {caught && option.baseStats ? (
-            <div className="pokedex-stats">
-              <StatRow label="HP" value={option.baseStats.hp} max={160} />
-              <StatRow label="ATK" value={option.baseStats.attack} max={140} />
-              <StatRow label="DEF" value={option.baseStats.defense} max={140} />
-              <StatRow label="SPD" value={option.baseStats.speed} max={120} />
-            </div>
-          ) : (
-            <p className="select-locked-hint">Catch it to reveal its stats, passive, and moves.</p>
-          )}
-
-          {caught ? (
-            <>
-              <p className="pokedex-passive">
-                <strong>{option.passive.name}</strong> — {option.passive.description}
-              </p>
-              <p className="select-moves">{option.moveNames.join(" · ")}</p>
-            </>
-          ) : null}
-
-          {line.length > 1 ? (
-            <p className="pokedex-evo-line" aria-label="Evolution line">
-              {line.map((step, index) => (
-                <span key={step.name}>
-                  {index > 0 ? <em className="pokedex-evo-arrow"> → </em> : null}
-                  {step.name}
-                  {step.trigger ? <small className="pokedex-evo-trigger"> ({step.trigger})</small> : null}
-                </span>
-              ))}
-            </p>
-          ) : null}
+      <div className="pokedex-entry-head">
+        <span className="pokedex-number">{dexNumber(entry.number)}</span>
+        <h3>{entry.name}</h3>
+        <div className="pokedex-types">
+          {entry.types.map((type) => (
+            <span key={type} className="type-chip" style={{ backgroundColor: typeColor(type) }}>
+              {type}
+            </span>
+          ))}
         </div>
       </div>
+
+      <div className="pokedex-art">
+        <DexSprite entry={entry} sprites={sprites} large />
+      </div>
+
+      {detail?.genus ? <p className="pokedex-genus">{detail.genus}</p> : null}
+
+      <div className="pokedex-badges">
+        {ally ? <b className="rarity-stars">{"\u2605".repeat(ally.rarity)}</b> : null}
+        {ally ? <b className={`role-badge role-${ally.role}`}>{ally.role}</b> : null}
+        <b className={`dex-badge dex-badge-${status}`}>{caught ? "\u2713 Caught" : "Seen"}</b>
+      </div>
+
+      {detail?.flavorText ? <p className="pokedex-flavor">"{detail.flavorText}"</p> : null}
+
+      {detail && (detail.heightM > 0 || detail.weightKg > 0 || detail.habitat) ? (
+        <div className="pokedex-vitals">
+          {detail.heightM > 0 ? (
+            <span>
+              <small>Height</small>
+              {detail.heightM.toFixed(1)} m
+            </span>
+          ) : null}
+          {detail.weightKg > 0 ? (
+            <span>
+              <small>Weight</small>
+              {detail.weightKg.toFixed(1)} kg
+            </span>
+          ) : null}
+          {detail.habitat ? (
+            <span>
+              <small>Habitat</small>
+              {titleCase(detail.habitat)}
+            </span>
+          ) : null}
+        </div>
+      ) : null}
+
+      {entry.stats ? (
+        <div className="pokedex-stats">
+          <StatRow label="HP" value={entry.stats.hp} max={160} />
+          <StatRow label="ATK" value={entry.stats.attack} max={140} />
+          <StatRow label="DEF" value={entry.stats.defense} max={140} />
+          <StatRow label="SPD" value={entry.stats.speed} max={120} />
+        </div>
+      ) : null}
+
+      {caught && ally ? (
+        <>
+          <p className="pokedex-passive">
+            <strong>{ally.passive.name}</strong>{" \u2014 "}{ally.passive.description}
+          </p>
+          <div className="pokedex-moves">
+            {ally.moveNames.map((move) => (
+              <span key={move} className="move-chip">
+                {move}
+              </span>
+            ))}
+          </div>
+        </>
+      ) : null}
+
+      {line.length > 1 ? (
+        <div className="pokedex-evo" aria-label="Evolution line">
+          <small className="pokedex-section-label">Evolution</small>
+          <p className="pokedex-evo-line">
+            {line.map((step, index) => (
+              <span key={step.name}>
+                {index > 0 ? <em className="pokedex-evo-arrow">{" \u2192 "}</em> : null}
+                {step.name}
+                {step.trigger ? <small className="pokedex-evo-trigger"> ({step.trigger})</small> : null}
+              </span>
+            ))}
+          </p>
+        </div>
+      ) : null}
     </div>
   );
 }

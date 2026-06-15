@@ -1,12 +1,15 @@
 import type { ApiMoveData, PokemonBaseStats } from "./battleState";
+import { speciesNames } from "./battleState";
 
-const CACHE_KEY = "creature-masters-pokeapi-v4";
+const CACHE_KEY = "creature-masters-pokeapi-v6";
 const MOVE_CACHE_KEY = "creature-masters-pokeapi-moves-v1";
 const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 export type PokeApiStatEntry = { base_stat: number; stat: { name: string } };
 export type PokeApiPokemon = {
+  id?: number; // national dex number
   stats: PokeApiStatEntry[];
+  types?: { slot: number; type: { name: string } }[];
   height?: number; // decimetres
   weight?: number; // hectograms
   base_experience?: number | null;
@@ -15,6 +18,13 @@ export type PokeApiPokemon = {
     other?: { "official-artwork"?: { front_default?: string | null } };
   };
 };
+
+export function mapPokeApiTypes(pokemon: PokeApiPokemon): string[] {
+  return (pokemon.types ?? [])
+    .slice()
+    .sort((left, right) => left.slot - right.slot)
+    .map((entry) => entry.type.name);
+}
 
 export type PokeApiSpecies = {
   capture_rate?: number;
@@ -61,6 +71,7 @@ export function parseEvolutionChain(chain: PokeApiEvolutionChain): Record<string
 // Per-species flavor + tuning data used by the Pokédex and (optionally) the
 // capture and XP systems. Best-effort — none of it is required to play.
 export type SpeciesDetail = {
+  number: number; // national dex number
   heightM: number;
   weightKg: number;
   baseExperience: number;
@@ -75,6 +86,7 @@ export type SpeciesData = {
   stats: Record<string, PokemonBaseStats>;
   sprites: Record<string, string>;
   details: Record<string, SpeciesDetail>;
+  types: Record<string, string[]>;
   // Per-species evolution links (the to-side keyed by the from-species name).
   evolutions: Record<string, EvolutionLink[]>;
 };
@@ -104,6 +116,7 @@ function pickEnglish<T extends { language: { name: string } }>(entries: T[] | un
 export function mapPokeApiDetail(pokemon: PokeApiPokemon, species: PokeApiSpecies): SpeciesDetail {
   const flavor = pickEnglish(species.flavor_text_entries)?.flavor_text ?? "";
   return {
+    number: pokemon.id ?? 0,
     heightM: (pokemon.height ?? 0) / 10,
     weightKg: (pokemon.weight ?? 0) / 10,
     baseExperience: pokemon.base_experience ?? 0,
@@ -135,6 +148,7 @@ function readCache(names: string[]): SpeciesData | null {
       stats: payload.stats,
       sprites: payload.sprites ?? {},
       details: payload.details ?? {},
+      types: payload.types ?? {},
       evolutions: payload.evolutions ?? {},
     };
   } catch {
@@ -202,18 +216,22 @@ export async function fetchSpeciesData(names: string[]): Promise<SpeciesData> {
         name,
         stats: mapPokeApiStats(pokemon),
         sprite: mapPokeApiSprite(pokemon),
+        types: mapPokeApiTypes(pokemon),
         detail: species ? mapPokeApiDetail(pokemon, species) : null,
         chainUrl: species?.evolution_chain?.url ?? null,
       };
     }),
   );
 
-  const data: SpeciesData = { stats: {}, sprites: {}, details: {}, evolutions: {} };
+  const data: SpeciesData = { stats: {}, sprites: {}, details: {}, types: {}, evolutions: {} };
   const chainUrls = new Set<string>();
   for (const entry of entries) {
     data.stats[entry.name] = entry.stats;
     if (entry.sprite) {
       data.sprites[entry.name] = entry.sprite;
+    }
+    if (entry.types.length > 0) {
+      data.types[entry.name] = entry.types;
     }
     if (entry.detail) {
       data.details[entry.name] = entry.detail;
@@ -233,6 +251,17 @@ export async function fetchSpeciesData(names: string[]): Promise<SpeciesData> {
 
   writeCache(data);
   return data;
+}
+
+// Loads the full Generation I Pokédex (all 151) — stats, sprites, detail,
+// types, and evolutions — for the Pokédex. Falls back to the bundled roster
+// species list if the generation index can't be fetched (offline).
+export async function fetchGen1Pokedex(): Promise<SpeciesData> {
+  const index = await fetchJson<{ pokemon_species: { name: string }[] }>(
+    "https://pokeapi.co/api/v2/generation/1",
+  );
+  const names = index?.pokemon_species.map((entry) => entry.name) ?? speciesNames;
+  return fetchSpeciesData(names);
 }
 
 type MoveCachePayload = { fetchedAt: number; moves: Record<string, ApiMoveData> };

@@ -1372,6 +1372,24 @@ export function applyApiMoveset(moves: Move[], moveData: Record<string, ApiMoveD
   });
 }
 
+// The species forms an owned ally has obtained at the given level: its base
+// plus every evolution stage it has reached. Used so the Pokédex registers
+// evolved forms (e.g. Bulbasaur AND Ivysaur) without adding them as separately
+// selectable roster units.
+export function reachedFormsFor(allyId: string, level: number): string[] {
+  const template = allyTemplates.find((candidate) => candidate.id === allyId);
+  if (!template) {
+    return [];
+  }
+  const forms = [template.sourcePokemon as string];
+  for (const stage of allyEvolutions[allyId] ?? []) {
+    if (level >= levelForStage(allyId, stage)) {
+      forms.push(stage.sourcePokemon);
+    }
+  }
+  return forms;
+}
+
 // The distinct ally battle-move ids (excludes sync/trainer), for prefetching.
 export function getBattleMoveIds(): string[] {
   const ids = new Set<string>();

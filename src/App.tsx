@@ -1,12 +1,13 @@
 import { Suspense, lazy, useCallback, useEffect, useReducer, useRef, useState } from "react";
+import type { Dispatch } from "react";
 import { BattleHud } from "./components/BattleHud";
 import { PokedexModal } from "./components/PokedexModal";
 import { SettingsModal } from "./components/SettingsModal";
 import { ShopScreen } from "./components/ShopScreen";
 import { TeamSelect } from "./components/TeamSelect";
 import { WorldScreen } from "./components/WorldScreen";
-import type { ApiMoveData, BattleMode, BattleState, PokemonBaseStats } from "./game/battleState";
-import { applyApiEvolutionLevels, battleReducer, createInitialBattleState, dailyChallengeKey, dailyChallengeStage, enemyTeamSpeciesIds, getBattleMoveIds, isAlive, speciesNames, tickBattle } from "./game/battleState";
+import type { ApiMoveData, BattleAction, BattleMode, BattleState, PokemonBaseStats } from "./game/battleState";
+import { applyApiEvolutionLevels, battleReducer, createInitialBattleState, dailyChallengeKey, dailyChallengeStage, enemyTeamSpeciesIds, getBattleMoveIds, isAlive, teamUnits, tickBattle } from "./game/battleState";
 import type { AchievementDef, BattleSummary } from "./game/achievements";
 import { evaluateAchievements } from "./game/achievements";
 import type { PullResult } from "./game/gacha";
@@ -25,7 +26,7 @@ import {
 import { equipHeldItem, unequipHeldItem } from "./game/heldItems";
 import { ITEMS, addItem, itemCount, pickBerry, pickedBerryTiles } from "./game/items";
 import type { EvolutionLink, SpeciesDetail } from "./game/pokeApi";
-import { fetchMoveData, fetchSpeciesData } from "./game/pokeApi";
+import { fetchGen1Pokedex, fetchMoveData } from "./game/pokeApi";
 import { defaultProgress, exportProgress, importProgress, loadProgress, saveProgress } from "./game/progress";
 import { buyItem, sellItem } from "./game/shop";
 import { playFeedbackSound, playKoSound } from "./game/sound";
@@ -63,9 +64,11 @@ type Session = {
   enemyTeamId?: string;
   wild?: WildSession;
   trainer?: TrainerSession;
+  autoFight?: boolean;
 };
 
 const BALL_ITEM_IDS = ["poke-ball", "great-ball"];
+type ArenaReturnChallenge = "ladder" | "daily";
 
 export type WildEndSummary = {
   outcome: "won" | "lost" | "captured" | "fled";
@@ -78,11 +81,13 @@ export default function App() {
   const [speciesSprites, setSpeciesSprites] = useState<Record<string, string> | null>(null);
   const [speciesDetails, setSpeciesDetails] = useState<Record<string, SpeciesDetail> | null>(null);
   const [speciesEvolutions, setSpeciesEvolutions] = useState<Record<string, EvolutionLink[]> | null>(null);
+  const [speciesTypes, setSpeciesTypes] = useState<Record<string, string[]> | null>(null);
   const [moveData, setMoveData] = useState<Record<string, ApiMoveData> | null>(null);
   const [progress, setProgress] = useState(loadProgress);
   const [lastPulls, setLastPulls] = useState<PullResult[] | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [screen, setScreen] = useState<"world" | "hub" | "shop">("world");
+  const [arenaReturnChallenge, setArenaReturnChallenge] = useState<ArenaReturnChallenge | null>(null);
   // The Pokédex and Settings are modals that overlay whichever screen is open.
   const [pokedexOpen, setPokedexOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -162,13 +167,14 @@ export default function App() {
   useEffect(() => {
     let cancelled = false;
     void preloadCanvas();
-    fetchSpeciesData(speciesNames)
+    fetchGen1Pokedex()
       .then((data) => {
         if (!cancelled) {
           setSpeciesStats(data.stats);
           setSpeciesSprites(data.sprites);
           setSpeciesDetails(data.details);
           setSpeciesEvolutions(data.evolutions);
+          setSpeciesTypes(data.types);
           // Drive evolution thresholds from the real chains (scaled to our cap).
           applyApiEvolutionLevels(data.evolutions);
         }
@@ -198,6 +204,7 @@ export default function App() {
       sprites={speciesSprites}
       details={speciesDetails}
       evolutions={speciesEvolutions}
+      types={speciesTypes}
       onClose={() => setPokedexOpen(false)}
     />
   ) : null;
@@ -292,7 +299,10 @@ export default function App() {
     return (
       <ShopScreen
         progress={progress}
-        onBack={() => setScreen("world")}
+        onBack={() => {
+          setArenaReturnChallenge(null);
+          setScreen("world");
+        }}
         onBuy={(itemId, quantity) => {
           const next = buyItem(progress, itemId, quantity);
           if (next) {
@@ -315,7 +325,11 @@ export default function App() {
       <TeamSelect
         progress={progress}
         lastPulls={lastPulls}
-        onBack={() => setScreen("world")}
+        initialChallenge={arenaReturnChallenge}
+        onBack={() => {
+          setArenaReturnChallenge(null);
+          setScreen("world");
+        }}
         onOpenPokedex={() => setPokedexOpen(true)}
         onOpenSettings={() => setSettingsOpen(true)}
         xpTuning={xpTuning}
@@ -328,16 +342,19 @@ export default function App() {
         recentAchievements={recentAchievements}
         statsSource={speciesStats ? "live" : "bundled"}
         speciesStats={speciesStats}
+        sprites={speciesSprites}
         dailyKey={todayKey}
         dailyReward={DAILY_CHALLENGE_REWARD}
         dailyCleared={progress.dailyClearedDate === todayKey}
-        onStart={(allyIds) => {
+        onStart={(allyIds, autoFight) => {
+          setArenaReturnChallenge(null);
           lastTeamRef.current = allyIds;
-          setSession({ allyIds, stage: 1, runId: 1, battleMode: "ladder" });
+          setSession({ allyIds, stage: 1, runId: 1, battleMode: "ladder", autoFight });
         }}
-        onStartDaily={(allyIds) => {
+        onStartDaily={(allyIds, autoFight) => {
+          setArenaReturnChallenge(null);
           lastTeamRef.current = allyIds;
-          setSession({ allyIds, stage: dailyChallengeStage(todayKey), runId: 1, battleMode: "daily", dailyKey: todayKey });
+          setSession({ allyIds, stage: dailyChallengeStage(todayKey), runId: 1, battleMode: "daily", dailyKey: todayKey, autoFight });
         }}
         onPull={() => {
           const outcome = performPull(progress, nextPullSeed());
@@ -395,6 +412,7 @@ export default function App() {
       enemyTeamId={session.enemyTeamId}
       wild={session.wild}
       isTrainer={!!session.trainer}
+      autoFight={!!session.autoFight}
       speciesStats={speciesStats}
       allyLevels={progress.allyLevels}
       heldItems={progress.heldItems}
@@ -478,11 +496,19 @@ export default function App() {
           : () => setSession((current) => current && { ...current, stage: current.stage + 1, runId: current.runId + 1 })
       }
       onExitToWorld={() => {
+        setArenaReturnChallenge(null);
         setSession(null);
         setScreen("world");
       }}
       onRetry={() => setSession((current) => current && { ...current, runId: current.runId + 1 })}
-      onChangeTeam={() => setSession(null)}
+      onChangeTeam={() => {
+        setArenaReturnChallenge(session.battleMode === "daily" ? "daily" : "ladder");
+        setSession(null);
+      }}
+      onBackToLobby={() => {
+        setArenaReturnChallenge(null);
+        setSession(null);
+      }}
     />
   );
 }
@@ -495,6 +521,7 @@ type BattleProps = {
   enemyTeamId?: string;
   wild?: WildSession;
   isTrainer?: boolean;
+  autoFight?: boolean;
   speciesStats: Record<string, PokemonBaseStats> | null;
   allyLevels: Record<string, number>;
   heldItems: Record<string, string>;
@@ -509,6 +536,7 @@ type BattleProps = {
   onNextStage?: () => void;
   onRetry: () => void;
   onChangeTeam: () => void;
+  onBackToLobby: () => void;
 };
 
 function Battle({
@@ -519,6 +547,7 @@ function Battle({
   enemyTeamId,
   wild,
   isTrainer,
+  autoFight = false,
   speciesStats,
   allyLevels,
   heldItems,
@@ -533,6 +562,7 @@ function Battle({
   onNextStage,
   onRetry,
   onChangeTeam,
+  onBackToLobby,
 }: BattleProps) {
   const [battle, dispatch] = useReducer(battleReducer, undefined, () =>
     createInitialBattleState(undefined, {
@@ -554,6 +584,7 @@ function Battle({
 
   useBattleSounds(battle);
   useConsumedItems(battle, onItemUsed);
+  useAutoFight(battle, dispatch, autoFight);
 
   const battleRef = useRef(battle);
   useEffect(() => {
@@ -668,9 +699,11 @@ function Battle({
       <BattleHud
         state={battle}
         dispatch={dispatch}
+        autoFight={autoFight}
         onNextStage={onNextStage}
         onRetry={onRetry}
         onChangeTeam={battleMode === "wild" || isTrainer ? undefined : onChangeTeam}
+        onBackToLobby={battleMode === "wild" || isTrainer ? undefined : onBackToLobby}
         onReturnToWorld={handleReturnToWorld}
       />
     </main>
@@ -689,6 +722,82 @@ function useConsumedItems(state: BattleState, onItemUsed: (itemId: string, quant
     }
     previousItems.current = state.items;
   }, [state.items, onItemUsed]);
+}
+
+function useAutoFight(state: BattleState, dispatch: Dispatch<BattleAction>, enabled: boolean) {
+  const stateRef = useRef(state);
+
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
+
+  useEffect(() => {
+    if (!enabled) {
+      return;
+    }
+
+    const interval = window.setInterval(() => {
+      const current = stateRef.current;
+      if (current.status !== "playing" || current.paused) {
+        return;
+      }
+
+      const allies = teamUnits(current, "ally").filter(isAlive);
+      const enemies = teamUnits(current, "enemy").filter(isAlive);
+      if (allies.length === 0 || enemies.length === 0) {
+        return;
+      }
+      if (current.actionQueue.some((action) => allies.some((ally) => ally.id === action.actorId))) {
+        return;
+      }
+
+      if (current.unityGauge >= current.maxUnityGauge) {
+        dispatch({ type: "useUnityAttack" });
+        return;
+      }
+
+      const selected = allies.find((ally) => ally.id === current.selectedAllyId) ?? allies[0];
+      const syncReady = allies.find((ally) => ally.syncCountdown === 0);
+      if (syncReady && syncReady.id !== selected.id) {
+        dispatch({ type: "selectAlly", unitId: syncReady.id });
+        return;
+      }
+      if (syncReady && syncReady.id === selected.id) {
+        dispatch({ type: "useSyncMove" });
+        return;
+      }
+
+      const hurtAlly = allies.some((ally) => ally.hp / ally.maxHp < 0.55);
+      const trainerCandidate = allies.find((ally) => ally.trainerMove && ally.trainerMove.uses > 0);
+      if (hurtAlly && selected.trainerMove && selected.trainerMove.uses > 0) {
+        dispatch({ type: "useTrainerMove" });
+        return;
+      }
+      if (hurtAlly && trainerCandidate && trainerCandidate.id !== selected.id) {
+        dispatch({ type: "selectAlly", unitId: trainerCandidate.id });
+        return;
+      }
+
+      const affordable = selected.moves
+        .filter((move) => move.cost <= current.moveGauge)
+        .sort((left, right) => autoMoveScore(right) - autoMoveScore(left))[0];
+      if (affordable) {
+        dispatch({ type: "useMove", moveId: affordable.id });
+        return;
+      }
+
+      const nextActor = allies.find((ally) => ally.moves.some((move) => move.cost <= current.moveGauge));
+      if (nextActor && nextActor.id !== selected.id) {
+        dispatch({ type: "selectAlly", unitId: nextActor.id });
+      }
+    }, 420);
+
+    return () => window.clearInterval(interval);
+  }, [dispatch, enabled]);
+}
+
+function autoMoveScore(move: BattleState["units"][number]["moves"][number]) {
+  return move.power + (move.statusEffect ? 18 : 0) + (move.statChange ? 10 : 0) - move.cost * 3;
 }
 
 // Plays a sound for each new feedback entry, for KOs, and a capture fanfare.
