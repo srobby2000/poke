@@ -21,6 +21,9 @@ type PokemonRosterSelectProps = {
   autoFight: boolean;
   ownedHeldItems: string[];
   xpTuning?: XpTuning;
+  // Defaults tuned for the arena flow; the overworld Team picker overrides them.
+  backLabel?: string;
+  hideAutoFight?: boolean;
   onToggle: (allyId: string) => void;
   onStart: () => void;
   onToggleAutoFight: () => void;
@@ -40,6 +43,8 @@ export function PokemonRosterSelect({
   autoFight,
   ownedHeldItems,
   xpTuning,
+  backLabel = "← Challenges",
+  hideAutoFight = false,
   onToggle,
   onStart,
   onToggleAutoFight,
@@ -68,7 +73,7 @@ export function PokemonRosterSelect({
     <>
       <section className="arena-team-header" aria-label="Selected challenge">
         <button className="secondary-tool-button" onClick={onBack}>
-          ← Challenges
+          {backLabel}
         </button>
         <div>
           <strong>{title}</strong>
@@ -85,9 +90,11 @@ export function PokemonRosterSelect({
           <span>
             {selected.length} / {teamSize}
           </span>
-          <button className={`auto-fight-toggle ${autoFight ? "auto-fight-toggle-on" : ""}`} onClick={onToggleAutoFight} aria-pressed={autoFight}>
-            Auto Fight
-          </button>
+          {hideAutoFight ? null : (
+            <button className={`auto-fight-toggle ${autoFight ? "auto-fight-toggle-on" : ""}`} onClick={onToggleAutoFight} aria-pressed={autoFight}>
+              Auto Fight
+            </button>
+          )}
           <button className="start-button" disabled={selected.length !== teamSize} onClick={onStart}>
             {startLabel}
           </button>

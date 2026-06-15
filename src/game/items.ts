@@ -1,6 +1,6 @@
 import type { PlayerProgress } from "./progress";
 
-export type ItemKind = "ball" | "heal" | "berry" | "held";
+export type ItemKind = "ball" | "heal" | "berry" | "held" | "stone";
 
 export type ItemDef = {
   id: string;
@@ -166,6 +166,47 @@ export const ITEMS: Record<string, ItemDef> = {
     description: "Held item: if at full HP, the holder survives a knockout with 1 HP (once per battle).",
     kind: "held",
     sellPrice: 200,
+  },
+  // Evolution stones — consumed to evolve certain allies (see allyEvolutions).
+  "fire-stone": {
+    id: "fire-stone",
+    name: "Fire Stone",
+    description: "Evolution stone: evolves Vulpix, Growlithe, and Eevee (into Flareon).",
+    kind: "stone",
+    buyPrice: 300,
+    sellPrice: 150,
+  },
+  "water-stone": {
+    id: "water-stone",
+    name: "Water Stone",
+    description: "Evolution stone: evolves Eevee into Vaporeon.",
+    kind: "stone",
+    buyPrice: 300,
+    sellPrice: 150,
+  },
+  "thunder-stone": {
+    id: "thunder-stone",
+    name: "Thunder Stone",
+    description: "Evolution stone: evolves Eevee into Jolteon.",
+    kind: "stone",
+    buyPrice: 300,
+    sellPrice: 150,
+  },
+  "leaf-stone": {
+    id: "leaf-stone",
+    name: "Leaf Stone",
+    description: "Evolution stone: evolves Gloom into Vileplume.",
+    kind: "stone",
+    buyPrice: 300,
+    sellPrice: 150,
+  },
+  "moon-stone": {
+    id: "moon-stone",
+    name: "Moon Stone",
+    description: "Evolution stone: evolves Jigglypuff into Wigglytuff.",
+    kind: "stone",
+    buyPrice: 300,
+    sellPrice: 150,
   },
 };
 

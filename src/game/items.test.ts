@@ -7,7 +7,9 @@ const baseProgress = (overrides: Partial<PlayerProgress> = {}): PlayerProgress =
   bestStage: 0,
   gems: 200,
   unlockedAllies: ["squirtle", "bulbasaur", "charmander"],
+  activeTeam: ["squirtle", "bulbasaur", "charmander"],
   allyLevels: {},
+  evolutionChoices: {},
   allyXp: {},
   dailyClearedDate: null,
   achievements: [],
@@ -123,6 +125,11 @@ describe("shop", () => {
       "twisted-spoon",
       "leftovers",
       "life-orb",
+      "fire-stone",
+      "water-stone",
+      "thunder-stone",
+      "leaf-stone",
+      "moon-stone",
     ]);
 
     const stocked = addItem(baseProgress(), "sitrus-berry", 1);

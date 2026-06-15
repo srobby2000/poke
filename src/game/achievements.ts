@@ -67,7 +67,9 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "Evolve an ally",
     reward: 100,
     earnedBy: (progress) =>
-      Object.entries(progress.allyLevels).some(([allyId, level]) => allyFormForLevel(allyId, level) !== null),
+      Object.entries(progress.allyLevels).some(
+        ([allyId, level]) => allyFormForLevel(allyId, level, progress.evolutionChoices) !== null,
+      ),
   },
   {
     id: "max-level",

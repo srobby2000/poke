@@ -3,6 +3,7 @@ import type { Dispatch } from "react";
 import { BattleHud } from "./components/BattleHud";
 import { PokedexModal } from "./components/PokedexModal";
 import { SettingsModal } from "./components/SettingsModal";
+import { TeamPickerModal } from "./components/TeamPickerModal";
 import { ShopScreen } from "./components/ShopScreen";
 import { TeamSelect } from "./components/TeamSelect";
 import { WorldScreen } from "./components/WorldScreen";
@@ -17,6 +18,7 @@ import {
   applyDailyChallengeClear,
   applyStageClear,
   battleXpReward,
+  chooseEvolution,
   grantBattleXp,
   performLevelUp,
   performMultiPull,
@@ -27,6 +29,7 @@ import { equipHeldItem, unequipHeldItem } from "./game/heldItems";
 import { ITEMS, addItem, itemCount, pickBerry, pickedBerryTiles } from "./game/items";
 import type { EvolutionLink, SpeciesDetail } from "./game/pokeApi";
 import { fetchGen1Pokedex, fetchMoveData } from "./game/pokeApi";
+import type { PlayerProgress } from "./game/progress";
 import { defaultProgress, exportProgress, importProgress, loadProgress, saveProgress } from "./game/progress";
 import { buyItem, sellItem } from "./game/shop";
 import { playFeedbackSound, playKoSound } from "./game/sound";
@@ -68,6 +71,14 @@ type Session = {
 };
 
 const BALL_ITEM_IDS = ["poke-ball", "great-ball"];
+
+// The team taken into wild encounters and overworld trainer battles: the saved
+// active team (only its still-unlocked members), falling back to the first three
+// unlocked allies when that isn't a full, valid squad.
+function resolveOverworldTeam(progress: PlayerProgress): string[] {
+  const valid = progress.activeTeam.filter((id) => progress.unlockedAllies.includes(id));
+  return valid.length === 3 ? valid : progress.unlockedAllies.slice(0, 3);
+}
 type ArenaReturnChallenge = "ladder" | "daily";
 
 export type WildEndSummary = {
@@ -88,9 +99,11 @@ export default function App() {
   const [session, setSession] = useState<Session | null>(null);
   const [screen, setScreen] = useState<"world" | "hub" | "shop">("world");
   const [arenaReturnChallenge, setArenaReturnChallenge] = useState<ArenaReturnChallenge | null>(null);
-  // The Pokédex and Settings are modals that overlay whichever screen is open.
+  // The Pokédex, Settings, and Team picker are modals that overlay whichever
+  // screen is open.
   const [pokedexOpen, setPokedexOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [teamPickerOpen, setTeamPickerOpen] = useState(false);
   const todayKey = dailyChallengeKey();
 
   // Per-ally growth rates + XP tuning derived from the live PokeAPI details.
@@ -128,9 +141,6 @@ export default function App() {
     .filter(([, date]) => date === todayKey)
     .map(([id]) => id);
 
-  // The team used for wild encounters: the last arena team, or the first
-  // three unlocked allies as a fallback.
-  const lastTeamRef = useRef<string[] | null>(null);
   // Seeded lazily in the pull handler — impure calls are not allowed in render.
   const pullSeedRef = useRef<number | null>(null);
 
@@ -217,10 +227,28 @@ export default function App() {
     />
   ) : null;
 
+  const teamPickerModal = teamPickerOpen ? (
+    <TeamPickerModal
+      progress={progress}
+      speciesStats={speciesStats}
+      sprites={speciesSprites}
+      xpTuning={xpTuning}
+      onEquipHeld={(allyId, itemId) => {
+        const next = itemId ? equipHeldItem(progress, allyId, itemId) : unequipHeldItem(progress, allyId);
+        if (next) {
+          commitProgress(next);
+        }
+      }}
+      onSave={(allyIds) => commitProgress({ ...progress, activeTeam: allyIds })}
+      onClose={() => setTeamPickerOpen(false)}
+    />
+  ) : null;
+
   const overlays = (
     <>
       {pokedexModal}
       {settingsModal}
+      {teamPickerModal}
     </>
   );
 
@@ -233,6 +261,7 @@ export default function App() {
         rematchedToday={rematchedToday}
         onOpenPokedex={() => setPokedexOpen(true)}
         onOpenSettings={() => setSettingsOpen(true)}
+        onOpenTeam={() => setTeamPickerOpen(true)}
         onSavePosition={savePosition}
         onEnterBuilding={(building) => {
           if (building === "arena") {
@@ -253,9 +282,8 @@ export default function App() {
         onStartWild={(encounter) => {
           markSeen([encounter.speciesId]);
           const balls = Object.fromEntries(BALL_ITEM_IDS.map((id) => [id, itemCount(progress, id)]));
-          const team = lastTeamRef.current?.filter((id) => progress.unlockedAllies.includes(id));
           setSession({
-            allyIds: team && team.length === 3 ? team : progress.unlockedAllies.slice(0, 3),
+            allyIds: resolveOverworldTeam(progress),
             stage: encounter.level,
             runId: 1,
             battleMode: "wild",
@@ -269,11 +297,10 @@ export default function App() {
         }}
         onStartTrainer={(trainer) => {
           markSeen(enemyTeamSpeciesIds(trainer.teamId));
-          const team = lastTeamRef.current?.filter((id) => progress.unlockedAllies.includes(id));
           // Rematches pay a reduced reward.
           const reward = trainer.isRematch ? Math.max(10, Math.round(trainer.reward * 0.4)) : trainer.reward;
           setSession({
-            allyIds: team && team.length === 3 ? team : progress.unlockedAllies.slice(0, 3),
+            allyIds: resolveOverworldTeam(progress),
             stage: trainer.level,
             runId: 1,
             battleMode: "trainer",
@@ -348,12 +375,13 @@ export default function App() {
         dailyCleared={progress.dailyClearedDate === todayKey}
         onStart={(allyIds, autoFight) => {
           setArenaReturnChallenge(null);
-          lastTeamRef.current = allyIds;
+          // Keep the overworld team in sync with the last arena team played.
+          commitProgress({ ...progress, activeTeam: allyIds });
           setSession({ allyIds, stage: 1, runId: 1, battleMode: "ladder", autoFight });
         }}
         onStartDaily={(allyIds, autoFight) => {
           setArenaReturnChallenge(null);
-          lastTeamRef.current = allyIds;
+          commitProgress({ ...progress, activeTeam: allyIds });
           setSession({ allyIds, stage: dailyChallengeStage(todayKey), runId: 1, battleMode: "daily", dailyKey: todayKey, autoFight });
         }}
         onPull={() => {
@@ -376,6 +404,12 @@ export default function App() {
         }}
         onLevelUp={(allyId) => {
           const next = performLevelUp(progress, allyId);
+          if (next) {
+            commitProgress(next);
+          }
+        }}
+        onChooseEvolution={(allyId, sourcePokemon) => {
+          const next = chooseEvolution(progress, allyId, sourcePokemon);
           if (next) {
             commitProgress(next);
           }
@@ -415,6 +449,7 @@ export default function App() {
       autoFight={!!session.autoFight}
       speciesStats={speciesStats}
       allyLevels={progress.allyLevels}
+      evolutionChoices={progress.evolutionChoices}
       heldItems={progress.heldItems}
       usePokeApiRates={progress.settings.usePokeApiRates}
       usePokeApiMovesets={progress.settings.usePokeApiMovesets}
@@ -524,6 +559,7 @@ type BattleProps = {
   autoFight?: boolean;
   speciesStats: Record<string, PokemonBaseStats> | null;
   allyLevels: Record<string, number>;
+  evolutionChoices: Record<string, string>;
   heldItems: Record<string, string>;
   usePokeApiRates: boolean;
   usePokeApiMovesets: boolean;
@@ -550,6 +586,7 @@ function Battle({
   autoFight = false,
   speciesStats,
   allyLevels,
+  evolutionChoices,
   heldItems,
   usePokeApiRates,
   usePokeApiMovesets,
@@ -574,6 +611,7 @@ function Battle({
       wild,
       speciesStats: speciesStats ?? undefined,
       allyLevels,
+      evolutionChoices,
       heldItems,
       usePokeApiRates,
       usePokeApiMovesets,
@@ -582,9 +620,12 @@ function Battle({
     }),
   );
 
+  // Seeded from the team-select choice, but toggleable mid-battle (button + "A").
+  const [autoFightOn, setAutoFightOn] = useState(autoFight);
+
   useBattleSounds(battle);
   useConsumedItems(battle, onItemUsed);
-  useAutoFight(battle, dispatch, autoFight);
+  useAutoFight(battle, dispatch, autoFightOn);
 
   const battleRef = useRef(battle);
   useEffect(() => {
@@ -605,6 +646,10 @@ function Battle({
       }
       if (key === "f") {
         dispatch({ type: "cycleTimeScale" });
+        return;
+      }
+      if (key === "a") {
+        setAutoFightOn((value) => !value);
         return;
       }
       if (current.status !== "playing" || current.paused) {
@@ -699,7 +744,8 @@ function Battle({
       <BattleHud
         state={battle}
         dispatch={dispatch}
-        autoFight={autoFight}
+        autoFight={autoFightOn}
+        onToggleAutoFight={() => setAutoFightOn((value) => !value)}
         onNextStage={onNextStage}
         onRetry={onRetry}
         onChangeTeam={battleMode === "wild" || isTrainer ? undefined : onChangeTeam}

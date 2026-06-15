@@ -7,7 +7,12 @@ export type PlayerProgress = {
   bestStage: number;
   gems: number;
   unlockedAllies: string[];
+  // The team taken into wild encounters and overworld trainer battles. Chosen in
+  // the overworld Team picker (and synced from the last arena team).
+  activeTeam: string[];
   allyLevels: Record<string, number>;
+  // allyId -> chosen evolved species for branching evolutions (for example Eevee).
+  evolutionChoices: Record<string, string>;
   // XP accumulated toward each ally's next level (battles grant XP; gems still
   // buy instant levels).
   allyXp: Record<string, number>;
@@ -45,7 +50,9 @@ export function defaultProgress(): PlayerProgress {
     bestStage: legacyBestStage(),
     gems: 200,
     unlockedAllies: [...DEFAULT_ALLY_IDS],
+    activeTeam: [...DEFAULT_ALLY_IDS],
     allyLevels: {},
+    evolutionChoices: {},
     allyXp: {},
     dailyClearedDate: null,
     achievements: [],
@@ -69,7 +76,18 @@ function sanitizeProgress(parsed: Partial<PlayerProgress>): PlayerProgress {
       Array.isArray(parsed.unlockedAllies) && parsed.unlockedAllies.length > 0
         ? parsed.unlockedAllies.filter((id): id is string => typeof id === "string")
         : [...DEFAULT_ALLY_IDS],
+    activeTeam: Array.isArray(parsed.activeTeam)
+      ? parsed.activeTeam.filter((id): id is string => typeof id === "string")
+      : [...DEFAULT_ALLY_IDS],
     allyLevels: parsed.allyLevels && typeof parsed.allyLevels === "object" ? parsed.allyLevels : {},
+    evolutionChoices:
+      parsed.evolutionChoices && typeof parsed.evolutionChoices === "object"
+        ? Object.fromEntries(
+            Object.entries(parsed.evolutionChoices).filter(
+              (entry): entry is [string, string] => typeof entry[1] === "string",
+            ),
+          )
+        : {},
     allyXp:
       parsed.allyXp && typeof parsed.allyXp === "object"
         ? Object.fromEntries(

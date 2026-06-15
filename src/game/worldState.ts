@@ -71,6 +71,10 @@ export type WorldState = {
   defeatedTrainers: string[];
   // Trainer ids already rematched today — they offer no further battle.
   rematchedToday: string[];
+  // Tile keys of sight-line trainers currently seeing the player. A trainer only
+  // starts a battle when the player NEWLY enters its line — so losing/fleeing (and
+  // respawning inside the line) doesn't immediately re-trigger the same battle.
+  spottingTrainers: string[];
   message: string | null;
   grassProgress: number;
   rng: number;
@@ -116,6 +120,9 @@ export function createInitialWorldState(
     pendingWarp: null,
     defeatedTrainers,
     rematchedToday,
+    // Seed with whoever can already see the spawn so returning to the world
+    // (e.g. after losing a sight-line battle) doesn't immediately re-trigger it.
+    spottingTrainers: trainersSpotting(map, start.x, start.z, defeatedTrainers),
     message: null,
     grassProgress: 0,
     rng: seed ?? Math.floor(Math.random() * 0xffffffff),
@@ -202,12 +209,14 @@ function trainerChallengeFor(state: WorldState, key: string): TrainerChallenge |
   };
 }
 
-// Whether a non-defeated trainer can see the player along their facing line.
-function trainerSpotting(state: WorldState): TrainerChallenge | null {
-  const px = Math.round(state.x);
-  const pz = Math.round(state.z);
-  for (const [key, trainer] of Object.entries(state.map.trainers)) {
-    if (state.defeatedTrainers.includes(trainer.id) || !trainer.facing) {
+// Tile keys of every non-defeated sight-line trainer that can currently see the
+// player along its facing line.
+function trainersSpotting(map: WorldMap, x: number, z: number, defeatedTrainers: string[]): string[] {
+  const px = Math.round(x);
+  const pz = Math.round(z);
+  const keys: string[] = [];
+  for (const [key, trainer] of Object.entries(map.trainers)) {
+    if (defeatedTrainers.includes(trainer.id) || !trainer.facing) {
       continue;
     }
     const [tx, tz] = key.split(",").map(Number);
@@ -216,17 +225,18 @@ function trainerSpotting(state: WorldState): TrainerChallenge | null {
     for (let dist = 1; dist <= range; dist += 1) {
       const lx = tx + step.x * dist;
       const lz = tz + step.z * dist;
-      const tile = tileAt(state.map, lx, lz);
+      const tile = tileAt(map, lx, lz);
       // The line of sight is blocked by anything you cannot walk through.
       if (!isWalkableTile(tile) && tile !== "warp") {
         break;
       }
       if (lx === px && lz === pz) {
-        return trainerChallengeFor(state, key);
+        keys.push(key);
+        break;
       }
     }
   }
-  return null;
+  return keys;
 }
 
 const DIRECTION_STEP: Record<string, { x: number; z: number }> = {
@@ -295,6 +305,7 @@ export function worldReducer(state: WorldState, action: WorldAction): WorldState
       moving: false,
       nearby: null,
       pendingWarp: null,
+      spottingTrainers: trainersSpotting(map, start.x, start.z, state.defeatedTrainers),
       grassProgress: 0,
       message: null,
     };
@@ -374,6 +385,7 @@ export function worldReducer(state: WorldState, action: WorldAction): WorldState
       }
     }
 
+    const spottingTrainers = trainersSpotting(state.map, x, z, state.defeatedTrainers);
     const next: WorldState = {
       ...state,
       x,
@@ -385,16 +397,20 @@ export function worldReducer(state: WorldState, action: WorldAction): WorldState
       rng,
       encounter,
       pendingWarp,
+      spottingTrainers,
       elapsed: state.elapsed + action.deltaSeconds,
       // Walking away from a conversation closes it.
       message: moving ? null : state.message,
     };
 
-    // Walking into a trainer's line of sight starts the battle automatically.
-    if (!encounter && !pendingWarp && distanceMoved > 0) {
-      const spotted = trainerSpotting(next);
-      if (spotted) {
-        return { ...next, trainerBattle: spotted, nearby: null };
+    // A sight-line trainer only starts a battle the moment the player NEWLY
+    // enters its line — not on every step while standing in it, so a lost or
+    // fled battle (respawning inside the line) can be walked out of.
+    if (!encounter && !pendingWarp) {
+      const newSpotter = spottingTrainers.find((key) => !state.spottingTrainers.includes(key));
+      const challenge = newSpotter ? trainerChallengeFor(next, newSpotter) : null;
+      if (challenge) {
+        return { ...next, trainerBattle: challenge, nearby: null };
       }
     }
 

@@ -10,6 +10,7 @@ type BattleHudProps = {
   state: BattleState;
   dispatch: Dispatch<BattleAction>;
   autoFight?: boolean;
+  onToggleAutoFight?: () => void;
   onNextStage?: () => void;
   onRetry?: () => void;
   onChangeTeam?: () => void;
@@ -21,6 +22,7 @@ export function BattleHud({
   state,
   dispatch,
   autoFight = false,
+  onToggleAutoFight,
   onNextStage,
   onRetry,
   onChangeTeam,
@@ -121,7 +123,17 @@ export function BattleHud({
           <strong>{state.unityGauge} / {state.maxUnityGauge}</strong>
         </div>
         <div className="control-chip" aria-label="Battle controls">
-          {autoFight ? <span className="auto-fight-badge">Auto Fight</span> : null}
+          {onToggleAutoFight ? (
+            <button
+              className={`auto-fight-button ${autoFight ? "auto-fight-button-on" : ""}`}
+              onClick={onToggleAutoFight}
+              aria-pressed={autoFight}
+            >
+              Auto Fight {autoFight ? "on" : "off"} <kbd>A</kbd>
+            </button>
+          ) : autoFight ? (
+            <span className="auto-fight-badge">Auto Fight</span>
+          ) : null}
           <button onClick={() => dispatch({ type: "togglePause" })}>
             {state.paused ? "Resume" : "Pause"} <kbd>P</kbd>
           </button>

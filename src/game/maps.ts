@@ -247,8 +247,9 @@ export const VILLAGE_MAP = parseMap("village", VILLAGE_LAYOUT, {
       teamId: "kanto-rivals",
       level: 6,
       reward: 40,
+      itemReward: "leaf-stone",
       dialogue: "No one passes to Route 2 until they best my squad. Show me what your team can do!",
-      afterDialogue: "Heh, you've earned the road east. Route 2's trainers won't go easy, though.",
+      afterDialogue: "Heh, you've earned the road east. Take this Leaf Stone — it'll bloom a Gloom into Vileplume.",
     },
   },
   encounters: [
@@ -328,8 +329,9 @@ export const ROUTE2_MAP = parseMap("route2", ROUTE2_LAYOUT, {
       reward: 50,
       facing: "down",
       sightRange: 3,
+      itemReward: "fire-stone",
       dialogue: "My dojo squad trains in this grass every day. Let's spar!",
-      afterDialogue: "Strong! Keep heading east — the others are tougher than me.",
+      afterDialogue: "Strong! Take our dojo's Fire Stone — it evolves Vulpix, Growlithe, and Eevee.",
     },
     K: {
       id: "route2-cliff",
@@ -339,8 +341,9 @@ export const ROUTE2_MAP = parseMap("route2", ROUTE2_LAYOUT, {
       reward: 55,
       facing: "up",
       sightRange: 3,
+      itemReward: "water-stone",
       dialogue: "Resting by the pond, are we? Not before you beat my team!",
-      afterDialogue: "Whew, you've got grit. The pond's good for water types, by the way.",
+      afterDialogue: "Whew, you've got grit. Found this Water Stone by the pond — take it, it makes a fine Vaporeon.",
     },
     D: {
       id: "route2-sage",
@@ -350,8 +353,9 @@ export const ROUTE2_MAP = parseMap("route2", ROUTE2_LAYOUT, {
       reward: 60,
       facing: "left",
       sightRange: 4,
+      itemReward: "thunder-stone",
       dialogue: "I foresaw your arrival... and your challenge. Best me, and the cave is yours.",
-      afterDialogue: "Your future is bright. Crystal Cave lies through the warp behind me.",
+      afterDialogue: "Your future is bright — and electric. This Thunder Stone will spark Eevee into Jolteon. Crystal Cave lies through the warp behind me.",
     },
   },
   encounters: [

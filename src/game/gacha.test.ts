@@ -11,6 +11,8 @@ import {
   canMultiPull,
   canPull,
   battleXpReward,
+  chooseEvolution,
+  DUPLICATE_SCOUT_GEMS,
   dailyChallengeReward,
   grantBattleXp,
   levelOf,
@@ -19,6 +21,7 @@ import {
   performMultiPull,
   performPull,
   stageClearReward,
+  stageClearStoneReward,
   wildVictoryReward,
   xpInfo,
   xpToNextLevel,
@@ -29,7 +32,9 @@ const baseProgress = (overrides: Partial<PlayerProgress> = {}): PlayerProgress =
   bestStage: 0,
   gems: 200,
   unlockedAllies: ["squirtle", "bulbasaur", "charmander"],
+  activeTeam: ["squirtle", "bulbasaur", "charmander"],
   allyLevels: {},
+  evolutionChoices: {},
   allyXp: {},
   dailyClearedDate: null,
   achievements: [],
@@ -95,14 +100,17 @@ describe("gacha pulls", () => {
     expect(outcome?.progress.unlockedAllies).toHaveLength(allAllyIds.length);
   });
 
-  it("refuses to pull when every ally is at the level cap", () => {
+  it("converts a pull to a gem duplicate when every ally is at the level cap", () => {
     const maxed = baseProgress({
       unlockedAllies: [...allAllyIds],
       allyLevels: Object.fromEntries(allAllyIds.map((id) => [id, BALANCE.maxAllyLevel])),
     });
 
-    expect(canPull(maxed)).toBe(false);
-    expect(performPull(maxed, 1)).toBeNull();
+    // Still pullable as long as you can afford it; the duplicate pays gems.
+    expect(canPull(maxed)).toBe(true);
+    expect(performPull(maxed, 1)?.result.isDuplicate).toBe(true);
+    // Only refused when you can't cover the gem cost.
+    expect(canPull(baseProgress({ gems: PULL_COST - 1, unlockedAllies: [...allAllyIds] }))).toBe(false);
   });
 });
 
@@ -133,8 +141,9 @@ describe("multi pulls", () => {
     expect(performMultiPull(baseProgress({ gems: MULTI_PULL_COST - 1 }), 1)).toBeNull();
   });
 
-  it("refunds unused pulls when targets run out mid-batch", () => {
-    // Everything unlocked; only one ally has level-up room, so one pull lands.
+  it("converts over-cap pulls into gem duplicates mid-batch", () => {
+    // Everything unlocked; only one ally has level-up room, so one pull levels
+    // and the remaining nine resolve as gem-paying duplicates.
     const nearlyMaxed = baseProgress({
       gems: 1000,
       unlockedAllies: [...allAllyIds],
@@ -144,11 +153,30 @@ describe("multi pulls", () => {
     });
 
     const outcome = performMultiPull(nearlyMaxed, 7);
-    const perPull = MULTI_PULL_COST / MULTI_PULL_COUNT;
 
-    expect(outcome?.results).toHaveLength(1);
+    expect(outcome?.results).toHaveLength(MULTI_PULL_COUNT);
     expect(outcome?.results[0].allyId).toBe("squirtle");
-    expect(outcome?.progress.gems).toBe(1000 - MULTI_PULL_COST + perPull * (MULTI_PULL_COUNT - 1));
+    expect(outcome?.results[0].isDuplicate).toBeUndefined();
+    const dupes = outcome!.results.slice(1);
+    expect(dupes.every((pull) => pull.isDuplicate && pull.gemsAwarded === DUPLICATE_SCOUT_GEMS)).toBe(true);
+    expect(outcome?.progress.gems).toBe(1000 - MULTI_PULL_COST + DUPLICATE_SCOUT_GEMS * (MULTI_PULL_COUNT - 1));
+  });
+
+  it("keeps scouting available once everything is unlocked and maxed", () => {
+    const maxed = baseProgress({
+      gems: 1000,
+      unlockedAllies: [...allAllyIds],
+      allyLevels: Object.fromEntries(allAllyIds.map((id) => [id, BALANCE.maxAllyLevel])),
+    });
+
+    // The button stays enabled — gems are the only requirement now.
+    expect(canPull(maxed)).toBe(true);
+    expect(canMultiPull(maxed)).toBe(true);
+
+    const outcome = performPull(maxed, 99);
+    expect(outcome?.result.isDuplicate).toBe(true);
+    expect(outcome?.result.gemsAwarded).toBe(DUPLICATE_SCOUT_GEMS);
+    expect(outcome?.progress.gems).toBe(1000 - PULL_COST + DUPLICATE_SCOUT_GEMS);
   });
 });
 
@@ -207,6 +235,55 @@ describe("leveling", () => {
     expect(performLevelUp(baseProgress({ gems: 0 }), "squirtle")).toBeNull();
   });
 
+  it("saves an eligible Eevee evolution choice and consumes the stone", () => {
+    const progress = baseProgress({
+      unlockedAllies: ["eevee"],
+      allyLevels: { eevee: 6 },
+      inventory: { "thunder-stone": 1 },
+    });
+
+    const next = chooseEvolution(progress, "eevee", "jolteon");
+
+    expect(next?.evolutionChoices.eevee).toBe("jolteon");
+    // The matching stone is spent on evolution.
+    expect(next?.inventory["thunder-stone"]).toBe(0);
+    expect(chooseEvolution(progress, "eevee", "alakazam")).toBeNull();
+    expect(chooseEvolution(baseProgress({ unlockedAllies: ["eevee"], allyLevels: { eevee: 5 } }), "eevee", "jolteon")).toBeNull();
+  });
+
+  it("rejects a stone evolution without the matching stone", () => {
+    const progress = baseProgress({ unlockedAllies: ["eevee"], allyLevels: { eevee: 6 } });
+    // No stone in the bag: choosing fails and nothing is spent.
+    expect(chooseEvolution(progress, "eevee", "jolteon")).toBeNull();
+    // The wrong stone doesn't satisfy the requirement either.
+    expect(
+      chooseEvolution(baseProgress({ unlockedAllies: ["eevee"], allyLevels: { eevee: 6 }, inventory: { "fire-stone": 1 } }), "eevee", "jolteon"),
+    ).toBeNull();
+  });
+
+  it("locks an evolution choice in permanently", () => {
+    const progress = baseProgress({
+      unlockedAllies: ["eevee"],
+      allyLevels: { eevee: 6 },
+      inventory: { "thunder-stone": 1, "fire-stone": 1 },
+    });
+    const evolved = chooseEvolution(progress, "eevee", "jolteon");
+    expect(evolved?.evolutionChoices.eevee).toBe("jolteon");
+    // Already committed: a second choice is rejected and no further stone is spent.
+    expect(chooseEvolution(evolved!, "eevee", "flareon")).toBeNull();
+  });
+
+  it("evolves a linear stone species (Vulpix → Ninetales)", () => {
+    const progress = baseProgress({
+      unlockedAllies: ["vulpix"],
+      allyLevels: { vulpix: 6 },
+      inventory: { "fire-stone": 1 },
+    });
+    const evolved = chooseEvolution(progress, "vulpix", "ninetales");
+    expect(evolved?.evolutionChoices.vulpix).toBe("ninetales");
+    expect(evolved?.inventory["fire-stone"]).toBe(0);
+  });
+
   it("charges more for higher levels", () => {
     expect(levelUpCost(5)).toBeGreaterThan(levelUpCost(1));
   });
@@ -222,6 +299,21 @@ describe("stage rewards", () => {
 
   it("adds a first-clear bonus only for new stages", () => {
     expect(stageClearReward(3, 2)).toBeGreaterThan(stageClearReward(3, 3));
+  });
+
+  it("awards an evolution stone on milestone first-clears only", () => {
+    // Non-milestone stages give no stone.
+    expect(stageClearStoneReward(4, 3)).toBeNull();
+    // Every fifth stage cycles through the stone set.
+    expect(stageClearStoneReward(5, 4)).toBe("fire-stone");
+    expect(stageClearStoneReward(10, 9)).toBe("water-stone");
+    expect(stageClearStoneReward(25, 24)).toBe("moon-stone");
+    expect(stageClearStoneReward(30, 29)).toBe("fire-stone");
+    // Re-clearing an already-beaten milestone yields nothing.
+    expect(stageClearStoneReward(5, 9)).toBeNull();
+
+    const cleared = applyStageClear(baseProgress(), 5);
+    expect(cleared.inventory["fire-stone"]).toBe(1);
   });
 
   it("pays the daily challenge reward once per date", () => {

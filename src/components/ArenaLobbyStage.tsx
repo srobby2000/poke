@@ -103,7 +103,7 @@ function ArenaBoard({ position, color, title, detail, footnote, disabled = false
         <boxGeometry args={[0.16, 0.9, 0.16]} />
         <meshStandardMaterial color="#64748b" roughness={0.7} />
       </mesh>
-      <Html center transform position={[0, 0, 0.08]} distanceFactor={7} className="arena-board-label">
+      <Html center transform position={[0, 0, 0.08]} distanceFactor={7} className="arena-board-label" zIndexRange={[40, 0]}>
         <button disabled={disabled} onClick={onSelect}>
           <span>{title}</span>
           <strong>{detail}</strong>

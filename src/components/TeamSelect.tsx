@@ -30,6 +30,7 @@ type TeamSelectProps = {
   onPull: () => void;
   onMultiPull: () => void;
   onLevelUp: (allyId: string) => void;
+  onChooseEvolution: (allyId: string, sourcePokemon: string) => void;
   onResetSave: () => void;
   onExportSave: () => string;
   onImportSave: (raw: string) => boolean;
@@ -56,6 +57,7 @@ export function TeamSelect({
   onPull,
   onMultiPull,
   onLevelUp,
+  onChooseEvolution,
   onResetSave,
   onExportSave,
   onImportSave,
@@ -77,7 +79,7 @@ export function TeamSelect({
   const [systemOpen, setSystemOpen] = useState(false);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [autoFight, setAutoFight] = useState(false);
-  const options = getAllyOptions(speciesStats ?? undefined, progress.allyLevels);
+  const options = getAllyOptions(speciesStats ?? undefined, progress.allyLevels, progress.evolutionChoices);
 
   const toggle = (id: string) => {
     setSelected((current) => {
@@ -208,7 +210,13 @@ export function TeamSelect({
                 >
                   <span className="reveal-stars">{"★".repeat(pull.rarity)}</span>
                   <strong>{pull.name}</strong>
-                  <small>{pull.isNew ? "NEW recruit!" : `Level up → Lv ${pull.level}`}</small>
+                  <small>
+                    {pull.isNew
+                      ? "NEW recruit!"
+                      : pull.isDuplicate
+                        ? `Duplicate · +${pull.gemsAwarded} 💎`
+                        : `Level up → Lv ${pull.level}`}
+                  </small>
                 </div>
               ))}
             </div>
@@ -226,6 +234,7 @@ export function TeamSelect({
           sprites={sprites}
           xpTuning={xpTuning}
           onLevelUp={onLevelUp}
+          onChooseEvolution={onChooseEvolution}
           onClose={() => setUpgradeOpen(false)}
         />
       ) : null}
