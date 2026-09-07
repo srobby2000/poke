@@ -1,3 +1,5 @@
+import { TrainerModel } from "./TrainerModel";
+import { SceneContextStatus } from "./SceneContextStatus";
 import { Html, Instance, Instances } from "@react-three/drei";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { memo, useMemo, useRef } from "react";
@@ -5,6 +7,9 @@ import type { Group } from "three";
 import type { WorldMap } from "../game/maps";
 import { tileKey } from "../game/maps";
 import type { WorldState } from "../game/worldState";
+import { PokemonModel } from "./PokemonModel";
+import { stepCompanion } from "../game/companionMotion";
+import type { CompanionPose } from "../game/companionMotion";
 
 type WorldCanvasProps = {
   state: WorldState;
@@ -15,14 +20,16 @@ const WORLD_LABEL_Z_INDEX_RANGE: [number, number] = [20, 0];
 
 export function WorldCanvas({ state, pickedBerries }: WorldCanvasProps) {
   return (
-    <Canvas className="battle-canvas" shadows camera={{ position: [state.x, 8.2, state.z + 7.4], fov: 50 }}>
+    <Canvas className="battle-canvas" dpr={[1, 1.5]} shadows camera={{ position: [state.x, 8.2, state.z + 7.4], fov: 50 }}>
       <color attach="background" args={["#0c1220"]} />
       <fog attach="fog" args={["#0c1220", 14, 30]} />
       <ambientLight intensity={0.75} />
-      <directionalLight castShadow position={[-6, 12, 6]} intensity={1.9} shadow-mapSize={[2048, 2048]} />
+      <directionalLight castShadow position={[-6, 12, 6]} intensity={1.9} shadow-mapSize={[1024, 1024]} />
       <StaticVillage map={state.map} pickedBerries={pickedBerries} defeatedTrainers={state.defeatedTrainers} />
       <Player state={state} />
+      <Partner key={state.map.id} state={state} />
       <CameraRig x={state.x} z={state.z} />
+    <SceneContextStatus />
     </Canvas>
   );
 }
@@ -46,6 +53,20 @@ function CameraRig({ x, z }: { x: number; z: number }) {
   return null;
 }
 
+function Partner({ state }: { state: WorldState }) {
+  const ref = useRef<Group>(null);
+  const pose = useRef<CompanionPose | null>(null);
+  useFrame(({ clock }, delta) => {
+    if (!ref.current) return;
+    pose.current = stepCompanion(pose.current, state, delta);
+    ref.current.position.set(pose.current.x, state.moving ? Math.abs(Math.sin(clock.elapsedTime * 10)) * 0.06 : 0, pose.current.z);
+    ref.current.rotation.y = pose.current.yaw;
+  });
+  return <group ref={ref}>
+    <PokemonModel species="squirtle" walking={state.moving} />
+  </group>;
+}
+
 function Player({ state }: { state: WorldState }) {
   const ref = useRef<Group>(null);
 
@@ -63,18 +84,7 @@ function Player({ state }: { state: WorldState }) {
 
   return (
     <group ref={ref} position={[state.x, 0, state.z]}>
-      <mesh castShadow position={[0, 0.42, 0]}>
-        <capsuleGeometry args={[0.24, 0.45, 4, 10]} />
-        <meshStandardMaterial color="#78e1ff" roughness={0.55} />
-      </mesh>
-      <mesh castShadow position={[0, 0.95, 0]}>
-        <sphereGeometry args={[0.2, 12, 10]} />
-        <meshStandardMaterial color="#f1d4b0" roughness={0.6} />
-      </mesh>
-      <mesh position={[0, 1.12, 0]}>
-        <coneGeometry args={[0.22, 0.2, 8]} />
-        <meshStandardMaterial color="#ef4444" roughness={0.5} />
-      </mesh>
+      <TrainerModel walking={state.moving} />
     </group>
   );
 }
@@ -276,15 +286,8 @@ const StaticVillage = memo(function StaticVillage({
 
       {layout.npcs.map((npc) => (
         <group key={`n${npc.x},${npc.z}`} position={[npc.x, 0, npc.z]}>
-          <mesh castShadow position={[0, 0.36, 0]}>
-            <capsuleGeometry args={[0.22, 0.35, 4, 10]} />
-            <meshStandardMaterial color={npc.name === "Mira" ? "#c084fc" : "#fbbf24"} roughness={0.6} />
-          </mesh>
-          <mesh castShadow position={[0, 0.85, 0]}>
-            <sphereGeometry args={[0.18, 12, 10]} />
-            <meshStandardMaterial color="#f1d4b0" roughness={0.6} />
-          </mesh>
-          <Html center zIndexRange={WORLD_LABEL_Z_INDEX_RANGE} position={[0, 1.45, 0]} className="unit-label" distanceFactor={11}>
+          <TrainerModel shirt={npc.name === "Mira" ? "#a47bbf" : "#d9a646"} cap="#476d75" backpack={false} />
+          <Html center zIndexRange={WORLD_LABEL_Z_INDEX_RANGE} position={[0, 2, 0]} className="unit-label" distanceFactor={11}>
             <span>{npc.name}</span>
           </Html>
         </group>
@@ -295,17 +298,10 @@ const StaticVillage = memo(function StaticVillage({
         // A beaten trainer steps aside (offset off the path) and dims.
         const offset = beaten ? TRAINER_STEP_ASIDE[trainer.facing ?? "down"] : { x: 0, z: 0 };
         return (
-          <group key={`tr${trainer.x},${trainer.z}`} position={[trainer.x + offset.x, 0, trainer.z + offset.z]}>
-            <mesh castShadow position={[0, 0.4, 0]}>
-              <capsuleGeometry args={[0.24, 0.4, 4, 10]} />
-              <meshStandardMaterial color={beaten ? "#7c6f64" : "#f97316"} roughness={0.55} />
-            </mesh>
-            <mesh castShadow position={[0, 0.92, 0]}>
-              <sphereGeometry args={[0.19, 12, 10]} />
-              <meshStandardMaterial color="#f1d4b0" roughness={0.6} />
-            </mesh>
+          <group key={`tr${trainer.x},${trainer.z}`} position={[trainer.x + offset.x, 0, trainer.z + offset.z]} rotation={[0, ({ up: Math.PI, down: 0, left: -Math.PI / 2, right: Math.PI / 2 })[trainer.facing ?? "down"] ?? 0, 0]}>
+            <TrainerModel shirt={beaten ? "#7c6f64" : "#e88648"} cap={beaten ? "#716963" : "#3f626f"} />
             {beaten ? null : (
-              <Html center zIndexRange={WORLD_LABEL_Z_INDEX_RANGE} position={[0, 1.5, 0]} className="unit-label" distanceFactor={11}>
+              <Html center zIndexRange={WORLD_LABEL_Z_INDEX_RANGE} position={[0, 2, 0]} className="unit-label" distanceFactor={11}>
                 <span>{"! "}{trainer.name}</span>
               </Html>
             )}

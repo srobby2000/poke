@@ -2870,3 +2870,65 @@ kbd {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Arena: a spacious 3D showcase with ordinary, keyboard-accessible actions. */
+.select-screen {
+  background: radial-gradient(ellipse at 12% 0%, #183f4e 0, transparent 48%), #0b1723;
+}
+.select-header h1 { letter-spacing: -0.045em; }
+.arena-lobby { grid-template-columns: minmax(0, 1.65fr) minmax(290px, 1fr); gap: 22px; }
+.arena-stage-panel {
+  position: relative;
+  border-radius: 24px;
+  border-color: #345160;
+  background: #102838;
+  min-width: 0;
+}
+.arena-showcase-heading { padding: 30px 32px 0; }
+.arena-eyebrow { color: #8edbd1; font-size: 0.66rem; font-weight: 800; letter-spacing: 0.16em; }
+.arena-showcase-heading h2 { margin: 10px 0; font-size: clamp(1.6rem, 3vw, 2.6rem); letter-spacing: -0.045em; line-height: 1.1; }
+.arena-showcase-heading p { color: #aec5d0; font-size: 0.88rem; line-height: 1.6; margin: 0; }
+.arena-lobby-canvas { height: 310px !important; touch-action: pan-y; cursor: grab; }
+.arena-lobby-canvas:active { cursor: grabbing; }
+.arena-showcase-caption { display: grid; grid-template-columns: repeat(3, 1fr); text-align: center; padding: 0 10%; gap: 8px; }
+.arena-showcase-caption span { font-size: 0.82rem; font-weight: 750; }
+.arena-showcase-caption small { display: block; margin-top: 7px; font-size: 0.56rem; letter-spacing: 0.15em; color: #8cddba; }
+.arena-showcase-caption span:nth-child(2) small { color: #f6b87f; }
+.arena-showcase-caption span:nth-child(3) small { color: #86d5f4; }
+.arena-orbit-hint { text-align: center; color: #819eae; font-size: 0.68rem; margin: 20px 0; }
+.arena-challenges { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.arena-challenges .arena-panel-head { padding: 8px 2px; }
+.arena-challenge-card { min-height: 144px; padding: 22px; border-radius: 18px; border: 1px solid #365366; background: #152c3d; text-align: left; transition: border-color 160ms, transform 160ms; }
+.arena-challenge-card:not(:disabled):hover { border-color: #a2e7d3; transform: translateY(-2px); }
+.arena-challenge-card span { display: flex; justify-content: space-between; width: 100%; font-size: 0.64rem; letter-spacing: 0.12em; }
+.arena-challenge-card strong { font-size: 1.65rem; letter-spacing: -0.04em; }
+.arena-challenge-card small { line-height: 1.5; }
+.arena-challenge-primary { background: linear-gradient(120deg, #c4f0b3, #80d7c2); border-color: #b9edb3; color: #102e29; }
+.arena-challenge-primary span, .arena-challenge-primary small { color: #275448; }
+.arena-training-link { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; background: #182b3a; color: #e7f1f5; border: 1px solid #344b5b; border-radius: 16px; text-align: left; cursor: pointer; font-weight: 750; }
+.arena-training-link small { display: block; color: #a5b9c6; font-size: 0.73rem; margin-top: 6px; font-weight: 400; }
+.arena-training-link:hover { border-color: #8edbd1; }
+.arena-lobby-panel { border-radius: 18px; background: #122534; padding: 22px; }
+.arena-quest-board { grid-column: auto; }
+.arena-quest-board .achievements-bar { max-height: 210px; overflow-y: auto; }
+@media (max-width: 800px) {
+  .arena-lobby { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .arena-showcase-heading { padding: 24px 22px 0; }
+  .arena-lobby-canvas { height: 260px !important; }
+  .arena-challenge-card { min-height: 125px; }
+  .arena-showcase-caption { padding: 0 5%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .arena-challenge-card { transition: none; }
+}
+.arena-challenge-primary strong { color: #102e29; }
+
+.pokedex-view-toggle { display: flex; justify-content: center; gap: 6px; margin: 12px 0; }
+.pokedex-view-toggle button { cursor: pointer; border: 1px solid #6c8f9c; border-radius: 8px; background: #183443; color: #d8edf1; padding: 8px 16px; }
+.pokedex-view-toggle button[aria-pressed="true"] { background: #a9e4d3; color: #163c36; border-color: #a9e4d3; }
+.pokedex-art.pokedex-art-3d { display: flex; flex-direction: column; height: auto; min-height: 280px; overflow: hidden; }
+.pokedex-model-viewer { width: 100%; height: 260px; min-width: 0; cursor: grab; touch-action: none; }
+.pokedex-model-viewer:active { cursor: grabbing; }
+.pokedex-model-hint { color: #78939d; font-size: 0.7rem; padding-bottom: 10px; text-align: center; }
+.pokemon-model-status { display: block; width: 130px; padding: 8px; border-radius: 8px; background: #173443; color: #d6edf2; font-size: 11px; text-align: center; }
+.pokemon-model-status button { display: block; margin: 6px auto 0; padding: 4px 10px; border: 1px solid #78e1ff; border-radius: 6px; background: #234b5d; color: white; cursor: pointer; }

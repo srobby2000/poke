@@ -2,7 +2,7 @@ import type { ApiMoveData, PokemonBaseStats } from "./battleState";
 import { speciesNames } from "./battleState";
 
 const CACHE_KEY = "creature-masters-pokeapi-v6";
-const MOVE_CACHE_KEY = "creature-masters-pokeapi-moves-v1";
+const MOVE_CACHE_KEY = "creature-masters-pokeapi-moves-v2";
 const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 export type PokeApiStatEntry = { base_stat: number; stat: { name: string } };
@@ -264,6 +264,19 @@ export async function fetchGen1Pokedex(): Promise<SpeciesData> {
   return fetchSpeciesData(names);
 }
 
+const moveAliases: Record<string, string> = {
+  "vulpix-ember": "ember",
+  "meowth-growl": "growl",
+  "lapras-water-pulse": "water-pulse",
+  "pidgey-tackle": "tackle",
+  "pidgey-gust": "gust",
+  "rattata-quick-attack": "quick-attack",
+};
+
+export function canonicalMoveName(id: string): string {
+  return moveAliases[id] ?? id;
+}
+
 type MoveCachePayload = { fetchedAt: number; moves: Record<string, ApiMoveData> };
 
 // Fetches normalized data for the given move ids, cached for a week. Best-effort
@@ -281,9 +294,17 @@ export async function fetchMoveData(ids: string[]): Promise<Record<string, ApiMo
     // Ignore cache read failures and refetch.
   }
 
-  const entries = await Promise.all(
-    ids.map(async (id) => [id, await fetchJson<PokeApiMove>(`https://pokeapi.co/api/v2/move/${id}`)] as const),
-  );
+  // Battle ids distinguish species variants; the API accepts canonical moves.
+  const requests = new Map<string, Promise<PokeApiMove | null>>();
+  const entries = await Promise.all(ids.map(async id => {
+    const name = canonicalMoveName(id);
+    let request = requests.get(name);
+    if (!request) {
+      request = fetchJson<PokeApiMove>(`https://pokeapi.co/api/v2/move/${name}`);
+      requests.set(name, request);
+    }
+    return [id, await request] as const;
+  }));
   const moves: Record<string, ApiMoveData> = {};
   for (const [id, payload] of entries) {
     if (payload) {

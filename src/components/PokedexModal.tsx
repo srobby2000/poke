@@ -1,4 +1,6 @@
-import { useMemo, useState } from "react";
+import { lazy, Suspense, useMemo, useState } from "react";
+import { POKEMON_MODELS } from "../game/pokemonModels";
+const PokemonViewer = lazy(() => import("./PokemonViewer").then(module => ({ default: module.PokemonViewer })));
 import type { CSSProperties } from "react";
 import type { AllyOption, PokemonBaseStats } from "../game/battleState";
 import { getAllyOptions, reachedFormsFor } from "../game/battleState";
@@ -84,35 +86,20 @@ export function PokedexModal({ progress, speciesStats, sprites, details, evoluti
     caughtSpecies.has(speciesId) ? "caught" : progress.seenSpecies.includes(speciesId) ? "seen" : "missing";
 
   const entries = useMemo<DexEntry[]>(() => {
-    // Full national dex from the loaded data; each species is its own entry.
-    if (details && Object.keys(details).length > 0) {
-      return Object.keys(details)
-        .map((speciesId) => {
-          const ally = allyById.get(speciesId);
-          return {
-            speciesId,
-            number: details[speciesId].number || 0,
-            name: titleCase(speciesId),
-            types: types?.[speciesId] ?? ally?.types ?? [],
-            stats: speciesStats?.[speciesId] ?? ally?.baseStats,
-            color: ally?.color,
-            ally,
-            status: statusOf(speciesId),
-          };
-        })
-        .sort((left, right) => left.number - right.number);
-    }
-    // Offline fallback: just the roster.
-    return getAllyOptions(speciesStats ?? undefined, progress.allyLevels, progress.evolutionChoices).map((option, index) => ({
-      speciesId: option.id,
-      number: index + 1,
-      name: option.name,
-      types: option.types,
-      stats: option.baseStats,
-      color: option.color,
-      ally: option,
-      status: statusOf(option.id),
-    }));
+    // Keep all 151 Kanto entries available even offline or after a partial fetch.
+    return Object.entries(POKEMON_MODELS).map(([speciesId, model]) => {
+      const ally = allyById.get(speciesId);
+      return {
+        speciesId,
+        number: model.number,
+        name: titleCase(speciesId),
+        types: types?.[speciesId] ?? ally?.types ?? [],
+        stats: speciesStats?.[speciesId] ?? ally?.baseStats,
+        color: model.color,
+        ally,
+        status: statusOf(speciesId),
+      };
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     details,
@@ -179,12 +166,12 @@ export function PokedexModal({ progress, speciesStats, sprites, details, evoluti
                   className={`pokedex-cell pokedex-cell-${entry.status} ${
                     entry.speciesId === selectedId ? "pokedex-cell-active" : ""
                   }`}
-                  disabled={entry.status === "missing"}
+                  aria-label={`${entry.name}, ${entry.status}, view model`}
                   onClick={() => setSelectedId(entry.speciesId)}
                 >
                   <span className="pokedex-cell-no">{dexNumber(entry.number)}</span>
                   <DexSprite entry={entry} sprites={sprites} />
-                  <span className="pokedex-cell-name">{entry.status === "missing" ? "???" : entry.name}</span>
+                  <span className="pokedex-cell-name">{entry.name}</span>
                 </button>
               ))}
             </div>
@@ -242,6 +229,7 @@ function DexDetail({
   line: { name: string; trigger: string }[];
   onBack: () => void;
 }) {
+  const [view, setView] = useState<"3d" | "art">("3d");
   const { ally, status } = entry;
   const caught = status === "caught";
   return (
@@ -262,8 +250,14 @@ function DexDetail({
         </div>
       </div>
 
-      <div className="pokedex-art">
-        <DexSprite entry={entry} sprites={sprites} large />
+      <div className="pokedex-view-toggle" role="group" aria-label="Pokémon display">
+        <button aria-pressed={view === "3d"} onClick={() => setView("3d")}>3D model</button>
+        <button aria-pressed={view === "art"} onClick={() => setView("art")}>Artwork</button>
+      </div>
+      <div className={`pokedex-art ${view === "3d" ? "pokedex-art-3d" : ""}`}>
+        {view === "3d" ? <Suspense fallback={<span>Loading model…</span>}>
+          <PokemonViewer key={entry.speciesId} species={entry.speciesId} name={entry.name} fallback={<DexSprite entry={entry} sprites={sprites} large />} />
+        </Suspense> : <DexSprite entry={entry} sprites={sprites} large />}
       </div>
 
       {detail?.genus ? <p className="pokedex-genus">{detail.genus}</p> : null}
@@ -271,7 +265,7 @@ function DexDetail({
       <div className="pokedex-badges">
         {ally ? <b className="rarity-stars">{"\u2605".repeat(ally.rarity)}</b> : null}
         {ally ? <b className={`role-badge role-${ally.role}`}>{ally.role}</b> : null}
-        <b className={`dex-badge dex-badge-${status}`}>{caught ? "\u2713 Caught" : "Seen"}</b>
+        <b className={`dex-badge dex-badge-${status}`}>{caught ? "\u2713 Caught" : status === "seen" ? "Seen" : "Undiscovered"}</b>
       </div>
 
       {detail?.flavorText ? <p className="pokedex-flavor">"{detail.flavorText}"</p> : null}

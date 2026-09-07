@@ -1,9 +1,12 @@
-import { ContactShadows, Environment, Float, Html, OrbitControls } from "@react-three/drei";
+import { pokemonDisplayHeight } from "../game/pokemonScale";
+import { POKEMON_MODELS } from "../game/pokemonModels";
+import { SceneContextStatus } from "./SceneContextStatus";
+import { ContactShadows, Float, Html, OrbitControls } from "@react-three/drei";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { memo, useMemo, useRef } from "react";
 import type { Dispatch } from "react";
 import type { Group } from "three";
-import { Color } from "three";
+import { PokemonModel } from "./PokemonModel";
 import type { BattleAction, BattleFeedback, BattleState, PokemonType, Unit } from "../game/battleState";
 import { isAlive } from "../game/battleState";
 
@@ -12,15 +15,20 @@ type BattleCanvasProps = {
   dispatch: Dispatch<BattleAction>;
 };
 
-export function BattleCanvas({ state, dispatch }: BattleCanvasProps) {
+export function BattleCanvas({ state: battleState, dispatch }: BattleCanvasProps) {
+  // Wider formation for metre-scaled models. Projectiles and feedback use
+  // these same display positions; battle simulation positions stay untouched.
+  const units = useMemo(() => battleState.units.map(unit => ({ ...unit,
+    position: [unit.position[0] * 1.3, unit.position[1], unit.position[2] * 1.5] as [number, number, number],
+  })), [battleState.units]);
+  const state = { ...battleState, units };
   return (
-    <Canvas className="battle-canvas" shadows camera={{ position: [0, 5.6, 7.5], fov: 46 }}>
+    <Canvas className="battle-canvas" dpr={[1, 1.5]} shadows camera={{ position: [0, 7, 10], fov: 46 }}>
       <color attach="background" args={["#0c1220"]} />
       <fog attach="fog" args={["#0c1220", 8, 18]} />
       <ambientLight intensity={0.8} />
-      <directionalLight castShadow position={[-3, 8, 5]} intensity={2.2} shadow-mapSize={[2048, 2048]} />
+      <directionalLight castShadow position={[-3, 8, 5]} intensity={2.2} shadow-mapSize={[1024, 1024]} />
       <pointLight position={[0, 2, 0]} intensity={1.6} color="#78e1ff" />
-      <Environment preset="city" />
       <BattleArena />
       {state.units.map((unit) => (
         <CreatureUnit
@@ -32,7 +40,7 @@ export function BattleCanvas({ state, dispatch }: BattleCanvasProps) {
       ))}
       <BattleFeedbackLayer feedback={state.feedback} units={state.units} />
       <ProjectileLayer state={state} />
-      <ContactShadows position={[0, -0.03, 0]} opacity={0.42} scale={12} blur={2.2} far={5} />
+      <ContactShadows position={[0, -0.03, 0]} opacity={0.42} scale={16} blur={2.2} far={5} />
       <OrbitControls
         enablePan={false}
         enableZoom={false}
@@ -41,6 +49,7 @@ export function BattleCanvas({ state, dispatch }: BattleCanvasProps) {
         minAzimuthAngle={-0.32}
         maxAzimuthAngle={0.32}
       />
+    <SceneContextStatus />
     </Canvas>
   );
 }
@@ -190,7 +199,7 @@ function BattleArena() {
   return (
     <group>
       <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[5.2, 8]} />
+        <circleGeometry args={[7, 8]} />
         <meshStandardMaterial color="#263847" roughness={0.8} metalness={0.1} />
       </mesh>
       <mesh position={[0, 0.015, 0]} rotation={[-Math.PI / 2, 0, 0]}>
@@ -198,10 +207,10 @@ function BattleArena() {
         <meshStandardMaterial color="#81d7ff" emissive="#1b8ec0" emissiveIntensity={0.35} />
       </mesh>
       <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, Math.PI / 2]}>
-        <planeGeometry args={[0.08, 9.3]} />
+        <planeGeometry args={[0.08, 12.3]} />
         <meshStandardMaterial color="#dbeafe" emissive="#78e1ff" emissiveIntensity={0.22} />
       </mesh>
-      {[-4.4, 4.4].map((x) => (
+      {[-6.1, 6.1].map((x) => (
         <mesh key={x} castShadow position={[x, 0.25, 0]}>
           <cylinderGeometry args={[0.22, 0.28, 0.5, 6]} />
           <meshStandardMaterial color="#405262" roughness={0.72} />
@@ -223,9 +232,8 @@ const CreatureUnit = memo(function CreatureUnit({
   dispatch: Dispatch<BattleAction>;
 }) {
   const ref = useRef<Group>(null);
-  const bodyColor = useMemo(() => new Color(unit.color), [unit.color]);
-  const accentColor = useMemo(() => new Color(unit.accent), [unit.accent]);
   const alive = isAlive(unit);
+  const labelHeight = pokemonDisplayHeight(POKEMON_MODELS[unit.sourcePokemon.toLowerCase()]?.heightM ?? 1.6) + 0.35;
 
   useFrame(({ clock }, delta) => {
     if (!ref.current) {
@@ -242,7 +250,6 @@ const CreatureUnit = memo(function CreatureUnit({
     ref.current.rotation.y = (unit.team === "ally" ? Math.PI / 2 : -Math.PI / 2) + Math.sin(t + unit.position[2]) * 0.05;
   });
 
-  const flashColor = unit.hitFlash > 0 ? "#ffffff" : unit.color;
 
   return (
     <group ref={ref} position={unit.position} onClick={(event) => {
@@ -253,23 +260,7 @@ const CreatureUnit = memo(function CreatureUnit({
     }}>
       <Float speed={1.7} rotationIntensity={0.08} floatIntensity={alive ? 0.14 : 0}>
         <group scale={alive ? 1 : 0.82}>
-          <mesh castShadow position={[0, 0.62, 0]}>
-            <dodecahedronGeometry args={[0.48, 0]} />
-            <meshStandardMaterial color={flashColor} emissive={unit.hitFlash > 0 ? "#ffffff" : unit.color} emissiveIntensity={unit.hitFlash > 0 ? 0.55 : 0.08} roughness={0.58} />
-          </mesh>
-          <mesh castShadow position={[0, 1.08, 0]}>
-            <sphereGeometry args={[0.36, 9, 7]} />
-            <meshStandardMaterial color={bodyColor} roughness={0.55} />
-          </mesh>
-          <CreatureAccent shape={unit.shape} color={accentColor} />
-          <mesh castShadow position={[-0.22, 0.23, 0.2]}>
-            <boxGeometry args={[0.18, 0.34, 0.18]} />
-            <meshStandardMaterial color={unit.color} roughness={0.7} />
-          </mesh>
-          <mesh castShadow position={[0.22, 0.23, -0.2]}>
-            <boxGeometry args={[0.18, 0.34, 0.18]} />
-            <meshStandardMaterial color={unit.color} roughness={0.7} />
-          </mesh>
+          <PokemonModel species={unit.sourcePokemon} color={unit.color} hit={unit.hitFlash > 0} />
         </group>
       </Float>
       {selected && alive ? (
@@ -278,71 +269,9 @@ const CreatureUnit = memo(function CreatureUnit({
           <meshBasicMaterial color={unit.team === "ally" ? "#78e1ff" : "#ff8ab3"} toneMapped={false} />
         </mesh>
       ) : null}
-      <Html center position={[0, 1.7, 0]} className="unit-label" distanceFactor={8}>
+      <Html center position={[0, labelHeight, 0]} className="unit-label" distanceFactor={8}>
         <span className={alive ? "" : "unit-label-ko"}>{unit.name}</span>
       </Html>
     </group>
   );
 });
-
-function CreatureAccent({ shape, color }: { shape: Unit["shape"]; color: Color }) {
-  const material = <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.12} roughness={0.45} />;
-
-  if (shape === "horn") {
-    return (
-      <mesh castShadow position={[0, 1.52, 0]} rotation={[0, 0, Math.PI]}>
-        <coneGeometry args={[0.16, 0.44, 5]} />
-        {material}
-      </mesh>
-    );
-  }
-
-  if (shape === "shell") {
-    return (
-      <mesh castShadow position={[0, 0.72, -0.28]} rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[0.32, 0.09, 6, 12]} />
-        {material}
-      </mesh>
-    );
-  }
-
-  if (shape === "wing") {
-    return (
-      <>
-        <mesh castShadow position={[0, 0.92, 0.42]} rotation={[0.3, 0, -0.8]}>
-          <coneGeometry args={[0.18, 0.62, 4]} />
-          {material}
-        </mesh>
-        <mesh castShadow position={[0, 0.92, -0.42]} rotation={[-0.3, 0, -0.8]}>
-          <coneGeometry args={[0.18, 0.62, 4]} />
-          {material}
-        </mesh>
-      </>
-    );
-  }
-
-  if (shape === "crystal") {
-    return (
-      <mesh castShadow position={[0, 1.42, 0]}>
-        <octahedronGeometry args={[0.28, 0]} />
-        {material}
-      </mesh>
-    );
-  }
-
-  if (shape === "ember") {
-    return (
-      <mesh castShadow position={[0, 1.42, 0]} rotation={[0.12, 0, 0]}>
-        <tetrahedronGeometry args={[0.34, 0]} />
-        {material}
-      </mesh>
-    );
-  }
-
-  return (
-    <mesh castShadow position={[0, 1.4, 0]} rotation={[0, 0, Math.PI / 4]}>
-      <boxGeometry args={[0.38, 0.38, 0.16]} />
-      {material}
-    </mesh>
-  );
-}

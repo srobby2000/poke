@@ -142,3 +142,24 @@ describe("pokeApi move mapping", () => {
     expect(move.statChanges).toEqual([]);
   });
 });
+
+describe("battle move API requests", () => {
+  it("requests canonical names once and keeps species-specific battle ids", async () => {
+    const { fetchMoveData } = await import("./pokeApi");
+    const { vi } = await import("vitest");
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ power: 40, accuracy: 100, pp: 20, type: { name: "normal" }, damage_class: { name: "physical" } })));
+    vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("localStorage", { getItem: () => null, setItem: () => {} });
+    try {
+      const ids = ["ember", "vulpix-ember", "meowth-growl", "lapras-water-pulse", "pidgey-tackle", "pidgey-gust", "rattata-quick-attack"];
+      const result = await fetchMoveData(ids);
+      expect(Object.keys(result).sort()).toEqual([...ids].sort());
+      expect(fetchMock.mock.calls.map(call => (call as unknown[])[0])).toEqual([
+        "https://pokeapi.co/api/v2/move/ember", "https://pokeapi.co/api/v2/move/growl",
+        "https://pokeapi.co/api/v2/move/water-pulse", "https://pokeapi.co/api/v2/move/tackle",
+        "https://pokeapi.co/api/v2/move/gust", "https://pokeapi.co/api/v2/move/quick-attack",
+      ]);
+      expect(result["vulpix-ember"]).toEqual(result.ember);
+    } finally { vi.unstubAllGlobals(); }
+  });
+});

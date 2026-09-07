@@ -39,16 +39,31 @@ export function ArenaLobby({
   return (
     <div className="arena-lobby">
       <section className="arena-stage-panel" aria-label="Arena lobby">
+        <div className="arena-showcase-heading">
+          <span className="arena-eyebrow">YOUR NEXT ADVENTURE</span>
+          <h2>Great teams start here.</h2>
+          <p>Meet your partners. Find your rhythm. Take on the arena.</p>
+        </div>
         <Suspense fallback={<div className="arena-stage-loading">Opening arena…</div>}>
-          <ArenaLobbyStage
-            bestStage={progress.bestStage}
-            dailyKey={dailyKey}
-            dailyReward={dailyReward}
-            dailyCleared={dailyCleared}
-            onChooseChallenge={onChooseChallenge}
-            onOpenUpgrades={onOpenUpgrades}
-          />
+          <ArenaLobbyStage />
         </Suspense>
+        <div className="arena-showcase-caption"><span>Bulbasaur <small>GRASS</small></span><span>Charmander <small>FIRE</small></span><span>Squirtle <small>WATER</small></span></div>
+        <p className="arena-orbit-hint">Drag to look around</p>
+      </section>
+
+      <section className="arena-challenges" aria-label="Choose your adventure">
+        <div className="arena-panel-head"><strong>Choose your challenge</strong><span className="arena-eyebrow">3 vs 3</span></div>
+        <button className="arena-challenge-card arena-challenge-primary" onClick={() => onChooseChallenge("ladder")}>
+          <span>THE ARENA <b aria-hidden="true">↗</b></span>
+          <strong>Battle Streak</strong>
+          <small>{progress.bestStage > 0 ? `Personal best · Stage ${progress.bestStage}` : "Build a team and begin your climb"}</small>
+        </button>
+        <button className="arena-challenge-card" disabled={dailyCleared} onClick={() => onChooseChallenge("daily")}>
+          <span>DAILY CHALLENGE <b aria-hidden="true">{dailyCleared ? "✓" : "↗"}</b></span>
+          <strong>{dailyCleared ? "Challenge complete" : `Earn ${dailyReward} gems`}</strong>
+          <small>{dailyCleared ? `Reward claimed · ${dailyKey}` : "A fresh rival squad. One daily reward."}</small>
+        </button>
+        <button className="arena-training-link" onClick={onOpenUpgrades}><span>Train your Pokémon<small>Level up, evolve and equip your partners</small></span><span aria-hidden="true">→</span></button>
       </section>
 
       <section className="arena-lobby-panel" aria-label="Scout office">

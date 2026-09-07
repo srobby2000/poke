@@ -1,0 +1,4687 @@
+{
+  "sourceCommit": "429de1288cea0d43f5b4f56305d2276e94239d65",
+  "models": [
+    {
+      "number": 1,
+      "species": "bulbasaur",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/1.glb",
+      "bytes": 1275784,
+      "sha256": "dd1481795a134688163474e7cc9cee35f8dc22ba6ecac6108a4c1d7980e3ecb6",
+      "meshNames": [
+        "Object_3.001"
+      ],
+      "rootNames": [
+        "pm0001_00_RTutaSkin_77",
+        "pm0001_00_IrisSkin_73",
+        "pm0001_00_4",
+        "GLTF_created_0_rootJoint",
+        "Object_87.001",
+        "GLTF_created_0",
+        "model_skeleton_3",
+        "001_0"
+      ],
+      "animations": [
+        "model_skeleton|001aidle",
+        "model_skeleton|001fight_b",
+        "model_skeleton|001fight_d",
+        "model_skeleton|001jump_e",
+        "model_skeleton|001jump_l",
+        "model_skeleton|001jump_s",
+        "model_skeleton|001ko",
+        "model_skeleton|001run",
+        "model_skeleton|001walk"
+      ],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "f858e644251443d4011ef4b3c01f119d732307a3e6658c6cc60db51fd4e72eb4",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png",
+      "comparisonSheet": "model-review/sheet-01.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 2,
+      "species": "ivysaur",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/2.glb",
+      "bytes": 451828,
+      "sha256": "531ccb1d90e3cb79be69b7a3296115e19bbd52b0298522b8acc7c14fbb20066e",
+      "meshNames": [
+        "Ivysaur"
+      ],
+      "rootNames": [
+        "LHand",
+        "LFinger",
+        "RShoulder",
+        "RArm",
+        "RForeArm",
+        "RHand",
+        "RFinger",
+        "Ivysaur"
+      ],
+      "animations": [],
+      "textures": 4,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "e170c141f797179e504a705a60cffff91619f11a791454d2bbb5b1c61bbe6411",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/2.png",
+      "comparisonSheet": "model-review/sheet-01.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 3,
+      "species": "venusaur",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/3.glb",
+      "bytes": 488104,
+      "sha256": "8237df71717bfa2c139fb975b9352664e663f51c6a0508b7c9faa7979de23347",
+      "meshNames": [
+        "VenusaurF"
+      ],
+      "rootNames": [
+        "LEar",
+        "REar",
+        "RShoulder",
+        "RArm",
+        "RForeArm",
+        "RHand",
+        "RFinger1",
+        "VenusaurF"
+      ],
+      "animations": [],
+      "textures": 4,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "38705b7a41f86a4323fd2a66b0684a0f0e6fa66a9329b10e9927c44bfad28ccc",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/3.png",
+      "comparisonSheet": "model-review/sheet-01.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 4,
+      "species": "charmander",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/4.glb",
+      "bytes": 329400,
+      "sha256": "9b8a1a212f63a6f946775a8a1ebe9b6e436520e2e12e5a34839229f73a589339",
+      "meshNames": [
+        "Charmander"
+      ],
+      "rootNames": [
+        "RFingerD1",
+        "RHand",
+        "RForeArm",
+        "RArm",
+        "RShoulder",
+        "Spine2",
+        "Spine1",
+        "Charmander"
+      ],
+      "animations": [],
+      "textures": 4,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "c8c3892e73f19c5152a5a36f7a1419ada27df465153d432e756333e8fd34ea8b",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/4.png",
+      "comparisonSheet": "model-review/sheet-01.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 5,
+      "species": "charmeleon",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/5.glb",
+      "bytes": 383240,
+      "sha256": "049e6c35e63d0e83f508a878726d3d28d39e752c08e535e353e90fcf81a08ff1",
+      "meshNames": [
+        "Charmeleon"
+      ],
+      "rootNames": [
+        "Neck",
+        "RHand",
+        "RForeArm",
+        "RArm",
+        "RShoulder",
+        "Spine2",
+        "Spine1",
+        "Charmeleon"
+      ],
+      "animations": [],
+      "textures": 5,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "ba2fff1fddcf3c36a3c833a83092bc3ae00e8bdfe5aba62ac98fe04b15dabe30",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/5.png",
+      "comparisonSheet": "model-review/sheet-01.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 6,
+      "species": "charizard",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/6.glb",
+      "bytes": 596272,
+      "sha256": "b85bc55962f893a0f8d99ed6b031ec024fcdac1069d6fa4fb596541aebd384b5",
+      "meshNames": [
+        "Object_3",
+        "Object_4",
+        "Object_0",
+        "Object_1",
+        "Object_2"
+      ],
+      "rootNames": [
+        "pm0006_00_70",
+        "GLTF_created_0_rootJoint",
+        "Object_10",
+        "Object_11",
+        "Object_7",
+        "Object_8",
+        "Object_9",
+        "GLTF_created_0"
+      ],
+      "animations": [
+        "Chariard_dizzy"
+      ],
+      "textures": 5,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "1dc18de231df4ba6fcc2c2ee9f9d483c2f33478bca52cf83357a5c9188c3076e",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/6.png",
+      "comparisonSheet": "model-review/sheet-01.png",
+      "notes": "Flame masks receive warm emissive color and luminance transparency at runtime.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 7,
+      "species": "squirtle",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/7.glb",
+      "bytes": 368624,
+      "sha256": "21d65fc5bbb77cc9a183eee809c4d01fbdd232da52faca8526b0398ef16f861b",
+      "meshNames": [
+        "Squirtle"
+      ],
+      "rootNames": [
+        "RThigh",
+        "RLeg",
+        "RFoot",
+        "RToe",
+        "Tail1",
+        "Tail2",
+        "Tail3",
+        "Squirtle"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "6878675bc3f9f7453ae9bffaf1503c1da53321eca51235507efe6ffd7d76dfa9",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/7.png",
+      "comparisonSheet": "model-review/sheet-01.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 8,
+      "species": "wartortle",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/8.glb",
+      "bytes": 394124,
+      "sha256": "88ae41c98f427c522f01cde6a0f088b0066399095c83c0a2aa9af3f1179d7fa1",
+      "meshNames": [
+        "Wartortle"
+      ],
+      "rootNames": [
+        "RLeg",
+        "RFoot",
+        "RToe",
+        "Tail1",
+        "Tail2",
+        "Tail3",
+        "Tail4",
+        "Wartortle"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "ecb840dbe4f030cede3734afa2c6e9451ad9af46f81e8bd03e36590055edb2b7",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/8.png",
+      "comparisonSheet": "model-review/sheet-01.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 9,
+      "species": "blastoise",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/9.glb",
+      "bytes": 538420,
+      "sha256": "8b050798d4a1e9dc7c92dfcf4e3f281d2cf90062a8b125850380c7c5478b3fcd",
+      "meshNames": [
+        "Blastoise",
+        "Blastoise_CannonsA",
+        "Blastoise_CannonsB"
+      ],
+      "rootNames": [
+        "RToeB",
+        "RToeC",
+        "RToeD",
+        "Tail1",
+        "Tail2",
+        "Blastoise",
+        "Blastoise_CannonsA",
+        "Blastoise_CannonsB"
+      ],
+      "animations": [],
+      "textures": 4,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "64edfae1880699dc57b8da749aebcd67a692138cc6d7f43cc56a7265a8cf4dff",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/9.png",
+      "comparisonSheet": "model-review/sheet-01.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 10,
+      "species": "caterpie",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/10.glb",
+      "bytes": 291368,
+      "sha256": "1ba2544f5504e79d01769500fb68959f540d38bf80766ba3b193107968c228d5",
+      "meshNames": [
+        "Caterpie"
+      ],
+      "rootNames": [
+        "Spine2",
+        "FeelerA1",
+        "FeelerA2",
+        "LFeelerA",
+        "RFeelerA",
+        "Head",
+        "Nose",
+        "Caterpie"
+      ],
+      "animations": [],
+      "textures": 1,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "41d694bae74bee7cea7bed41b2efa3c8559356bdd4a44672a4152053ab20c5ac",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/10.png",
+      "comparisonSheet": "model-review/sheet-01.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 11,
+      "species": "metapod",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/11.glb",
+      "bytes": 292540,
+      "sha256": "a03d4726d771bb4c0b1f1725344fdda8dde21eb92a8d4da2b88fb47c831c4875",
+      "meshNames": [
+        "Metapod"
+      ],
+      "rootNames": [
+        "Hips",
+        "Tail1",
+        "Tail2",
+        "Spine1",
+        "Spine2",
+        "Head",
+        "Metapod"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "9664caf9d70b0852462b00af8ccabd4267bb0a5c67cc8bc403e54e510db1c3e2",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/11.png",
+      "comparisonSheet": "model-review/sheet-01.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 12,
+      "species": "butterfree",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/12.glb",
+      "bytes": 319028,
+      "sha256": "68915fed695db8c84c576f2ccfe9016be8d6b7a9d2de2d061dc1c11a9353da59",
+      "meshNames": [
+        "ButterfreeF"
+      ],
+      "rootNames": [
+        "RFeelerA2",
+        "RFeelerB1",
+        "RFeelerB2",
+        "RHand",
+        "RFingerA",
+        "RFingerB",
+        "RFingerC",
+        "ButterfreeF"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "71ec8b1821b68e72880c0a7d4578f25dd20950616e353c35b4abfdb0ff196f38",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/12.png",
+      "comparisonSheet": "model-review/sheet-01.png",
+      "notes": "Removed coincident wing triangles at runtime; surfaces are double-sided. Re-render confirmed intact wing patterns.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 13,
+      "species": "weedle",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/13.glb",
+      "bytes": 274964,
+      "sha256": "56db6d8b91434cc3c52fbf36ea62081e03df2e70b084d4246ca7f9a4cc4d29cc",
+      "meshNames": [
+        "Weedle"
+      ],
+      "rootNames": [
+        "033 LFootB",
+        "035 RFootB",
+        "037 Spine4",
+        "038 Head",
+        "040 Nose",
+        "042 LFootA",
+        "044 RFootA",
+        "Weedle"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "eedbfe651fa08ba716964af8d810e1969bf3f155a44c831bfa7ffba05dbf186f",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/13.png",
+      "comparisonSheet": "model-review/sheet-02.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 14,
+      "species": "kakuna",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/14.glb",
+      "bytes": 197992,
+      "sha256": "8e442bbd140d84129e84bcde5a7df8b8fe07b94ca3569daee73f3cae154f2954",
+      "meshNames": [
+        "Kakuna"
+      ],
+      "rootNames": [
+        "003 Waist",
+        "005 Tail",
+        "Kakuna"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "8f80fa131768854de99f41ea4271cb214654fc7a0a2ac4804324a192eb8ad0aa",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/14.png",
+      "comparisonSheet": "model-review/sheet-02.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 15,
+      "species": "beedrill",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/15.glb",
+      "bytes": 375216,
+      "sha256": "dc7c7790a98553158708c6b26cf7f08519c6372227c8c803a9122e7158d3a842",
+      "meshNames": [
+        "Object_0",
+        "Object_1",
+        "Object_2",
+        "Object_3",
+        "Object_4"
+      ],
+      "rootNames": [
+        "stereoCamera_default_39",
+        "stereoCamera_aim_40",
+        "stereoCamera_fullAppealGp_44",
+        "stereoCamera_fullAppeal_42",
+        "stereoCamera_aim1_43",
+        "stereoCamera_middleWaitGp_47",
+        "stereoCamera_middleWait_45",
+        "stereoCamera_aim2_46"
+      ],
+      "animations": [
+        "ArmatureAction.001"
+      ],
+      "textures": 1,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "bf17d8b17dd744496e7c161044f4315be854255a9796c256a55440d1f37373a4",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/15.png",
+      "comparisonSheet": "model-review/sheet-02.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 16,
+      "species": "pidgey",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/16.glb",
+      "bytes": 381612,
+      "sha256": "2667c627971f4a2774e77739df8ee77e484810f6042914e33ca5e3252f89fa07",
+      "meshNames": [
+        "Pidgey"
+      ],
+      "rootNames": [
+        "052 LHand",
+        "054 RFeeler1",
+        "055 RFeeler2",
+        "057 RShoulder",
+        "058 RArm",
+        "059 RForeArm",
+        "060 RHand",
+        "Pidgey"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "5d250a341650112934979699a0f2db6bcdf9bedc35df859ffc0c08ec0e6a6f8a",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/16.png",
+      "comparisonSheet": "model-review/sheet-02.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 17,
+      "species": "pidgeotto",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/17.glb",
+      "bytes": 462216,
+      "sha256": "d0be7d19ed3c55a4dd9f8a22cc2feac707227966f0f448c888f92a798ad957c8",
+      "meshNames": [
+        "Pidgeotto"
+      ],
+      "rootNames": [
+        "052 HairB3",
+        "054 Jaw",
+        "056 RArm",
+        "057 RForeArm",
+        "058 RHand",
+        "060 RFeeler1",
+        "061 RFeeler2",
+        "Pidgeotto"
+      ],
+      "animations": [],
+      "textures": 4,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "982f331c5221eff74d49aeaf04cde4e7c84452c0a62bd8ee9c9751eaed3ecb51",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/17.png",
+      "comparisonSheet": "model-review/sheet-02.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 18,
+      "species": "pidgeot",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/18.glb",
+      "bytes": 496896,
+      "sha256": "985a32177b8b2959f4c46c993e29f3dcd96df8bc75327c54db2430598c755d32",
+      "meshNames": [
+        "Pidgeot"
+      ],
+      "rootNames": [
+        "087 RHairB6",
+        "089 RFeeler1",
+        "090 RFeeler2",
+        "092 RShoulder",
+        "093 RArm",
+        "094 RForeArm",
+        "095 RHand",
+        "Pidgeot"
+      ],
+      "animations": [],
+      "textures": 4,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "07a8e1e83073ee0251e9339eb0cc21d3eda4d64ebbaa50ba3cb320faf51853fe",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/18.png",
+      "comparisonSheet": "model-review/sheet-02.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 19,
+      "species": "rattata",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/19.glb",
+      "bytes": 319332,
+      "sha256": "54bec2341b5e7579eb77f4aca8546b70ccf77382f366d66f1b7f286047fa10ee",
+      "meshNames": [
+        "Rattata_F"
+      ],
+      "rootNames": [
+        "051 LHand",
+        "053 LFinger",
+        "055 RShoulder",
+        "056 RArm",
+        "057 RForeArm",
+        "058 RHand",
+        "060 RFinger",
+        "Rattata_F"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "1e59c633c921529a1f4c404d7f4ac39e12cc3b982e3f1d0c8a63f98ac5af6709",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/19.png",
+      "comparisonSheet": "model-review/sheet-02.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 20,
+      "species": "raticate",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/20.glb",
+      "bytes": 375296,
+      "sha256": "ee26935293bf89fff792420d53f46f8e63866688aa58be0b1bd882ecbcf0ebe0",
+      "meshNames": [
+        "Raticate_F"
+      ],
+      "rootNames": [
+        "069 RHand",
+        "070 RFingerA1",
+        "071 RFingerA2",
+        "073 RFingerB1",
+        "074 RFingerB2",
+        "076 RFingerC1",
+        "077 RFingerC2",
+        "Raticate_F"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "11283c4601e717434360cd88b17b722958bc5b28fd4a367b9836234f99c27504",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/20.png",
+      "comparisonSheet": "model-review/sheet-02.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 21,
+      "species": "spearow",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/21.glb",
+      "bytes": 425136,
+      "sha256": "0bf7c801ed0d06e77e580d8b73f2ddea3718f298f67af33af661bd8b650160d0",
+      "meshNames": [
+        "Spearow"
+      ],
+      "rootNames": [
+        "053 RHairB",
+        "055 RHairC",
+        "057 RArm",
+        "058 RForeArm",
+        "059 RHand",
+        "061 RFeeler1",
+        "062 RFeeler2",
+        "Spearow"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "97e929387f41d31ce4ff82b40715d753f78aaf636c700645548adee550cabb09",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/21.png",
+      "comparisonSheet": "model-review/sheet-02.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 22,
+      "species": "fearow",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/22.glb",
+      "bytes": 523896,
+      "sha256": "df9c87f1fb5391fa1f1a29b12c1fa9baa8544fa3defab19908e785199dadaeeb",
+      "meshNames": [
+        "Fearow"
+      ],
+      "rootNames": [
+        "094 RForeArm2",
+        "095 RFingerC",
+        "097 RFingerD",
+        "099 RHand",
+        "100 RFingerA",
+        "102 RFingerB",
+        "104 RFeelerD",
+        "Fearow"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "01cb49448ee0b7a06bf513110c45437230ff812830d63eacbc256cabef78a1fe",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/22.png",
+      "comparisonSheet": "model-review/sheet-02.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 23,
+      "species": "ekans",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/23.glb",
+      "bytes": 202060,
+      "sha256": "97a6056344b3a4cc330e09acc3c04782724d3cc20e6af9ffbf01397e442f0c10",
+      "meshNames": [
+        "Ekans"
+      ],
+      "rootNames": [
+        "Spine5",
+        "Spine6",
+        "Spine7",
+        "Spine8",
+        "Head",
+        "LowerJaw",
+        "UpperJaw",
+        "Ekans"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "8b5465317e13ad48431bde209377a21f9f4c24d90fd1eaccdb4b9033a053636e",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/23.png",
+      "comparisonSheet": "model-review/sheet-02.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 24,
+      "species": "arbok",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/24.glb",
+      "bytes": 291744,
+      "sha256": "1b26a44572a6e3f082acd09a32897b60ed86f0b5f49de72f4ee41e003fee6580",
+      "meshNames": [
+        "Arbok"
+      ],
+      "rootNames": [
+        "Tail5",
+        "Tail6",
+        "Tail7",
+        "Tail8",
+        "Tail9",
+        "Tail10",
+        "Tail11",
+        "Arbok"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "c5e8d2027a7407aea6ded09d39229d63f098127392ad418c5feadfd915a02242",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/24.png",
+      "comparisonSheet": "model-review/sheet-02.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 25,
+      "species": "pikachu",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/25.glb",
+      "bytes": 373156,
+      "sha256": "1ad7c2fa937ac5adc1f2d06e8360a56e80ad41d1eeb3e4a88bdea3e600bc627a",
+      "meshNames": [
+        "Object_2",
+        "Object_3",
+        "Object_4",
+        "Object_0",
+        "Object_1"
+      ],
+      "rootNames": [
+        "Pikachu_46",
+        "GLTF_created_0_rootJoint",
+        "Object_11",
+        "Object_13",
+        "Object_15",
+        "Object_7",
+        "Object_9",
+        "GLTF_created_0"
+      ],
+      "animations": [
+        "Impactrueno"
+      ],
+      "textures": 4,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "6c09be51ffcf8caf45ae0980c9e11a0e963fc6fdbf111a200910982ba9bf8b2c",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png",
+      "comparisonSheet": "model-review/sheet-03.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 26,
+      "species": "raichu",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/26.glb",
+      "bytes": 415320,
+      "sha256": "9f961f041a3ccfb7b4bcc1d935ab0e9c7fe64d264c38d5bb74e726e688ce2d56",
+      "meshNames": [
+        "RaichuF"
+      ],
+      "rootNames": [
+        "LArm",
+        "LForeArm",
+        "LHand",
+        "RShoulder",
+        "RArm",
+        "RForeArm",
+        "RHand",
+        "RaichuF"
+      ],
+      "animations": [],
+      "textures": 4,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "0fcf6bd119d33fda6111a19b909fd1977eeb3c7e7bc05d79b33fd444954e9758",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/26.png",
+      "comparisonSheet": "model-review/sheet-03.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 27,
+      "species": "sandshrew",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/27.glb",
+      "bytes": 512104,
+      "sha256": "476315e352ac9687c50deffc47764a1f062565ed590d5518f4875b3552c32126",
+      "meshNames": [
+        "Sandshrew",
+        "Sandshrew_Roll"
+      ],
+      "rootNames": [
+        "RArm",
+        "RForeArm",
+        "RHand",
+        "RFingerA",
+        "RFingerB",
+        "RFingerC",
+        "Sandshrew",
+        "Sandshrew_Roll"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "993c80edbc234a9708bc83f8f5cfd63e12396d22c394dd3caa9e6a323130de3b",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/27.png",
+      "comparisonSheet": "model-review/sheet-03.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 28,
+      "species": "sandslash",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/28.glb",
+      "bytes": 494732,
+      "sha256": "f4f0f1c0f3b4a16062a3bad7ce274d47e45332d90bd932ccacd83a89b5752345",
+      "meshNames": [
+        "Sandslash"
+      ],
+      "rootNames": [
+        "RArm",
+        "RForeArm",
+        "RHand",
+        "RFinger",
+        "RFeelerD",
+        "RFeelerE",
+        "RFeelerF",
+        "Sandslash"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "0793a259bdc19a42202f633012ecb3e7e460acba52af8940abdb2f3242c4bebd",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/28.png",
+      "comparisonSheet": "model-review/sheet-03.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 29,
+      "species": "nidoran-f",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/29.glb",
+      "bytes": 334572,
+      "sha256": "c3dc0afb986c28e8deb36d11ae09af352e67078dac207c2ebd957b0049597072",
+      "meshNames": [
+        "NidoranF"
+      ],
+      "rootNames": [
+        "LHand",
+        "LFinger",
+        "RShoulder",
+        "RArm",
+        "RForeArm",
+        "RHand",
+        "RFinger",
+        "NidoranF"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "e827b57b23b5b9b2dc0e93521f877f9ae6440e2614d733bc37da62b2f7989e6c",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/29.png",
+      "comparisonSheet": "model-review/sheet-03.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 30,
+      "species": "nidorina",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/30.glb",
+      "bytes": 368024,
+      "sha256": "4633691ae7cf6fbd0b39557005952609b8bbf0f7c7e2d3c96e39589b41146b89",
+      "meshNames": [
+        "Nidorina"
+      ],
+      "rootNames": [
+        "RShoulder",
+        "RArm",
+        "RForeArm",
+        "RHand",
+        "RFingerA",
+        "RFingerB",
+        "RFingerC",
+        "Nidorina"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "55aa7da0dc84ce72d2fc47e6f55f657c7bfb941d044ad085f7e191ba81cedfce",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/30.png",
+      "comparisonSheet": "model-review/sheet-03.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 31,
+      "species": "nidoqueen",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/31.glb",
+      "bytes": 388124,
+      "sha256": "304c8fb0fb10f385cb7b9447df2c4564394f856a853ed12fe9f28b825ea4ef2e",
+      "meshNames": [
+        "Nidoqueen"
+      ],
+      "rootNames": [
+        "RArm",
+        "RForeArm",
+        "RHand",
+        "RHandSub",
+        "RFingerA",
+        "RFingerB",
+        "RFingerC",
+        "Nidoqueen"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "87f418a585124f04ec57ac198e5bceeb8a3dd91ff5456018d6d9bba62f380bbb",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/31.png",
+      "comparisonSheet": "model-review/sheet-03.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 32,
+      "species": "nidoran-m",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/32.glb",
+      "bytes": 345520,
+      "sha256": "583ad8372a916a29ea6f4019b0b98652c19ea5cbf526cf992b651439ac2e608a",
+      "meshNames": [
+        "NidoranM"
+      ],
+      "rootNames": [
+        "LHand",
+        "LFinger",
+        "RShoulder",
+        "RArm",
+        "RForeArm",
+        "RHand",
+        "RFinger",
+        "NidoranM"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "6063992ebc0c2df2d5dd26dd114e90e02ad8d238ee8ddf21ebf3d840ab69bb24",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/32.png",
+      "comparisonSheet": "model-review/sheet-03.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 33,
+      "species": "nidorino",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/33.glb",
+      "bytes": 369904,
+      "sha256": "8e2432871f4d882ce131fdc37411abf5cfdce46fb181b82a113eecfa2b887a18",
+      "meshNames": [
+        "Nidorino"
+      ],
+      "rootNames": [
+        "LHand",
+        "LFinger",
+        "RShoulder",
+        "RArm",
+        "RForeArm",
+        "RHand",
+        "RFinger",
+        "Nidorino"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "f786a3f9a4bdee1ba7ab1dac0655a369c012b751aada568f51256aca0326bdc2",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/33.png",
+      "comparisonSheet": "model-review/sheet-03.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 34,
+      "species": "nidoking",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/34.glb",
+      "bytes": 496688,
+      "sha256": "a00fa021ad62d15773c7fb4bc8a926931794ef797feef241b33499c79eee93bf",
+      "meshNames": [
+        "Nidoking"
+      ],
+      "rootNames": [
+        "RArm",
+        "RForeArm",
+        "RHandSub",
+        "RHand",
+        "RFingerA",
+        "RFingerB",
+        "RFingerC",
+        "Nidoking"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "c497762ae7e80e5cf0697b3dd0433a278a895201cd5d2fee4f2ab633a6efeaf0",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/34.png",
+      "comparisonSheet": "model-review/sheet-03.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 35,
+      "species": "clefairy",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/35.glb",
+      "bytes": 90864,
+      "sha256": "2f1d38b02c15e9a73f43065eab483ec954dee914cb21bc6177c60d9d51797330",
+      "meshNames": [
+        "Object_0",
+        "Object_1",
+        "Object_2"
+      ],
+      "rootNames": [
+        "Object_3",
+        "Object_4",
+        "Object_5"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "d6db3655265d61e35d22bf184ededc8d4f09cb482e479641426582d0a7a4308a",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/35.png",
+      "comparisonSheet": "model-review/sheet-03.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 36,
+      "species": "clefable",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/36.glb",
+      "bytes": 278644,
+      "sha256": "4df07cdd86bdc29d1948c1067aaf27de71dfae2ef21045336252aea8470c832f",
+      "meshNames": [
+        "Clefable"
+      ],
+      "rootNames": [
+        "055 RFingerA2",
+        "057 RFingerB1",
+        "058 RFingerB2",
+        "060 RFingerC1",
+        "061 RFingerC2",
+        "063 Tail1",
+        "064 Tail2",
+        "Clefable"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "1cd15789ac7f94468fd5fda337b4313c220481965e7350a118bddeeb73f64d46",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/36.png",
+      "comparisonSheet": "model-review/sheet-03.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 37,
+      "species": "vulpix",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/37.glb",
+      "bytes": 434384,
+      "sha256": "bd0463829d3d4effe975881ccf8712d0f52bbe816159b17b1a742e4694b604da",
+      "meshNames": [
+        "Vulpix"
+      ],
+      "rootNames": [
+        "067 LEar",
+        "069 REar",
+        "071 RShoulder",
+        "072 RArm",
+        "073 RForeArm",
+        "074 RHand",
+        "076 RFinger",
+        "Vulpix"
+      ],
+      "animations": [],
+      "textures": 4,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "e70824e4312e14554b2aca25287afc430b68eade15c05854d16c230e1404ba1a",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/37.png",
+      "comparisonSheet": "model-review/sheet-04.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 38,
+      "species": "ninetales",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/38.glb",
+      "bytes": 498996,
+      "sha256": "dcd06602f0a0de6e36cbaaf98a76cd446c932ba97813ddf58d70ec067c4205d4",
+      "meshNames": [
+        "Ninetales"
+      ],
+      "rootNames": [
+        "135 LEar",
+        "137 REar",
+        "139 RShoulder",
+        "140 RArm",
+        "141 RForeArm",
+        "142 RHand",
+        "144 RFinger",
+        "Ninetales"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "a842e0320c55bdc49868a9022b92fd2425e1fafb7cf17a7084b1bfd29e2b006a",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/38.png",
+      "comparisonSheet": "model-review/sheet-04.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 39,
+      "species": "jigglypuff",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/39.glb",
+      "bytes": 308192,
+      "sha256": "bde547b230467e2aafca9aaa8d646cb44fb2eab78979be7f63ec51150ead2919",
+      "meshNames": [
+        "Jigglypuff"
+      ],
+      "rootNames": [
+        "016 LToe",
+        "018 RArm",
+        "019 RHand",
+        "021 REar",
+        "023 RThigh",
+        "024 RFoot",
+        "025 RToe",
+        "Jigglypuff"
+      ],
+      "animations": [],
+      "textures": 4,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "4b80135adfb9bcc341d62b558db747cae1a5a1ae31cc002519b1bddd5fd9098f",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/39.png",
+      "comparisonSheet": "model-review/sheet-04.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 40,
+      "species": "wigglytuff",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/40.glb",
+      "bytes": 498424,
+      "sha256": "d641d432156cefb43b3d360876de9adf4ecd7d9f2b7b39c02b608a5c344c741e",
+      "meshNames": [
+        "pukurin_10_body_0",
+        "pukurin_10_mouth_0",
+        "pukurin_10_eye_0"
+      ],
+      "rootNames": [
+        "PT_head_017",
+        "PT_mouth_018",
+        "R_UpperArm_00",
+        "R_Forearm_020",
+        "R_Hand_021",
+        "PT_R_hand_022",
+        "PT_center_019",
+        "Tail_023"
+      ],
+      "animations": [
+        "bd_ev103_taa",
+        "bd_ev107_sleeploop",
+        "bd_landing",
+        "bd_run"
+      ],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "2d0d07fd407420a0f643fbe60052b560b0600ff45f4e9fdc5f307a046db068bd",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/40.png",
+      "comparisonSheet": "model-review/sheet-04.png",
+      "notes": "Small source scale; preview framing corrected by excluding renderer helper meshes and adjusting camera clipping. Runtime normalizes bounds.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 41,
+      "species": "zubat",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/41.glb",
+      "bytes": 1215052,
+      "sha256": "87a5359ee8a3d39feed89c03d8b8867296f410a46922769c37176126d8c89a20",
+      "meshNames": [
+        "nosferapti_lp__0",
+        "nosferapti_black line_outline_0"
+      ],
+      "rootNames": [
+        "Bone007_013",
+        "Bone008_014",
+        "Bone009_015",
+        "Bone010_016",
+        "Bone011_017",
+        "Bone012_018",
+        "Bone013_019",
+        "Bone014_020"
+      ],
+      "animations": [
+        "Take 001"
+      ],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "cb97d709f685a1ef4f9c9c855ebb892df2f032997b1f9ca9e71722f49f40c4f3",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/41.png",
+      "comparisonSheet": "model-review/sheet-04.png",
+      "notes": "Removed opaque outline shell. Re-render confirmed blue body and purple wings.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 42,
+      "species": "golbat",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/42.glb",
+      "bytes": 110588,
+      "sha256": "155b5c1e1313f29011213d2d9f9d1693e688aaf0f3aa552d1c4a1be60b0c222a",
+      "meshNames": [
+        "Object_0",
+        "Object_1"
+      ],
+      "rootNames": [
+        "Object_2",
+        "Object_3"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "25d86c04dbff473ab67fd9cfd43619333c7bb7f4f58bc087189261ade90eec7a",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/42.png",
+      "comparisonSheet": "model-review/sheet-04.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 43,
+      "species": "oddish",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/43.glb",
+      "bytes": 259396,
+      "sha256": "9100eccf3aa0a5f77cdd5f00eb77aa77ecd383cf711834d0443c25563ed0325e",
+      "meshNames": [
+        "Oodish"
+      ],
+      "rootNames": [
+        "025 RFeelerB3",
+        "027 RFeelerC1",
+        "028 RFeelerC2",
+        "029 RFeelerC3",
+        "031 RThigh",
+        "032 RFoot",
+        "034 RToe",
+        "Oodish"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "cffd5802f946aa02048aea0453ed8c8598fb2b9e3320f65f6d11202bd2a0fb5e",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/43.png",
+      "comparisonSheet": "model-review/sheet-04.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 44,
+      "species": "gloom",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/44.glb",
+      "bytes": 302440,
+      "sha256": "161aaa18498770fcce8c738c43df117386e4ea00c714a8c329248e6947749973",
+      "meshNames": [
+        "Gloom"
+      ],
+      "rootNames": [
+        "050 LThigh",
+        "051 LFoot",
+        "053 LToe",
+        "055 RHips",
+        "056 RThigh",
+        "057 RFoot",
+        "059 RToe",
+        "Gloom"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "c223b1e49e73c5601df14c39ac77f3c622522b4a776093f857cb2f1f4d8aedb3",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/44.png",
+      "comparisonSheet": "model-review/sheet-04.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 45,
+      "species": "vileplume",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/45.glb",
+      "bytes": 298688,
+      "sha256": "98d03acc7a5676e290c5347a6250366e61edc906cd3ff81fcb79cd73d61a91cb",
+      "meshNames": [
+        "Vileplume"
+      ],
+      "rootNames": [
+        "029 FeelerC1",
+        "030 FeelerC2",
+        "032 FeelerD1",
+        "033 FeelerD2",
+        "035 FeelerE1",
+        "036 FeelerE2",
+        "038 FeelerF2",
+        "Vileplume"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "1882c6c7271426e3eb900a247e51d9c47f8b1b1e833d14755b310f0970f269f1",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/45.png",
+      "comparisonSheet": "model-review/sheet-04.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 46,
+      "species": "paras",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/46.glb",
+      "bytes": 323344,
+      "sha256": "e1676102dc78f6cb6c438e4c590450f30e30d1d687b368642f7a75e03ddf029f",
+      "meshNames": [
+        "Paras"
+      ],
+      "rootNames": [
+        "034 RFeelerC",
+        "036 RThigh",
+        "037 RLeg",
+        "038 RFoot",
+        "040 RThigh2",
+        "041 RLeg2",
+        "042 RFoot2",
+        "Paras"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "a6d3b9a658a83af1521b714c9b31808f1df199af2bfc93a7d44aca4860820c47",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/46.png",
+      "comparisonSheet": "model-review/sheet-04.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 47,
+      "species": "parasect",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/47.glb",
+      "bytes": 364940,
+      "sha256": "043f7037d4b53a8a3cfc59cfedfe37628bbbccc59fd0aac81a94eccdc7624dd7",
+      "meshNames": [
+        "Parasect"
+      ],
+      "rootNames": [
+        "034 RLeg",
+        "035 RFoot",
+        "036 RToe",
+        "038 RThigh2",
+        "039 RLeg2",
+        "040 RFoot2",
+        "041 RToe2",
+        "Parasect"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "bf116d7615d7599fbacb05f18ca61e878d9649dca136a2979262187f99d5f235",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/47.png",
+      "comparisonSheet": "model-review/sheet-04.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 48,
+      "species": "venonat",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/48.glb",
+      "bytes": 276484,
+      "sha256": "8222c22b88a941f6a1d16edb13e69df44aeec327a0599bd81199f10edab6b479",
+      "meshNames": [
+        "Venonat"
+      ],
+      "rootNames": [
+        "075 RFeelerL",
+        "077 RFeelerM",
+        "079 RFeelerN",
+        "081 RFeelerO",
+        "083 RThigh",
+        "084 RFoot",
+        "085 RToe",
+        "Venonat"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "5161e02de616d83d3dcc3b4556a0b3e39e8f2d751ce9b12aba085ddbb9facd47",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/48.png",
+      "comparisonSheet": "model-review/sheet-04.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 49,
+      "species": "venomoth",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/49.glb",
+      "bytes": 368140,
+      "sha256": "0b335948b5e0fd12944e4126bb0deb46eaeeb002e0ee87116eee9492d77ade7c",
+      "meshNames": [
+        "Venomoth"
+      ],
+      "rootNames": [
+        "041 RForeArm2",
+        "043 RArm3",
+        "044 RForeArm3",
+        "046 RFeelerA1",
+        "047 RFeelerA2",
+        "049 RFeelerB1",
+        "050 RFeelerB2",
+        "Venomoth"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "ee407f03c565bb238301f461b19cdfa844bcca373c61a9136f0cbdef0c492999",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/49.png",
+      "comparisonSheet": "model-review/sheet-05.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 50,
+      "species": "diglett",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/50.glb",
+      "bytes": 126720,
+      "sha256": "816684ee0f572213601e038d6f26b77dbaae7243ef6f9b3dc01888bb170393cf",
+      "meshNames": [
+        "Diglett"
+      ],
+      "rootNames": [
+        "003 Waist",
+        "004 Spine1",
+        "005 Spine2",
+        "006 Spine3",
+        "007 Head",
+        "009 Nose",
+        "Diglett"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "974857fa0a45cb6da8ffdfe0f01d201850a0ba523d851d81514382284c7fd635",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/50.png",
+      "comparisonSheet": "model-review/sheet-05.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 51,
+      "species": "dugtrio",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/51.glb",
+      "bytes": 308880,
+      "sha256": "3ea9697f5da3ca5f3220cad215de45d81e4e9735ba734348dbd77a5e42bb21c9",
+      "meshNames": [
+        "Dugtrio"
+      ],
+      "rootNames": [
+        "018 FeelerB",
+        "020 SpineC1",
+        "021 SpineC2",
+        "022 SpineC3",
+        "023 SpineC4",
+        "024 HeadC",
+        "026 FeelerC",
+        "Dugtrio"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "4a3bb37c3ae6c3467ba86cbafb503d80726c3f1000f5d47c67e3cc99005e8d9e",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/51.png",
+      "comparisonSheet": "model-review/sheet-05.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 52,
+      "species": "meowth",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/52.glb",
+      "bytes": 378416,
+      "sha256": "18a4f77e2b97865a74e11609756af5d5dbb0dd6a7f206f72b560c9ddc651a3c8",
+      "meshNames": [
+        "Meowth"
+      ],
+      "rootNames": [
+        "077 RFingerA3",
+        "079 RFingerB1",
+        "080 RFingerB2",
+        "081 RFingerB3",
+        "083 RFingerC1",
+        "084 RFingerC2",
+        "085 RFingerC3",
+        "Meowth"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "7130143825e89beaefac74d0a8e94f7f7e8e745f1dd40d753dfa745d38ed5560",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/52.png",
+      "comparisonSheet": "model-review/sheet-05.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 53,
+      "species": "persian",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/53.glb",
+      "bytes": 353952,
+      "sha256": "e5d6a0570c16dce2de4793059f6a2efbc08f1bc76746c928b0cf80088e5a796d",
+      "meshNames": [
+        "Persian"
+      ],
+      "rootNames": [
+        "062 RFeelerC1",
+        "063 RFeelerC2",
+        "065 RShoulder",
+        "066 RArm",
+        "067 RForeArm",
+        "068 RHand",
+        "070 RFinger",
+        "Persian"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "69468680aafb444563c84e623b504744008714d2a226a79906eb655379464e69",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/53.png",
+      "comparisonSheet": "model-review/sheet-05.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 54,
+      "species": "psyduck",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/54.glb",
+      "bytes": 302720,
+      "sha256": "290487b2791646498716840a5187524d72ab12143f2b9e41e2224980ad68565c",
+      "meshNames": [
+        "Psyduck"
+      ],
+      "rootNames": [
+        "048 RShoulder",
+        "049 RArm",
+        "050 RForeArm",
+        "051 RHand",
+        "053 RFingerA",
+        "055 RFingerB",
+        "057 RFingerC",
+        "Psyduck"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "6dafc814712170c46ec69b71043ff756674819db77871dd687fc486df72535a6",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/54.png",
+      "comparisonSheet": "model-review/sheet-05.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 55,
+      "species": "golduck",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/55.glb",
+      "bytes": 382628,
+      "sha256": "085869beae3b1307d17b0c3ab111e06e5ecbfd4892fc103060f6d203985f3351",
+      "meshNames": [
+        "Golduck"
+      ],
+      "rootNames": [
+        "063 RHand",
+        "064 RFingerA1",
+        "065 RFingerA2",
+        "067 RFingerB1",
+        "068 RFingerB2",
+        "070 RFingerC1",
+        "071 RFingerC2",
+        "Golduck"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "50bd1b5b6abf4cb2fb6643111197cfa06092b25db73ea8d0623d63fe0dc38b6b",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/55.png",
+      "comparisonSheet": "model-review/sheet-05.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 56,
+      "species": "mankey",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/56.glb",
+      "bytes": 285368,
+      "sha256": "1ecd675d1af314667ebed6eba7e8edb12357068393867acde5294006fcdfee7a",
+      "meshNames": [
+        "Mankey"
+      ],
+      "rootNames": [
+        "050 RToeB1",
+        "051 RToeB2",
+        "053 RToeC",
+        "055 Tail1",
+        "056 Tail2",
+        "057 Tail3",
+        "058 Tail4",
+        "Mankey"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "06136dc247ce385d890c5da7d694af314433b35c9b448d13c205fdf2bb1aa56f",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/56.png",
+      "comparisonSheet": "model-review/sheet-05.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 57,
+      "species": "primeape",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/57.glb",
+      "bytes": 291232,
+      "sha256": "afee16e9950fd9b4724ce3cd048ccae4d203be7a93325f733b6923beb4127f4d",
+      "meshNames": [
+        "Primeape"
+      ],
+      "rootNames": [
+        "036 RFingerB1",
+        "037 RFingerB2",
+        "039 REar",
+        "041 RThigh",
+        "042 RLeg",
+        "043 RFoot",
+        "045 RToe",
+        "Primeape"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "9c6f1faeb3257ff3db7e768d0f1a57bb260bdf0f560bdedb00e1e5671d6192b2",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/57.png",
+      "comparisonSheet": "model-review/sheet-05.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 58,
+      "species": "growlithe",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/58.glb",
+      "bytes": 412700,
+      "sha256": "072d6ef42e60626cef4ccb9340ba467e98dc2f1c13c8f14290bb9091f1459050",
+      "meshNames": [
+        "Growlithe"
+      ],
+      "rootNames": [
+        "058 RShoulder",
+        "059 RArm",
+        "060 RForeArm",
+        "061 RHand",
+        "063 RFinger",
+        "065 RFingerA",
+        "067 RFingerB",
+        "Growlithe"
+      ],
+      "animations": [],
+      "textures": 4,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "ed676e83fae8477c33b985783c74ae7191e7f63622e716d534cc5357c89e534d",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/58.png",
+      "comparisonSheet": "model-review/sheet-05.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 59,
+      "species": "arcanine",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/59.glb",
+      "bytes": 525504,
+      "sha256": "e2f83d491c21c000e2237a31eafc29de176dff682a50cd376890559539f47039",
+      "meshNames": [
+        "Arcanine"
+      ],
+      "rootNames": [
+        "RShoulder",
+        "RArm",
+        "RForeArm",
+        "RFeelerB1",
+        "RFeelerB2",
+        "RHand",
+        "RFingerA",
+        "Arcanine"
+      ],
+      "animations": [],
+      "textures": 4,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "d3e70b6272cd5677746a6af2c6d709f22be597b40bd5de72cbc0013a41ebb548",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/59.png",
+      "comparisonSheet": "model-review/sheet-05.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 60,
+      "species": "poliwag",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/60.glb",
+      "bytes": 78124,
+      "sha256": "37b7cd909ab80dc63cdc24bb0870daceb52b86f1746e10bc1f3ba5b01ca3ba08",
+      "meshNames": [
+        "Object_0",
+        "Object_1",
+        "Object_2"
+      ],
+      "rootNames": [
+        "Object_3",
+        "Object_4",
+        "Object_5"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "4074a33e232d69dae3efa31a8c1245a9fd794a754f99021584d96fa4157f2bb5",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/60.png",
+      "comparisonSheet": "model-review/sheet-05.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 61,
+      "species": "poliwhirl",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/61.glb",
+      "bytes": 304764,
+      "sha256": "a29822dbc6c431577c61c2ed76fee062e6ebf34dcadd2b940e454581c54c5de8",
+      "meshNames": [
+        "Poliwhirl"
+      ],
+      "rootNames": [
+        "031 RArm",
+        "032 RForeArm",
+        "033 RHand",
+        "035 RFingerA1",
+        "036 RFingerA2",
+        "038 RFingerB1",
+        "039 RFingerB2",
+        "Poliwhirl"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "8742f50a28814d1f3a393a4ddfd154007477bca800f236e052fd8c5ed39b7492",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/61.png",
+      "comparisonSheet": "model-review/sheet-06.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 62,
+      "species": "poliwrath",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/62.glb",
+      "bytes": 330088,
+      "sha256": "fc0979c8e8e089c978e8d044ba3735b470409d80cecc145f3d716bcbd234adec",
+      "meshNames": [
+        "Poliwrath"
+      ],
+      "rootNames": [
+        "037 RHand",
+        "039 RFingerA1",
+        "040 RFingerA2",
+        "042 RFingerB1",
+        "043 RFingerB2",
+        "045 RFingerC1",
+        "046 RFingerC2",
+        "Poliwrath"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "495f67a9aa465f8deb32189dfadad990318374ee3dcbe6d45b7fe498692f3554",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/62.png",
+      "comparisonSheet": "model-review/sheet-06.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 63,
+      "species": "abra",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/63.glb",
+      "bytes": 324208,
+      "sha256": "ef495ebb3fbc9d280aadb4c1db9b9570c9964eff8c2187c6decc6e7349b16b16",
+      "meshNames": [
+        "Abra"
+      ],
+      "rootNames": [
+        "RHand",
+        "RFingerA1",
+        "RFingerA2",
+        "RFingerB1",
+        "RFingerB2",
+        "RFingerC1",
+        "RFingerC2",
+        "Abra"
+      ],
+      "animations": [],
+      "textures": 1,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "6ff7e80c572e977986df0c9888cf2db034fc825715028c70d2dc233d40fdcf27",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/63.png",
+      "comparisonSheet": "model-review/sheet-06.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 64,
+      "species": "kadabra",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/64.glb",
+      "bytes": 483032,
+      "sha256": "699f0bcfd86ea63eb9a901fe5f8ffb95f7fec66dd0dfc4909f3bf85f654ad7f0",
+      "meshNames": [
+        "KadabraF"
+      ],
+      "rootNames": [
+        "Feeler",
+        "RFingerA1",
+        "RFingerA2",
+        "RFingerB1",
+        "RFingerB2",
+        "RFingerC1",
+        "RFingerC2",
+        "KadabraF"
+      ],
+      "animations": [],
+      "textures": 4,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "0121ba2791d6e9af8b646a96cd1b967a107f7c8219643b75b665595f97d9fc4d",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/64.png",
+      "comparisonSheet": "model-review/sheet-06.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 65,
+      "species": "alakazam",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/65.glb",
+      "bytes": 412440,
+      "sha256": "9cba0513214835bf9a1df604d27e6a9f066bd85fe81cf657bedf0b42fdfce1aa",
+      "meshNames": [
+        "AlakazamF"
+      ],
+      "rootNames": [
+        "RHand",
+        "RFingerA1",
+        "RFingerA2",
+        "RFingerB1",
+        "RFingerB2",
+        "RFingerC1",
+        "RFingerC2",
+        "AlakazamF"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "b85039e57d15a54868d43d7ac44c3acea7cc16bd93dd6006055c41a6383d9f76",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/65.png",
+      "comparisonSheet": "model-review/sheet-06.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 66,
+      "species": "machop",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/66.glb",
+      "bytes": 334084,
+      "sha256": "745eea33991c42f11bdce09383005eeacf4cf88cf4d38186baa10d54adb6fb63",
+      "meshNames": [
+        "Machop"
+      ],
+      "rootNames": [
+        "RFingerC3",
+        "RFingerD1",
+        "RFingerD2",
+        "RFingerD3",
+        "RFingerE1",
+        "RFingerE2",
+        "RFingerE3",
+        "Machop"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "24c7b613d547d595ab0ec78a88570e5e63a15db1a79c69b7e0e2c309cc640ae1",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/66.png",
+      "comparisonSheet": "model-review/sheet-06.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 67,
+      "species": "machoke",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/67.glb",
+      "bytes": 422440,
+      "sha256": "d30c02c5c75059919da95fcb33c5311129ef4fec7b5903ccf45937315163430d",
+      "meshNames": [
+        "Machoke"
+      ],
+      "rootNames": [
+        "RFingerC3",
+        "RFingerD1",
+        "RFingerD2",
+        "RFingerD3",
+        "RFingerE1",
+        "RFingerE2",
+        "RFingerE3",
+        "Machoke"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "d4aba5cc0cc32561aac7c1151b82137a306d10c573e2d733d53f5c797e518282",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/67.png",
+      "comparisonSheet": "model-review/sheet-06.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 68,
+      "species": "machamp",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/68.glb",
+      "bytes": 530320,
+      "sha256": "347c9715d553bb4b13c1d659c20c72fff1ea2c9a7e4f4cf97abf96274039cc2a",
+      "meshNames": [
+        "Machamp"
+      ],
+      "rootNames": [
+        "RFingerH3",
+        "RFingerI1",
+        "RFingerI2",
+        "RFingerI3",
+        "RFingerJ1",
+        "RFingerJ2",
+        "RFingerJ3",
+        "Machamp"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "1bcd6b44189a07de02115885961d3951798ce1b17459cdf452526873f85137fc",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/68.png",
+      "comparisonSheet": "model-review/sheet-06.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 69,
+      "species": "bellsprout",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/69.glb",
+      "bytes": 254612,
+      "sha256": "e7d4d34b56c36ccc673585be1563666c53bb498f6ed754621e9a7806740d3fb8",
+      "meshNames": [
+        "Bellsprout"
+      ],
+      "rootNames": [
+        "064 FeelerB",
+        "066 LFeeler",
+        "068 LFeelerA",
+        "070 LFeelerB",
+        "072 RFeeler",
+        "074 RFeelerA",
+        "076 RFeelerB",
+        "Bellsprout"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "c1f38166b8313fd1cfe6d2e9b0b90caa5c996899d92bca114ff7ccf94e88b0e5",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/69.png",
+      "comparisonSheet": "model-review/sheet-06.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 70,
+      "species": "weepinbell",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/70.glb",
+      "bytes": 224128,
+      "sha256": "514a9ffcdf43666b58d9d7458e4d34856492bf0cf53724e93c72f25b825be815",
+      "meshNames": [
+        "Weepinbell"
+      ],
+      "rootNames": [
+        "LJawA",
+        "LJawB",
+        "LowerJaw",
+        "RJaw",
+        "RJawA",
+        "RJawB",
+        "UpperJaw",
+        "Weepinbell"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "5dde8f4e9b7b8b403aa58585b0a76b100b43fa4702eede5f14991aff71760f6b",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/70.png",
+      "comparisonSheet": "model-review/sheet-06.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 71,
+      "species": "victreebel",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/71.glb",
+      "bytes": 263780,
+      "sha256": "a170225f13600350dee0ef682b6a8c0cd888121c8501996029d73cc7b9eaaf12",
+      "meshNames": [
+        "Victreebel"
+      ],
+      "rootNames": [
+        "050 LJawB",
+        "052 LJawC",
+        "054 LTeeth",
+        "056 RJawA",
+        "058 RJawB",
+        "060 RJawC",
+        "062 RTeeth",
+        "Victreebel"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "bedc7ee7a3033c9caedcc7f093f0fd79d237bede99e544262a25613864c34ba6",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/71.png",
+      "comparisonSheet": "model-review/sheet-06.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 72,
+      "species": "tentacool",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/72.glb",
+      "bytes": 264180,
+      "sha256": "7e07b8fc8b81ccc619694397a1240805480092a89c7d6471543ee86dae5f105c",
+      "meshNames": [
+        "Tentacool"
+      ],
+      "rootNames": [
+        "010 LFeeler6",
+        "012 RFeeler1",
+        "013 RFeeler2",
+        "014 RFeeler3",
+        "015 RFeeler4",
+        "016 RFeeler5",
+        "017 RFeeler6",
+        "Tentacool"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "7a29494bd7d75d40edf5d038d7a8cd18967da4b6f291ebd52f9b8b52a73cdf6a",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/72.png",
+      "comparisonSheet": "model-review/sheet-06.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 73,
+      "species": "tentacruel",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/73.glb",
+      "bytes": 313308,
+      "sha256": "a6daea30dbe67531466132b7f3674a989a13008446d10dd159f453b25454bc6c",
+      "meshNames": [
+        "Tentacruel"
+      ],
+      "rootNames": [
+        "060 RFeelerD4",
+        "061 RFeelerD5",
+        "063 RFeelerE1",
+        "064 RFeelerE2",
+        "065 RFeelerE3",
+        "066 RFeelerE4",
+        "067 RFeelerE5",
+        "Tentacruel"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "4e266793704d60f4928386f65c9ad1a3627178595221e5d9326f60f724288367",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/73.png",
+      "comparisonSheet": "model-review/sheet-07.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 74,
+      "species": "geodude",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/74.glb",
+      "bytes": 290672,
+      "sha256": "4adde2203a586035b5651c1aa7db01a29f9e259b6ec994230729be6e1698f4d6",
+      "meshNames": [
+        "Geodude"
+      ],
+      "rootNames": [
+        "045 RFingerC3",
+        "047 RFingerD1",
+        "048 RFingerD2",
+        "049 RFingerD3",
+        "051 RFingerE1",
+        "052 RFingerE2",
+        "053 RFingerE3",
+        "Geodude"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "6a3dd1e93824aec535bca1467b613b9bd75abd25cd07cb3d81ff46db6dd9f676",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/74.png",
+      "comparisonSheet": "model-review/sheet-07.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 75,
+      "species": "graveler",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/75.glb",
+      "bytes": 384276,
+      "sha256": "0045d4fe0aba05dd33b77f81b65c18ff7ef033797aff45451accd722b4934c5c",
+      "meshNames": [
+        "Graveler"
+      ],
+      "rootNames": [
+        "058 RFingerE1",
+        "059 RFingerE2",
+        "061 RFingerF1",
+        "062 RFingerF2",
+        "064 RThigh",
+        "065 RFoot",
+        "067 RToe",
+        "Graveler"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "e8217a5445957bbf95c150f349b662025d38deb0e5e717fc737708be6e6aa265",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/75.png",
+      "comparisonSheet": "model-review/sheet-07.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 76,
+      "species": "golem",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/76.glb",
+      "bytes": 441576,
+      "sha256": "33c68962ef879ae5723ecd676a576bb821ab0d0e3809bae1b32697dbf236de10",
+      "meshNames": [
+        "Golem"
+      ],
+      "rootNames": [
+        "044 RFingerB",
+        "046 RFingerC",
+        "048 RThigh",
+        "049 RLeg",
+        "050 RFoot",
+        "052 RToeA",
+        "054 RToeB",
+        "Golem"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "d237d8ecebe73835d922953ac059833b135f44e02f75742411124dc39e0d40f4",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/76.png",
+      "comparisonSheet": "model-review/sheet-07.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 77,
+      "species": "ponyta",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/77.glb",
+      "bytes": 1498308,
+      "sha256": "82678f89be3d8fccd6e3b4ef9eddeab70d635830916cecdfc6575da0bc1469a8",
+      "meshNames": [
+        "cuerpo_Body_0",
+        "cuerpo_Hair_0"
+      ],
+      "rootNames": [
+        "cuerpo_Body_0",
+        "cuerpo_Hair_0"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "c205c850acc81383a49317107b7c25c3feb4f96fa2483f27c63f5e313dabfde7",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/77.png",
+      "comparisonSheet": "model-review/sheet-07.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 78,
+      "species": "rapidash",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/78.glb",
+      "bytes": 506876,
+      "sha256": "5cf60613e10e98d1b10be7712fecda61423fab09af3c5503ca18d0414591586b",
+      "meshNames": [
+        "Rapidash"
+      ],
+      "rootNames": [
+        "RTailA05",
+        "RTailA06",
+        "TailF01",
+        "TailF02",
+        "TailF03",
+        "TailG01",
+        "TailG02",
+        "Rapidash"
+      ],
+      "animations": [],
+      "textures": 4,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "a14ad6555de3d66b1815a979f580d0774c99811969229f6cabd87e51beffceab",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/78.png",
+      "comparisonSheet": "model-review/sheet-07.png",
+      "notes": "Flame masks receive warm emissive color and luminance transparency. Neutral source pose has tall mane/flame planes.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 79,
+      "species": "slowpoke",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/79.glb",
+      "bytes": 315684,
+      "sha256": "ace995d1605e7621bad8794182889abe62472a3c5b6a8db9c078590b5ede5d55",
+      "meshNames": [
+        "Slowpoke"
+      ],
+      "rootNames": [
+        "LArm",
+        "LForeArm",
+        "LHand",
+        "RShoulder",
+        "RArm",
+        "RForeArm",
+        "RHand",
+        "Slowpoke"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "116efc82898be99696c530bff79cb6ea0ebcee75e9af8ef670fee72f42dd272c",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/79.png",
+      "comparisonSheet": "model-review/sheet-07.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 80,
+      "species": "slowbro",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/80.glb",
+      "bytes": 434820,
+      "sha256": "d922a6410fadc2b5ff3b66fa2c0c61d5c328ac7ad2edfca15a8b71161a320277",
+      "meshNames": [
+        "Slowbro"
+      ],
+      "rootNames": [
+        "RShoulder",
+        "RArm",
+        "RForeArm",
+        "RHand",
+        "RFingerA",
+        "RFingerB",
+        "RFingerC",
+        "Slowbro"
+      ],
+      "animations": [],
+      "textures": 4,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "62a52ab0674c7a08da0bf0daaf9cce3f725f1d35452d811d46ae07858a828416",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/80.png",
+      "comparisonSheet": "model-review/sheet-07.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 81,
+      "species": "magnemite",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/81.glb",
+      "bytes": 2543368,
+      "sha256": "7e8a3d9a47ba22d86d10f8864b57582595680eba663e89874e37ceaaf1915317",
+      "meshNames": [
+        "Magnemite:pSphere3_BaseHead_Material_0",
+        "Magnemite:pCylinder6_phong2_0",
+        "Magnemite:pCylinder5_phong2_0",
+        "Magnemite:pCylinder4_phong2_0",
+        "Magnemite:pCube3_MagnetMaterial_0",
+        "Magnemite:pCube2_MagnetMaterial_0"
+      ],
+      "rootNames": [
+        "Magnemite:pCylinder5",
+        "Magnemite:pCylinder5_phong2_0",
+        "Magnemite:pCylinder4",
+        "Magnemite:pCylinder4_phong2_0",
+        "Magnemite:pCube3",
+        "Magnemite:pCube3_MagnetMaterial_0",
+        "Magnemite:pCube2",
+        "Magnemite:pCube2_MagnetMaterial_0"
+      ],
+      "animations": [
+        "Take 001"
+      ],
+      "textures": 6,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "75c633ff0f44ad3ec1c2a399df813bccb1e4301808e387633f7a5952dfc3d967",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/81.png",
+      "comparisonSheet": "model-review/sheet-07.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 82,
+      "species": "magneton",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/82.glb",
+      "bytes": 2071188,
+      "sha256": "eec29f998b4fdc78281b81eb14290c10b045de62ac39ebb7b24267fd098b9573",
+      "meshNames": [
+        "Cube.002_Material_0",
+        "Cube.003_Material_0",
+        "Cylinder.000_Material_0"
+      ],
+      "rootNames": [
+        "Bone_04",
+        "Bone_end_010",
+        "Cube.006",
+        "Cube.006_Material_0",
+        "Bone.001_05",
+        "Bone.001_end_011",
+        "Cube.007",
+        "Cube.007_Material_0"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "903af93b3cb71fd2fc9bcafbf99392536906121d07931491a08096b93d6c4173",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/82.png",
+      "comparisonSheet": "model-review/sheet-07.png",
+      "notes": "Small source scale; camera clipping corrected for offline inspection. Runtime normalizes bounds.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 83,
+      "species": "farfetchd",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/83.glb",
+      "bytes": 374172,
+      "sha256": "dc03abd1aeb09b044506a8d4867df63e498d92be1aacba300ebb1250a8f3900d",
+      "meshNames": [
+        "Farfetch'd_Body_0",
+        "Farfetch'd_Eye_0",
+        "Farfetch'd_LIris_0",
+        "Farfetch'd_RIris_0"
+      ],
+      "rootNames": [
+        "RFingerC1_059",
+        "RFingerC2_060",
+        "EndRFingerC2_00",
+        "RFingerD1_061",
+        "RFingerD2_062",
+        "EndRFingerD2_063",
+        "pm0083_00_BodySkin_064",
+        "pm0083_00_IrisSkin_065"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "fc4c5383497fe613d0f2cc72d4d93585cf2ca7da95e911087e005d2a9d770165",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/83.png",
+      "comparisonSheet": "model-review/sheet-07.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 84,
+      "species": "doduo",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/84.glb",
+      "bytes": 379996,
+      "sha256": "5127e0d53f3aa67d00bade6333d531f19ccb160096205290612789040289731a",
+      "meshNames": [
+        "DoduoF"
+      ],
+      "rootNames": [
+        "RNeck1",
+        "RNeck2",
+        "RNeck3",
+        "RHead",
+        "RLowerBeak",
+        "RTongue",
+        "RUpperBeak",
+        "DoduoF"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "8ffa705bfed0f2d5b344c17346611ae9c105f79e4d4a098d74aaeee580de0e91",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/84.png",
+      "comparisonSheet": "model-review/sheet-07.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 85,
+      "species": "dodrio",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/85.glb",
+      "bytes": 466096,
+      "sha256": "a69ab0c06a714be2632f6f4a10f9b42e75b626ca0a73938a7733e6da1271b81e",
+      "meshNames": [
+        "DodrioF"
+      ],
+      "rootNames": [
+        "RToeC1",
+        "RToeC2",
+        "RToeD1",
+        "RToeD2",
+        "Tail1",
+        "Tail2",
+        "Tail3",
+        "DodrioF"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "0673d58c4cec76a6538b3a1dd201a0e398320696bec5a72e2d44c598188f995f",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/85.png",
+      "comparisonSheet": "model-review/sheet-08.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 86,
+      "species": "seel",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/86.glb",
+      "bytes": 275336,
+      "sha256": "2a89b4b1c2b194621749c558d02a8d680a76e016574048983fd48fadf0bcd81a",
+      "meshNames": [
+        "Seel"
+      ],
+      "rootNames": [
+        "Tongue1",
+        "Tongue2",
+        "RShoulder",
+        "RArm",
+        "RForeArm",
+        "RHand",
+        "RFinger",
+        "Seel"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "1e08dc7baa498817654ecf5a382c405af447f6b5c76a33c76ce02041a4972aab",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/86.png",
+      "comparisonSheet": "model-review/sheet-08.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 87,
+      "species": "dewgong",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/87.glb",
+      "bytes": 296204,
+      "sha256": "b44d083fe5780b357ef42a6fa323df6ec4ad141570c7062d57a40796d024e928",
+      "meshNames": [
+        "Dewgong"
+      ],
+      "rootNames": [
+        "Neck1",
+        "Neck2",
+        "Head",
+        "Jaw",
+        "RArm",
+        "RForeArm",
+        "RHand",
+        "Dewgong"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "4214282e7fdbef4ae8131bd237802f458cfb844ccadbcd71ca994406054c08a1",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/87.png",
+      "comparisonSheet": "model-review/sheet-08.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 88,
+      "species": "grimer",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/88.glb",
+      "bytes": 472316,
+      "sha256": "15cf776d0bd10608aa3c2ab96e8a63ed5025e371dc765d3a582e16375cfecedb",
+      "meshNames": [
+        "Object_0",
+        "Object_1",
+        "Object_2",
+        "Object_3",
+        "Object_4",
+        "Object_5",
+        "Object_6"
+      ],
+      "rootNames": [
+        "Object_0",
+        "Object_1",
+        "Object_2",
+        "Object_3",
+        "Object_4",
+        "Object_5",
+        "Object_6",
+        "Armature"
+      ],
+      "animations": [
+        "ArmatureAction"
+      ],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "38d4c08a38da5673b97ec149cb775528737988baad7b31adb27c797252339d14",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/88.png",
+      "comparisonSheet": "model-review/sheet-08.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 89,
+      "species": "muk",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/89.glb",
+      "bytes": 596560,
+      "sha256": "2eaf47ce96f44c7a92056b61391a561f24ac02c1bbc2282b2fc48a7168de9866",
+      "meshNames": [
+        "Object_0",
+        "Object_1",
+        "Object_2",
+        "Object_3",
+        "Object_4",
+        "Object_5",
+        "Object_6"
+      ],
+      "rootNames": [
+        "Object_0",
+        "Object_1",
+        "Object_2",
+        "Object_3",
+        "Object_4",
+        "Object_5",
+        "Object_6",
+        "Armature.001"
+      ],
+      "animations": [
+        "Armature.001Action"
+      ],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "a3f1fdda24c853fafe2a341636f9e7c050fc412c19e8c3af277ad05a5c70f532",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/89.png",
+      "comparisonSheet": "model-review/sheet-08.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 90,
+      "species": "shellder",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/90.glb",
+      "bytes": 270952,
+      "sha256": "21481501c95259029c02891e2179634330223bf5b346ca1822cc7500c4aaa03a",
+      "meshNames": [
+        "Object_0",
+        "Object_4"
+      ],
+      "rootNames": [
+        "Object_4",
+        "Object_8"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "cea1da91f70c15595fc3bdf2d31e7d94cb5968130cee0d057ebf2fa86a596b90",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/90.png",
+      "comparisonSheet": "model-review/sheet-08.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 91,
+      "species": "cloyster",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/91.glb",
+      "bytes": 341580,
+      "sha256": "769d1cc460691374f98112ad0188397dae573178dfc71383fc1d98ba86d59f61",
+      "meshNames": [
+        "_000_pm0091_00_002_assets_textures_pm0091_00_BodyA1-material-material_0",
+        "_001_pm0091_00_002_assets_textures_pm0091_00_Eye1-material-material_0",
+        "_002_pm0091_00_002_assets_textures_pm0091_00_Mouth1-material-material_0",
+        "_003_pm0091_00_002_assets_textures_pm0091_00_BodyB1-material-material_0"
+      ],
+      "rootNames": [
+        "EndLFeelerA_09",
+        "LFeelerB_012",
+        "EndLFeelerB_011",
+        "RFeelerA_014",
+        "EndRFeelerA_013",
+        "RFeelerB_016",
+        "EndRFeelerB_015",
+        "pm0091_00_Skin_019"
+      ],
+      "animations": [],
+      "textures": 4,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "ef0d7e57ed5cdd0727bd0c3e0c2f04373449209fecaca7a9168e0fe4557fde7f",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/91.png",
+      "comparisonSheet": "model-review/sheet-08.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 92,
+      "species": "gastly",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/92.glb",
+      "bytes": 814644,
+      "sha256": "b87e53168b7802e8be6f7fa3b3d81ef3e7663d2b824b9c6041633b58013246cb",
+      "meshNames": [
+        "s.0066_Phong_BF6DBF_0",
+        "s.0068_Phong_0C0010_0",
+        "s.0074_Cartoon_AEA5A0_0",
+        "s.0101_Cartoon_AD7C80_0",
+        "s.0021_Flat_7232877F_0",
+        "s.0049_Flat_7538757F_0"
+      ],
+      "rootNames": [
+        "s.0066_Phong_BF6DBF_0",
+        "s.0068_Phong_0C0010_0",
+        "s.0074_Cartoon_AEA5A0_0",
+        "s.0101_Cartoon_AD7C80_0",
+        "s.0021_Flat_7232877F_0",
+        "s.0049_Flat_7538757F_0"
+      ],
+      "animations": [],
+      "textures": 1,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "2b46e05eac5f85a2f1df1f594dacec6ce7c2af8ef1e953b3ec892880169b8e4d",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/92.png",
+      "comparisonSheet": "model-review/sheet-08.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 93,
+      "species": "haunter",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/93.glb",
+      "bytes": 259888,
+      "sha256": "34fb756a973729822c2abbba0df0e8a0383e8598fb686e589e9b8596a5e9f3bf",
+      "meshNames": [
+        "Object_0",
+        "mesh_3",
+        "mesh_3",
+        "Object_3",
+        "Object_4"
+      ],
+      "rootNames": [
+        "Object_4",
+        "Cube.001_4",
+        "mesh_3",
+        "mesh_3",
+        "Circle_3",
+        "Object_9",
+        "eye_2",
+        "Object_11"
+      ],
+      "animations": [
+        "Animation"
+      ],
+      "textures": 0,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "8397b786234f5048fcc378e1279fc096a94558ee5ee2d7f356cf266794758dbd",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/93.png",
+      "comparisonSheet": "model-review/sheet-08.png",
+      "notes": "Corrected oversaturated body and tongue material colors.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 94,
+      "species": "gengar",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/94.glb",
+      "bytes": 258684,
+      "sha256": "2ab2156e6b749eb837ddc9d368fdb1a0ebd926bbf523e5035c069ec5dad43486",
+      "meshNames": [
+        "",
+        ""
+      ],
+      "rootNames": [
+        "RFingerC",
+        "RHand",
+        "RForeArm",
+        "RArm",
+        "RShoulder",
+        "Head",
+        "Gengar_1",
+        "Gengar_2"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "14f689ea8609d9669504b7fb4b4a97c7a50bf997ae9bdc3df3101901d33b13ef",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/94.png",
+      "comparisonSheet": "model-review/sheet-08.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 95,
+      "species": "onix",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/95.glb",
+      "bytes": 3221356,
+      "sha256": "3daa29b32911e8f7cf8168aebf7217924aa5c93cc930e0c4a1d7c4e364e47271",
+      "meshNames": [
+        "onix_head_lp_Material #183_0",
+        "onix_head_lp001_Material #202_0"
+      ],
+      "rootNames": [
+        "Bone011_010",
+        "Bone012_011",
+        "Bone013_012",
+        "Bone014_013",
+        "Bone015_014",
+        "Bone016_015",
+        "Bone017_016",
+        "IK Chain001"
+      ],
+      "animations": [
+        "Take 001"
+      ],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "c6c74802fbe86b160ae20802c829131b145cea4793df66a22d035c6bc2d740d9",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/95.png",
+      "comparisonSheet": "model-review/sheet-08.png",
+      "notes": "Removed opaque outline shell. Re-render confirmed segmented rock body; runtime normalizes small source scale.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 96,
+      "species": "drowzee",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/96.glb",
+      "bytes": 378400,
+      "sha256": "ec311955d6f7d00e31571500390ec6d5606c999cac5a4654a5bceea5877ba77b",
+      "meshNames": [
+        "Object_0",
+        "Object_1"
+      ],
+      "rootNames": [
+        "Object_4",
+        "Object_5"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "1eba422b72e6a16ccdfb15be8812fe342d2c8f0456a3bbfbe0d71771e70f40b4",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/96.png",
+      "comparisonSheet": "model-review/sheet-08.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 97,
+      "species": "hypno",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/97.glb",
+      "bytes": 229600,
+      "sha256": "1d07732d861331bae7ee735cd30290c2ad626ef0bd186a82372b249e4a79c031",
+      "meshNames": [
+        "Object_0",
+        "Object_1"
+      ],
+      "rootNames": [
+        "Object_4",
+        "Object_5"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "4770c40b74c39872cfca04a6565c3cc7d3fae5d978525d9b828f051371b57ffb",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/97.png",
+      "comparisonSheet": "model-review/sheet-09.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 98,
+      "species": "krabby",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/98.glb",
+      "bytes": 439668,
+      "sha256": "3bf09635962e0af231ecc788a8f93be143549d4118e8f5e5a1e620b3e43956b2",
+      "meshNames": [
+        "Object_0",
+        "Object_1"
+      ],
+      "rootNames": [
+        "Object_4",
+        "Object_5"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "65d0420961782c40d8bc6b75106c383bbd42c4a1532e37b72a0149894cd183c0",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/98.png",
+      "comparisonSheet": "model-review/sheet-09.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 99,
+      "species": "kingler",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/99.glb",
+      "bytes": 514896,
+      "sha256": "531032ed9bd3a95e7b22e26ed481ea38765078983765b2fe367ff5658fc31c11",
+      "meshNames": [
+        "Object_0",
+        "Object_1",
+        "Object_2"
+      ],
+      "rootNames": [
+        "Object_4",
+        "Object_5",
+        "Object_6"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "2d924fb993df9a93769ace3dcd77887685391d3ffb1d9f93d7ddbbb08f0b0bcc",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/99.png",
+      "comparisonSheet": "model-review/sheet-09.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 100,
+      "species": "voltorb",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/100.glb",
+      "bytes": 239220,
+      "sha256": "cedbba11e3f901a54bba8a22fc57d78f7a3e8959a0e40e3ce3f1b55b4d475ded",
+      "meshNames": [
+        "mesh_0_pm0100_00_Skin_BodySpc_0",
+        "mesh_1_pm0100_00_Skin_Eye_0"
+      ],
+      "rootNames": [
+        "EndEyeRoot_03",
+        "Eye1_04",
+        "EndEye1_02",
+        "Eye2_06",
+        "EndEye2_05",
+        "Eye3_07",
+        "EndEye3_01",
+        "pm0100_00_Skin_011"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "3e401aabf728dadf38325ab7fe1ba85b9b965048ed58de30def869e7e8583f09",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/100.png",
+      "comparisonSheet": "model-review/sheet-09.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 101,
+      "species": "electrode",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/101.glb",
+      "bytes": 200860,
+      "sha256": "df6e7bca4955222ae5e64222c82044f996231006f65af8befabcc91b815bb4f0",
+      "meshNames": [
+        "Object_0",
+        "Object_1",
+        "Object_2"
+      ],
+      "rootNames": [
+        "Object_4",
+        "Object_5",
+        "Object_6"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "d2d5b8f27f2cee4e55cdf24023504a03c3ae0bab634d9b58aeacb3c43b1e3ef8",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/101.png",
+      "comparisonSheet": "model-review/sheet-09.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 102,
+      "species": "exeggcute",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/102.glb",
+      "bytes": 541384,
+      "sha256": "626862bfe1e6559998c0365e506f7bd75f1f7204c1dedf91a9142b626a13d81f",
+      "meshNames": [
+        "Object_0",
+        "Object_1",
+        "Object_2",
+        "Object_3",
+        "Object_5",
+        "Object_6"
+      ],
+      "rootNames": [
+        "Object_4",
+        "Object_5",
+        "Object_6",
+        "Object_7",
+        "Object_9",
+        "Object_10"
+      ],
+      "animations": [],
+      "textures": 6,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "886a0a4d6e6a06888a430aea051d7d2e7a851d7ba6b9ab294ea849f0af9296a8",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/102.png",
+      "comparisonSheet": "model-review/sheet-09.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 103,
+      "species": "exeggutor",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/103.glb",
+      "bytes": 921232,
+      "sha256": "968c2b6bbbc2f1cbfbe9b7befd02c53bf82ee44d9fe2d85e577f2a2901552a36",
+      "meshNames": [
+        "Sphere001_03 - Default_0",
+        "Sphere001_02 - Default_0",
+        "Sphere001_Material #33_0",
+        "Sphere001_09 - Default_0",
+        "Sphere001_14 - Default_0",
+        "Sphere001_08 - Default_0",
+        "Sphere001__BR_Exeggutordefault_mso_0",
+        "Sphere001_15 - Default_0"
+      ],
+      "rootNames": [
+        "Bip001 L Toe0_06",
+        "Bip001 R Thigh_07",
+        "Bip001 R Calf_08",
+        "Bip001 R Foot_09",
+        "Bip001 R Toe0_010",
+        "Bip001 Spine1_011",
+        "Bip001 Neck_012",
+        "Bip001 Head_013"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "99cb1152447d15f5a997d61b073b58c1ec8274f0b8a49959307ebf3b9f80d013",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/103.png",
+      "comparisonSheet": "model-review/sheet-09.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 104,
+      "species": "cubone",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/104.glb",
+      "bytes": 308196,
+      "sha256": "1001c44a7a98228cd918d812b6f5aceeb40ff8900c24fe6c4c74b30b236ec00a",
+      "meshNames": [
+        "Cubone"
+      ],
+      "rootNames": [
+        "RArm",
+        "RForeArm",
+        "RHand",
+        "FeelerA",
+        "RFingerA1",
+        "RFingerA2",
+        "RFingerB",
+        "Cubone"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "46d9f0f35d17f30d5e6e2258c9c60509ace79da359e947dafd0b84cc384958e5",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/104.png",
+      "comparisonSheet": "model-review/sheet-09.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 105,
+      "species": "marowak",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/105.glb",
+      "bytes": 330580,
+      "sha256": "34c30319fcb90742eb9aa93541d6cabeb8d4a6b6b6c746e5db22c174b9b813c4",
+      "meshNames": [
+        "Marowak"
+      ],
+      "rootNames": [
+        "RForeArm",
+        "RHand",
+        "FeelerA",
+        "RFingerA1",
+        "RFingerA2",
+        "RFingerB1",
+        "RFingerB2",
+        "Marowak"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "e76c17ba4b6c4bae30d396e71358fc779ce96dc12e39a65dd507522dae0455cb",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/105.png",
+      "comparisonSheet": "model-review/sheet-09.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 106,
+      "species": "hitmonlee",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/106.glb",
+      "bytes": 358952,
+      "sha256": "3ace5541ca1cd05cb662f170f539d5873ea54ffefdce052aec40cc5a6624c657",
+      "meshNames": [
+        "Object_0",
+        "Object_1"
+      ],
+      "rootNames": [
+        "Object_4",
+        "Object_5"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "a11a7365af8ba1d899359c3d964618c98f6037af85c7a713c380a9016efa86ce",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/106.png",
+      "comparisonSheet": "model-review/sheet-09.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 107,
+      "species": "hitmonchan",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/107.glb",
+      "bytes": 388600,
+      "sha256": "0b0411813a12daaa9e1e801ed018733f20bb4e8f08c8e06f68aec993859753b5",
+      "meshNames": [
+        "Hitmonchan"
+      ],
+      "rootNames": [
+        "RShoulder",
+        "RArm",
+        "RForeArm",
+        "RHand",
+        "RFinger1",
+        "RFinger2",
+        "RFeeler",
+        "Hitmonchan"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "e379a1b686cce38a69863e28a92c73206fcbfa99a6ee49e2ce3a00a1f42084f3",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/107.png",
+      "comparisonSheet": "model-review/sheet-09.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 108,
+      "species": "lickitung",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/108.glb",
+      "bytes": 423320,
+      "sha256": "3fd027d25e950288441cef730f804cb9ca4fec83ccdd6d3714c99755e9b2d479",
+      "meshNames": [
+        "Object_0",
+        "Object_1"
+      ],
+      "rootNames": [
+        "Object_4",
+        "Object_5"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "3ac61e563a4c028acc295421ba7cc4f85cdb3a2bed5a779dec9e8af9291eed82",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/108.png",
+      "comparisonSheet": "model-review/sheet-09.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 109,
+      "species": "koffing",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/109.glb",
+      "bytes": 909920,
+      "sha256": "7054b797b6b94d1a6eb54a80b5ddff8db6e65f8c41edb235b0475b449b0e8747",
+      "meshNames": [
+        "Cone_Material.004_0",
+        "Sphere.007_Material.006_0"
+      ],
+      "rootNames": [
+        "Cone_Material.004_0",
+        "Sphere.007_Material.006_0"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "101787d1818bfee4fe86f968fd204f52d7a3cf918fd14c86e8b8cbbacc18dcca",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/109.png",
+      "comparisonSheet": "model-review/sheet-10.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 110,
+      "species": "weezing",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/110.glb",
+      "bytes": 12729244,
+      "sha256": "5f0d65254aebabf01d71e4766c53bcb4337722ae9628ea795f44ce93d2bd38c6",
+      "meshNames": [
+        "Object_0",
+        "Object_5",
+        "Object_7",
+        "Object_8"
+      ],
+      "rootNames": [
+        "Object_4",
+        "Object_12",
+        "Object_16",
+        "Object_18"
+      ],
+      "animations": [],
+      "textures": 12,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "ada0e6844d110c00dd5b8aac2230a1ea10ca5fe76136157e4588fc72f3cc61ef",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/110.png",
+      "comparisonSheet": "model-review/sheet-10.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 111,
+      "species": "rhyhorn",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/111.glb",
+      "bytes": 578920,
+      "sha256": "f05feefab4a54ca90b89896a92ca2ecd1bc50f7408663e760f087a11c3570424",
+      "meshNames": [
+        "Object_0",
+        "Object_1",
+        "Object_2"
+      ],
+      "rootNames": [
+        "Object_4",
+        "Object_5",
+        "Object_6"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "ddba7d173ee3461ccaa2ba671238c45969d83b2ad735f795346fa175f9fb1769",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/111.png",
+      "comparisonSheet": "model-review/sheet-10.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 112,
+      "species": "rhydon",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/112.glb",
+      "bytes": 439720,
+      "sha256": "d212763e8b03998ad82844b5cf435435fafd5a2fab40637755c53098acab0709",
+      "meshNames": [
+        "RhydonF"
+      ],
+      "rootNames": [
+        "RShoulder",
+        "RArm",
+        "RForeArm",
+        "RHand",
+        "RFingerA",
+        "RFingerB",
+        "RFingerC",
+        "RhydonF"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "4f3d3a1fa24914c669f7a5cbe59fa66ec497b1e812f1665afad784e32821260a",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/112.png",
+      "comparisonSheet": "model-review/sheet-10.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 113,
+      "species": "chansey",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/113.glb",
+      "bytes": 324676,
+      "sha256": "0336a8d8a8a2c71f85fc90e4d63a9e706dd9e7f38a229cbf6d3a05c4872cf7a6",
+      "meshNames": [
+        "Object_0",
+        "Object_1",
+        "Object_2"
+      ],
+      "rootNames": [
+        "Object_4",
+        "Object_5",
+        "Object_6"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "8bc94c9385614596b62c61ea98dc358e7a74a168a7ea11b0e02446743bcba151",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/113.png",
+      "comparisonSheet": "model-review/sheet-10.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 114,
+      "species": "tangela",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/114.glb",
+      "bytes": 438124,
+      "sha256": "3d6857d170f95231ea0f50af7205b77b06eb105a32441b8cbc42db4305441a54",
+      "meshNames": [
+        "Object_0",
+        "Object_1",
+        "Object_2"
+      ],
+      "rootNames": [
+        "Object_4",
+        "Object_5",
+        "Object_6"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "041a4a09d0ba7aada10c8372092886f85b2169cb8e07ff255f49153253645336",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/114.png",
+      "comparisonSheet": "model-review/sheet-10.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 115,
+      "species": "kangaskhan",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/115.glb",
+      "bytes": 506932,
+      "sha256": "93652d2c8685167af89dcde8609d19497d175c47196940522c32c992f5009e56",
+      "meshNames": [
+        "Kangaskhan",
+        "KangaskhanKid"
+      ],
+      "rootNames": [
+        "LForeArm2",
+        "LHand2",
+        "RShoulder2",
+        "RArm2",
+        "RForeArm2",
+        "RHand2",
+        "Kangaskhan",
+        "KangaskhanKid"
+      ],
+      "animations": [],
+      "textures": 5,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "fd1ed645a0df356a49af38d3464a1b3738681407840576b96ea3ecd40e8ce7be",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/115.png",
+      "comparisonSheet": "model-review/sheet-10.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 116,
+      "species": "horsea",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/116.glb",
+      "bytes": 322572,
+      "sha256": "9c9b5fea519e5ef93a5cd54cf0ec0ef640568bab3f03158d4c45d09b2e6d49a2",
+      "meshNames": [
+        "Object_0",
+        "Object_1"
+      ],
+      "rootNames": [
+        "Object_4",
+        "Object_5"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "740b7b70ed6bd9d7f9dbae1d4b0a16915b96730e01011fe62dd5559b1ed7ead9",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/116.png",
+      "comparisonSheet": "model-review/sheet-10.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 117,
+      "species": "seadra",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/117.glb",
+      "bytes": 485080,
+      "sha256": "c71b9ed8bae9e86039c40ccd789875a9e9cee7d7f2eb3802fbda686081fff91f",
+      "meshNames": [
+        "Object_0",
+        "Object_1"
+      ],
+      "rootNames": [
+        "Object_4",
+        "Object_5"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "20b73e0114a339bf217efdf83afa67e549781db12d3ac3b778776d25771abb62",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/117.png",
+      "comparisonSheet": "model-review/sheet-10.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 118,
+      "species": "goldeen",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/118.glb",
+      "bytes": 398728,
+      "sha256": "05f464eca602f53a136a64e82621ca4930a65027c98ca6fda4fe38ceb9c648be",
+      "meshNames": [
+        "Object_0",
+        "Object_1",
+        "Object_2"
+      ],
+      "rootNames": [
+        "Object_4",
+        "Object_5",
+        "Object_6"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "bf3cbb6963d1a80e8529dc15bb8a12a5845a8b7bb319672f26d61f9a894dc881",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/118.png",
+      "comparisonSheet": "model-review/sheet-10.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 119,
+      "species": "seaking",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/119.glb",
+      "bytes": 433092,
+      "sha256": "b4d85750e1b43c5f1decb09c6929cf30e9f543ffe1406b94790dad001a326bfa",
+      "meshNames": [
+        "Object_0",
+        "Object_1"
+      ],
+      "rootNames": [
+        "Object_4",
+        "Object_5"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "2488f2af1e9e509a8fa353788f76eb0defbf3e1a18db98f09500851a4859ad4a",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/119.png",
+      "comparisonSheet": "model-review/sheet-10.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 120,
+      "species": "staryu",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/120.glb",
+      "bytes": 213520,
+      "sha256": "f34e8984607371c27950196c8e7cab3466d1d450bbf5eabbeac5264e4c3f66de",
+      "meshNames": [
+        "mesh_0_pm0120_00_Skin_001_Body_004-material_0",
+        "mesh_1_pm0120_00_Skin_001_BodyNutreyVco-material_0",
+        "mesh_2_pm0120_00_Skin_001_BodyNutrey-material_0",
+        "mesh_3_pm0120_00_Skin_001_BodyHitodeman-material_0"
+      ],
+      "rootNames": [
+        "RArm_014",
+        "RForeArm_013",
+        "EndRForeArm_012",
+        "RThigh_019",
+        "RLeg_018",
+        "RFoot_017",
+        "EndRFoot_016",
+        "pm0120_00_Skin_022"
+      ],
+      "animations": [],
+      "textures": 1,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "96ebf6b2f5f07ba9aba46d4db8bc9a97fb6c163da5b4a796611982b492aea5f1",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/120.png",
+      "comparisonSheet": "model-review/sheet-10.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 121,
+      "species": "starmie",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/121.glb",
+      "bytes": 355880,
+      "sha256": "b19764fbc85cc5611459a96c5c145d09bec0af2f0275924a983123b4f11e1147",
+      "meshNames": [
+        "mesh_0_pm0121_00_Skin_004_BodyA01_003-material_0",
+        "mesh_1_pm0121_00_Skin_004_BodyB00_003-material_0",
+        "mesh_2_pm0121_00_Skin_004_BodyBHitodeman_003-material_0",
+        "mesh_3_pm0121_00_Skin_004_BodyANutreyVco_003-material_0",
+        "mesh_4_pm0121_00_Skin_004_BodyBNutreyVco_003-material_0",
+        "mesh_5_pm0121_00_Skin_004_BodyB01_003-material_0",
+        "mesh_6_pm0121_00_Skin_004_BodyA00_003-material_0"
+      ],
+      "rootNames": [
+        "RForeArm_025",
+        "RHand_024",
+        "EndRHand_023",
+        "RLeg_030",
+        "RFoot_029",
+        "RToe_028",
+        "EndRToe_027",
+        "pm0121_00_Skin_033"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "ab24bb12f7fc42cda90cdd02efd437c33e72db2054ba3d8f9c9b80905a722e2a",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/121.png",
+      "comparisonSheet": "model-review/sheet-11.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 122,
+      "species": "mr-mime",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/122.glb",
+      "bytes": 381028,
+      "sha256": "8d778d16dfb4fa5d00fc183dfe9547bc5a4de19b42a3212b919a1ca8d64a1507",
+      "meshNames": [
+        "MrMime"
+      ],
+      "rootNames": [
+        "RFingerB2",
+        "RFingerC1",
+        "RFingerC2",
+        "RFingerD1",
+        "RFingerD2",
+        "RFingerE1",
+        "RFingerE2",
+        "MrMime"
+      ],
+      "animations": [],
+      "textures": 4,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "dc8e42191eb2d50ec7f7e0c4615fb4d618c4aec76f4232af0926360ce9b3491b",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/122.png",
+      "comparisonSheet": "model-review/sheet-11.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 123,
+      "species": "scyther",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/123.glb",
+      "bytes": 405024,
+      "sha256": "2f1883f9e267fa98d4394c9d0adecdebaffc949526266a7ab5e859740abb9f9b",
+      "meshNames": [
+        "Scyther"
+      ],
+      "rootNames": [
+        "Head",
+        "Jaw",
+        "RFeelerA",
+        "RFeelerB",
+        "RShoulder",
+        "RArm",
+        "RForeArm",
+        "Scyther"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "0b69ec9f6b37400a4a653a1296023af5e14e0c053e55e36fe15b32299b207454",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/123.png",
+      "comparisonSheet": "model-review/sheet-11.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 124,
+      "species": "jynx",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/124.glb",
+      "bytes": 461820,
+      "sha256": "5283769d0eff8c0750c660b849c17c614ea33f4a981cda6011ab4b9e25342450",
+      "meshNames": [
+        "Object_0",
+        "Object_1"
+      ],
+      "rootNames": [
+        "Object_4",
+        "Object_5"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "6efddcd4f558a5ee71b7a09db5cf5512b177732adc1871441d0e273bdc836005",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/124.png",
+      "comparisonSheet": "model-review/sheet-11.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 125,
+      "species": "electabuzz",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/125.glb",
+      "bytes": 466060,
+      "sha256": "e44da50f4dbabf641820bb05a2d66eaf45e92791ecb787e95322838e8a0185ed",
+      "meshNames": [
+        "Object_0",
+        "Object_1"
+      ],
+      "rootNames": [
+        "Object_4",
+        "Object_5"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "c9e74b6ec404acf2c519048100c909b1328b572cc9503bb99b292d7381b8e123",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/125.png",
+      "comparisonSheet": "model-review/sheet-11.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 126,
+      "species": "magmar",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/126.glb",
+      "bytes": 596392,
+      "sha256": "3072f81e6949792bc4bc6e476842e2bf0a0507070dd4f1a186d181a2c883aed4",
+      "meshNames": [
+        "Object_0",
+        "Object_1",
+        "Object_2",
+        "Object_3",
+        "Object_4",
+        "Object_5"
+      ],
+      "rootNames": [
+        "Object_4",
+        "Object_5",
+        "Object_6",
+        "Object_7",
+        "Object_8",
+        "Object_9"
+      ],
+      "animations": [],
+      "textures": 6,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "ee580134f3d17f9342d0e5ad4aaedf87fb0900c2ffcf171e347decf6cd5c6f5f",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/126.png",
+      "comparisonSheet": "model-review/sheet-11.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 127,
+      "species": "pinsir",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/127.glb",
+      "bytes": 362048,
+      "sha256": "4a560b0d0cac1ae9411d31e462cb1c15c5e6320764905f9c40a97eb5f1bbbfbd",
+      "meshNames": [
+        "Pinsir"
+      ],
+      "rootNames": [
+        "RFingerA1",
+        "RFingerA2",
+        "RFingerB1",
+        "RFingerB2",
+        "RFingerC1",
+        "RFingerC2",
+        "REar",
+        "Pinsir"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "2f87a619b74d8f1ff737506ea69971a1a2184be277c150ef9a6c3036d19933e2",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/127.png",
+      "comparisonSheet": "model-review/sheet-11.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 128,
+      "species": "tauros",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/128.glb",
+      "bytes": 91356,
+      "sha256": "4c5cb2bda64ae88c77b85d265e88d4c44dfdadb944042a6b6fd406c7281146bb",
+      "meshNames": [
+        "Object_0",
+        "Object_1"
+      ],
+      "rootNames": [
+        "Object_3",
+        "Object_4"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "92c004fc425b27159f266a5a019b3a84368bdb5d069fd33becec51718f914296",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/128.png",
+      "comparisonSheet": "model-review/sheet-11.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 129,
+      "species": "magikarp",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/129.glb",
+      "bytes": 328056,
+      "sha256": "5ba47b7a95c0bc8d93a596fc6cae76fe1de27e634a1e4557df9f0956f1db0f59",
+      "meshNames": [
+        "MagikarpF"
+      ],
+      "rootNames": [
+        "UpperBeak",
+        "Hips",
+        "FeelerA",
+        "FeelerB",
+        "Tail1",
+        "Tail2",
+        "Tail3",
+        "MagikarpF"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "3288c802758922b7cfb0f25468c2ae8d9c4d4341e9c8df4544401bde412a70bc",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/129.png",
+      "comparisonSheet": "model-review/sheet-11.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 130,
+      "species": "gyarados",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/130.glb",
+      "bytes": 503388,
+      "sha256": "1d0f7049d8f287d666b53aa3bbb536e6f424236ced96f2647eab17167a6386c2",
+      "meshNames": [
+        "GyaradosF"
+      ],
+      "rootNames": [
+        "RFeelerA5",
+        "RFeelerA6",
+        "UpperBeak",
+        "LowerBeak",
+        "Tongue1",
+        "Tongue2",
+        "Teeth",
+        "GyaradosF"
+      ],
+      "animations": [],
+      "textures": 4,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "48153f4695ca4dc3b8d66e1cfef8a0c49fa4e647a6d657c1194c753d44dc591b",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/130.png",
+      "comparisonSheet": "model-review/sheet-11.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 131,
+      "species": "lapras",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/131.glb",
+      "bytes": 1543316,
+      "sha256": "e098fa699d5467cb429f9bd744b9b6e8a0624260640266500c6bd8c729ffe79c",
+      "meshNames": [
+        "Lapras_0"
+      ],
+      "rootNames": [
+        "Lapras_0"
+      ],
+      "animations": [],
+      "textures": 1,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "d4165d082f4419a84653ea6ab835adc1c977c50895f28915775528ebbd1349f1",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/131.png",
+      "comparisonSheet": "model-review/sheet-11.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 132,
+      "species": "ditto",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/132.glb",
+      "bytes": 237656,
+      "sha256": "a31d6213e7bbc427a81764f2c13554a168149616db21b02fda9b2adc26e0172e",
+      "meshNames": [
+        "Retopo_Cube_ditto_0"
+      ],
+      "rootNames": [
+        "shoulder_L_07",
+        "arm_L_08",
+        "arm_L.001_09",
+        "arm_L.001_end_015",
+        "shoulder_R_010",
+        "arm_R_011",
+        "arm_R.001_012",
+        "arm_R.001_end_016"
+      ],
+      "animations": [
+        "Dancing"
+      ],
+      "textures": 1,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "b5b46d5618ba46108ad1e3d92d388c93477e9e0aec4916eee0cec9a25623431a",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/132.png",
+      "comparisonSheet": "model-review/sheet-11.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 133,
+      "species": "eevee",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/133.glb",
+      "bytes": 391624,
+      "sha256": "bae5f526da8abc302518515955b03724780e290801024b2403a09dfeea7f4f4d",
+      "meshNames": [
+        "Object_0_Mouth_0",
+        "Object_1_Eye_0",
+        "Object_2_Body_0",
+        "Object_3_Body_0"
+      ],
+      "rootNames": [
+        "stereoCamera_middleWait_048",
+        "stereoCamera_middleWait_end_066",
+        "stereoCamera_aim2_049",
+        "stereoCamera_aim2_end_067",
+        "Object_76",
+        "Object_78",
+        "Object_80",
+        "Object_82"
+      ],
+      "animations": [
+        "Armature|ArmatureAction"
+      ],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "f0c8eb0876da64ac4e6f62de361b2362fb8dd45168e89903c6bda026be0ef40c",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/133.png",
+      "comparisonSheet": "model-review/sheet-12.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 134,
+      "species": "vaporeon",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/134.glb",
+      "bytes": 485272,
+      "sha256": "f49eff2c569bd2ec016b85f8421c1499e7f860a6f989e0de1dff2e4c8334d0b0",
+      "meshNames": [
+        "Object_0_Mouth_0",
+        "Object_1_Eye_0",
+        "Object_2_BodyC_0",
+        "Object_3_BodyB_0",
+        "Object_4_Body_0",
+        "Object_5_Body_0",
+        "Object_6_Body_0"
+      ],
+      "rootNames": [
+        "stereoCamera_aim2_end_067",
+        "Object_76",
+        "Object_78",
+        "Object_80",
+        "Object_82",
+        "Object_84",
+        "Object_86",
+        "Object_88"
+      ],
+      "animations": [
+        "Armature|ArmatureAction"
+      ],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "44101789d8141a5435b1a0660c90da30ae10bb05d932093000a95e7140e43399",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/134.png",
+      "comparisonSheet": "model-review/sheet-12.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 135,
+      "species": "jolteon",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/135.glb",
+      "bytes": 436028,
+      "sha256": "e540dce12e95e4332e718f923412abe9d640343b138b727e286b6a2106360f51",
+      "meshNames": [
+        "Object_0_Eye_0",
+        "Object_1_White_0",
+        "Object_2_Body_0",
+        "Object_3_Body_0"
+      ],
+      "rootNames": [
+        "stereoCamera_middleWait_053",
+        "stereoCamera_middleWait_end_078",
+        "stereoCamera_aim2_054",
+        "stereoCamera_aim2_end_079",
+        "Object_88",
+        "Object_90",
+        "Object_92",
+        "Object_94"
+      ],
+      "animations": [
+        "Armature|ArmatureAction"
+      ],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "4c745afc675f66cd17259cea1325b684bf2b17c8162c3246935b9857c69d2faf",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/135.png",
+      "comparisonSheet": "model-review/sheet-12.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 136,
+      "species": "flareon",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/136.glb",
+      "bytes": 502836,
+      "sha256": "17b0e89dc296e075e5d71bd0ff223559d4331754bf15d0b01daae8c73bccb323",
+      "meshNames": [
+        "Object_0_Eye_0",
+        "Object_1_BodyA_0",
+        "Object_2_Mouth_0",
+        "Object_3_BodyB_0",
+        "Object_4_BodyB_0"
+      ],
+      "rootNames": [
+        "stereoCamera_middleWait_end_070",
+        "stereoCamera_aim2_052",
+        "stereoCamera_aim2_end_071",
+        "Object_80",
+        "Object_82",
+        "Object_84",
+        "Object_86",
+        "Object_88"
+      ],
+      "animations": [
+        "Armature|ArmatureAction"
+      ],
+      "textures": 4,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "8f7bfd8fe7e8eb719a569ca9f660951acf373423fd2eef2a0d6e0e84fb5a0762",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/136.png",
+      "comparisonSheet": "model-review/sheet-12.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 137,
+      "species": "porygon",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/137.glb",
+      "bytes": 134560,
+      "sha256": "834f51542dcbf7d1d070cf3dabd1f0ee9e1586f4a800b3d9f498a931fbb6bcfe",
+      "meshNames": [
+        "Porygon"
+      ],
+      "rootNames": [
+        "Waist",
+        "Head",
+        "LFoot",
+        "RFoot",
+        "Tail",
+        "Porygon"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "ac8c24af591a66eaa0955f602e09e15112da1f91034890e460ae0b1d6601c7f8",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/137.png",
+      "comparisonSheet": "model-review/sheet-12.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 138,
+      "species": "omanyte",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/138.glb",
+      "bytes": 314796,
+      "sha256": "faca03ebfb40c41e41a20fdf08a3ff22a6d6aea73e57e93db5b66585205aa93a",
+      "meshNames": [
+        "Omanyte"
+      ],
+      "rootNames": [
+        "RFeelerA2",
+        "RFeelerB1",
+        "RFeelerB2",
+        "RFeelerC1",
+        "RFeelerC2",
+        "RFeelerD1",
+        "RFeelerD2",
+        "Omanyte"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "fe601fee639248294fb66f0aa380d03df179e1d89d2bc098fbc930e3d1206b47",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/138.png",
+      "comparisonSheet": "model-review/sheet-12.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 139,
+      "species": "omastar",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/139.glb",
+      "bytes": 348632,
+      "sha256": "a7b4e747a4a88c49b1da8a84f4d952987c05211d01a8db64ceb41c357e8270e2",
+      "meshNames": [
+        "Omastar"
+      ],
+      "rootNames": [
+        "RArm2",
+        "RForeArm2",
+        "RHand2",
+        "RThigh",
+        "RLeg",
+        "RFoot",
+        "RUpperJaw",
+        "Omastar"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "8fe5798e1150e1e2895990ac747e1bc16c92183544bdd7c128555d8eec8d010a",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/139.png",
+      "comparisonSheet": "model-review/sheet-12.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 140,
+      "species": "kabuto",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/140.glb",
+      "bytes": 199668,
+      "sha256": "f667fd9756c342da65aed11f78888ddf5e7f04c9e7a623e788ab0d554e28dfa2",
+      "meshNames": [
+        "Object_0",
+        "Object_1"
+      ],
+      "rootNames": [
+        "Object_4",
+        "Object_5"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "7080d8c0d965b25d5ce52a2311024d5778b9be055deea7ed221b82a6996681e1",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/140.png",
+      "comparisonSheet": "model-review/sheet-12.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 141,
+      "species": "kabutops",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/141.glb",
+      "bytes": 512276,
+      "sha256": "ad381e5f8856a0a2e21a885072c9b1d5636004379ae3aa8344debab6afd5471f",
+      "meshNames": [
+        "Object_0",
+        "Object_1"
+      ],
+      "rootNames": [
+        "Object_4",
+        "Object_5"
+      ],
+      "animations": [],
+      "textures": 2,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "ab89a17d95fddfd7707f5061abfcb058dbb1776a8e88754c9bf8fa1e40d34559",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/141.png",
+      "comparisonSheet": "model-review/sheet-12.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 142,
+      "species": "aerodactyl",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/142.glb",
+      "bytes": 459296,
+      "sha256": "d35378cb4e3ab52800f86056d1b0bf752f9cf3436098eb2ac48dbf782242fb52",
+      "meshNames": [
+        "Aerodactyl"
+      ],
+      "rootNames": [
+        "RForeArm",
+        "RFeeler1",
+        "RFeeler2",
+        "RHand",
+        "RFingerA",
+        "RFingerB",
+        "RFingerC",
+        "Aerodactyl"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "dc085302e48bc67f769b0f4b8ba7c0bca6002c6329fae13302d85405b00dc98e",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/142.png",
+      "comparisonSheet": "model-review/sheet-12.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 143,
+      "species": "snorlax",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/143.glb",
+      "bytes": 47392,
+      "sha256": "97b27540f45083bcddfc097f30333470a0381257fe325d8cc73b20dff97270dc",
+      "meshNames": [
+        "Object_0"
+      ],
+      "rootNames": [
+        "Object_2"
+      ],
+      "animations": [],
+      "textures": 1,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "7cb9b9774019d008d82de381ba2e9674051a9a3cd2f0236e9ce12fd27d685d97",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/143.png",
+      "comparisonSheet": "model-review/sheet-12.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 144,
+      "species": "articuno",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/144.glb",
+      "bytes": 535048,
+      "sha256": "3ec3de4d26cf1cda5a0de444cf37ea6654d51271e712fad407bc9e1a991c03a4",
+      "meshNames": [
+        "Articuno"
+      ],
+      "rootNames": [
+        "Jaw",
+        "RShoulder",
+        "RArm",
+        "RForeArm1",
+        "RForeArm2",
+        "RHand1",
+        "RHand2",
+        "Articuno"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "9fbca36c3a935749b98d3819ede49a28e53f0397d6ed34c0b9d354ec15d44333",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/144.png",
+      "comparisonSheet": "model-review/sheet-12.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 145,
+      "species": "zapdos",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/145.glb",
+      "bytes": 512412,
+      "sha256": "1adc6ebc42365a5261245312b3c506c99f307e65ecac2a82eb4c6b2791d1b31b",
+      "meshNames": [
+        "Zapdos"
+      ],
+      "rootNames": [
+        "RFeelerE2",
+        "RFeelerE3",
+        "RShoulder",
+        "RFeelerA",
+        "RFeelerB",
+        "RFeelerC",
+        "RFeelerD",
+        "Zapdos"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "7ce83fe5e8f2115ab6d2b5991f6b6410b32b915deeb7556001a03a3744d05085",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/145.png",
+      "comparisonSheet": "model-review/sheet-13.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 146,
+      "species": "moltres",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/146.glb",
+      "bytes": 726480,
+      "sha256": "c092240a7be1794c192bef8e4efd5cbd783a6fbfb8cdab25d0d78c10cef94576",
+      "meshNames": [
+        "faiyaa_10",
+        "faiyaa_10_s1_10",
+        "faiyaa_10_sp_10"
+      ],
+      "rootNames": [
+        "Spine",
+        "Tail",
+        "Pelvis",
+        "PG_root",
+        "faiyaa_10.001",
+        "faiyaa_10_s1_10",
+        "faiyaa_10_sp_10",
+        "faiyaa_10"
+      ],
+      "animations": [
+        "faiyaa_10|bd_appear|Base Layer",
+        "PT_head|bd_appearloop|Base Layer"
+      ],
+      "textures": 3,
+      "requiredExtensions": [
+        "KHR_texture_transform"
+      ],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "b5df8d4f7188211551d3d4a806224db35d547adf46abf7762584feb8854bbfb2",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/146.png",
+      "comparisonSheet": "model-review/sheet-13.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 147,
+      "species": "dratini",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/147.glb",
+      "bytes": 229512,
+      "sha256": "6d2654a85e0f6597e0e2ed704c4e4ae08b9bb60a1f6431220caa800d4546d222",
+      "meshNames": [
+        "Dratini"
+      ],
+      "rootNames": [
+        "Spine2",
+        "Spine3",
+        "Spine4",
+        "Head",
+        "Feeler",
+        "LFeeler",
+        "RFeeler",
+        "Dratini"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "ae28a1041e835c618adbdac544cd6fa5a74b691f942cbf9d69b5a13deab7cb44",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/147.png",
+      "comparisonSheet": "model-review/sheet-13.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 148,
+      "species": "dragonair",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/148.glb",
+      "bytes": 303592,
+      "sha256": "f44f12ac7918f0c6029f46eb0e05110a3d7bb7eafda7714b81e963bc071e494d",
+      "meshNames": [
+        "Dragonair"
+      ],
+      "rootNames": [
+        "Feeler",
+        "Spine7",
+        "Head",
+        "LEar1",
+        "LEar2",
+        "REar1",
+        "REar2",
+        "Dragonair"
+      ],
+      "animations": [],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "b9b8bc0be64df910687b0825d23b783346ef4cdbd815635c09c71f63d21c5401",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/148.png",
+      "comparisonSheet": "model-review/sheet-13.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 149,
+      "species": "dragonite",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/149.glb",
+      "bytes": 6575464,
+      "sha256": "8312b28758ff6ac0bb8b5168ca1d6742c14f0de181677c90456bd903af56d04c",
+      "meshNames": [
+        "Object_0",
+        "Object_1",
+        "Object_2",
+        "Object_3"
+      ],
+      "rootNames": [
+        "pm0149_00_00_body_mesh_68",
+        "pm0149_00_00_eye_mesh_69",
+        "lod1_73",
+        "pm0149_00_00_eye_mesh_lod1_71",
+        "pm0149_00_00_body_mesh_lod1_72",
+        "lod2_76",
+        "pm0149_00_00_eye_mesh_lod2_74",
+        "pm0149_00_00_body_mesh_lod2_75"
+      ],
+      "animations": [
+        "pm0149_00_00_00000_defaultwait01_loop",
+        "pm0149_00_00_00010_defaultidle01",
+        "pm0149_00_00_00021_turn_r090",
+        "pm0149_00_00_00024_turn_l090",
+        "pm0149_00_00_00030_walk01_loop",
+        "pm0149_00_00_00100_run01_loop",
+        "pm0149_00_00_00150_jumpup01_start",
+        "pm0149_00_00_00151_jumpup01_loop",
+        "pm0149_00_00_00152_jumpdown01_start",
+        "pm0149_00_00_00153_jumpdown01_loop",
+        "pm0149_00_00_00155_land02",
+        "pm0149_00_00_00270_rest01_start",
+        "pm0149_00_00_00271_rest01_loop",
+        "pm0149_00_00_00272_rest01_end",
+        "pm0149_00_00_00280_sleep01_start",
+        "pm0149_00_00_00281_sleep01_loop",
+        "pm0149_00_00_00282_sleep01_end",
+        "pm0149_00_00_00290_eat01_start",
+        "pm0149_00_00_00291_eat01_loop",
+        "pm0149_00_00_00292_eat01_end",
+        "pm0149_00_00_00293_eat02_start",
+        "pm0149_00_00_00294_eat02_loop",
+        "pm0149_00_00_00295_eat02_end",
+        "pm0149_00_00_00300_roar01",
+        "pm0149_00_00_00320_refresh01",
+        "pm0149_00_00_00550_glad01",
+        "pm0149_00_00_00560_notice01",
+        "pm0149_00_00_00563_hate01",
+        "pm0149_00_00_20000_defaultwait01_loop",
+        "pm0149_00_00_20001_battlewait01_loop",
+        "pm0149_00_00_20010_defaultidle01",
+        "pm0149_00_00_20011_defaultidle02",
+        "pm0149_00_00_20021_turn_r090",
+        "pm0149_00_00_20024_turn_l090",
+        "pm0149_00_00_20030_walk01_loop",
+        "pm0149_00_00_20100_run01_loop",
+        "pm0149_00_00_20145_stepout01_start",
+        "pm0149_00_00_20146_stepout01",
+        "pm0149_00_00_20147_stepout01_end",
+        "pm0149_00_00_20150_jumpup01_start",
+        "pm0149_00_00_20151_jumpup01_loop",
+        "pm0149_00_00_20152_jumpdown01_start",
+        "pm0149_00_00_20153_jumpdown01_loop",
+        "pm0149_00_00_20155_land02",
+        "pm0149_00_00_20300_roar01",
+        "pm0149_00_00_20400_attack01",
+        "pm0149_00_00_20410_attack02",
+        "pm0149_00_00_20450_rangeattack01",
+        "pm0149_00_00_20460_rangeattack02_start",
+        "pm0149_00_00_20461_rangeattack02_loop",
+        "pm0149_00_00_20462_rangeattack02_end",
+        "pm0149_00_00_20500_damage01",
+        "pm0149_00_00_20501_damage02",
+        "pm0149_00_00_20510_stun01_start",
+        "pm0149_00_00_20511_stun01_loop",
+        "pm0149_00_00_20512_stun01_end",
+        "pm0149_00_00_20520_down01_start",
+        "pm0149_00_00_20521_down01_loop",
+        "pm0149_00_00_20522_down01_end",
+        "pm0149_00_00_20560_notice01",
+        "pm0149_00_00_28000_eye01",
+        "pm0149_00_00_28100_mouth01"
+      ],
+      "textures": 3,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "becaa8098e26676837dd2f19589a16c774e46b433118b9d911cc7876abbe36b8",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/149.png",
+      "comparisonSheet": "model-review/sheet-13.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 150,
+      "species": "mewtwo",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/150.glb",
+      "bytes": 8317188,
+      "sha256": "64532dfc36b0a80d70115c79a2ec42ab35a5b390f825fcf381df73b9537d3816",
+      "meshNames": [
+        "Object_0",
+        "Object_1",
+        "Object_2",
+        "Object_3"
+      ],
+      "rootNames": [
+        "pm0150_00_00_body_mesh_76",
+        "pm0150_00_00_eye_mesh_77",
+        "lod1_81",
+        "pm0150_00_00_body_mesh_lod1_79",
+        "pm0150_00_00_eye_mesh_lod1_80",
+        "lod2_84",
+        "pm0150_00_00_body_mesh_lod2_82",
+        "pm0150_00_00_eye_mesh_lod2_83"
+      ],
+      "animations": [
+        "pm0150_00_00_00000_defaultwait01_loop",
+        "pm0150_00_00_00001_battlewait01_loop",
+        "pm0150_00_00_00010_defaultidle01",
+        "pm0150_00_00_00011_defaultidle02",
+        "pm0150_00_00_00021_turn_r090",
+        "pm0150_00_00_00024_turn_l090",
+        "pm0150_00_00_00030_walk01_loop",
+        "pm0150_00_00_00100_run01_loop",
+        "pm0150_00_00_00145_stepout01_start",
+        "pm0150_00_00_00146_stepout01",
+        "pm0150_00_00_00147_stepout01_end",
+        "pm0150_00_00_00150_jumpup01_start",
+        "pm0150_00_00_00151_jumpup01_loop",
+        "pm0150_00_00_00152_jumpdown01_start",
+        "pm0150_00_00_00153_jumpdown01_loop",
+        "pm0150_00_00_00155_land02",
+        "pm0150_00_00_00280_sleep01_start",
+        "pm0150_00_00_00281_sleep01_loop",
+        "pm0150_00_00_00282_sleep01_end",
+        "pm0150_00_00_00290_eat01_start",
+        "pm0150_00_00_00291_eat01_loop",
+        "pm0150_00_00_00292_eat01_end",
+        "pm0150_00_00_00300_roar01",
+        "pm0150_00_00_00320_refresh01",
+        "pm0150_00_00_00400_attack01",
+        "pm0150_00_00_00410_attack02",
+        "pm0150_00_00_00450_rangeattack01",
+        "pm0150_00_00_00460_rangeattack02_start",
+        "pm0150_00_00_00461_rangeattack02_loop",
+        "pm0150_00_00_00462_rangeattack02_end",
+        "pm0150_00_00_00500_damage01",
+        "pm0150_00_00_00501_damage02",
+        "pm0150_00_00_00510_stun01_start",
+        "pm0150_00_00_00511_stun01_loop",
+        "pm0150_00_00_00512_stun01_end",
+        "pm0150_00_00_00520_down01_start",
+        "pm0150_00_00_00521_down01_loop",
+        "pm0150_00_00_00522_down01_end",
+        "pm0150_00_00_00550_glad01",
+        "pm0150_00_00_00560_notice01",
+        "pm0150_00_00_00563_hate01",
+        "pm0150_00_00_08000_eye01",
+        "pm0150_00_00_08100_mouth01",
+        "pm0150_00_00_20000_defaultwait01_loop",
+        "pm0150_00_00_20010_defaultidle01",
+        "pm0150_00_00_20021_turn_r090",
+        "pm0150_00_00_20024_turn_l090",
+        "pm0150_00_00_20030_walk01_loop",
+        "pm0150_00_00_20100_run01_loop",
+        "pm0150_00_00_20145_stepout01_start",
+        "pm0150_00_00_20146_stepout01",
+        "pm0150_00_00_20147_stepout01_end",
+        "pm0150_00_00_20150_jumpup01_start",
+        "pm0150_00_00_20151_jumpup01_loop",
+        "pm0150_00_00_20152_jumpdown01_start",
+        "pm0150_00_00_20153_jumpdown01_loop",
+        "pm0150_00_00_20155_land02",
+        "pm0150_00_00_20300_roar01",
+        "pm0150_00_00_20400_attack01",
+        "pm0150_00_00_20460_rangeattack02_start",
+        "pm0150_00_00_20461_rangeattack02_loop",
+        "pm0150_00_00_20462_rangeattack02_end",
+        "pm0150_00_00_20500_damage01",
+        "pm0150_00_00_20501_damage02",
+        "pm0150_00_00_20510_stun01_start",
+        "pm0150_00_00_20511_stun01_loop",
+        "pm0150_00_00_20512_stun01_end",
+        "pm0150_00_00_20520_down01_start",
+        "pm0150_00_00_20521_down01_loop",
+        "pm0150_00_00_20522_down01_end",
+        "pm0150_00_00_20560_notice01"
+      ],
+      "textures": 4,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "98ed03ce2dda7979f0ef0edf804671a3c3823a495dbe7fd230386122ebf77e69",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/150.png",
+      "comparisonSheet": "model-review/sheet-13.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    },
+    {
+      "number": 151,
+      "species": "mew",
+      "source": "https://raw.githubusercontent.com/Pokemon-3D-api/assets/429de1288cea0d43f5b4f56305d2276e94239d65/models/opt/regular/151.glb",
+      "bytes": 309576,
+      "sha256": "8018f96bd093b1fc1172e7c21bc23f378e57a518380613072a68cabf8274ec5a",
+      "meshNames": [
+        "Mew"
+      ],
+      "rootNames": [
+        "Neck",
+        "Head",
+        "LEar",
+        "REar",
+        "RArm",
+        "RForeArm",
+        "RHand",
+        "Mew"
+      ],
+      "animations": [],
+      "textures": 4,
+      "requiredExtensions": [],
+      "structuralCheck": "passed",
+      "visualCheck": "compared-with-reference",
+      "sourceSha256": "4fb8e617eb114c4018c57c9c982232e55dc31857e2f6fec2c22578945bdaf38f",
+      "reference": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/151.png",
+      "comparisonSheet": "model-review/sheet-13.png",
+      "notes": "Species identity and defining geometry compared against artwork; source pose and lighting differ from illustration.",
+      "delivery": "Uncompressed geometry with embedded PNG textures; decoded geometry and node transforms preserved."
+    }
+  ],
+  "reviewMethod": "Each of 151 GLBs rendered offline in Blender and compared visually with its numbered PokeAPI official-artwork image. Flagged cases re-rendered after fixes. This is not an in-browser render or animation QA pass.",
+  "browserReview": "pending: no browser connected"
+}
