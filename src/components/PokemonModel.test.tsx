@@ -4,7 +4,11 @@ import { afterAll, expect, it, vi } from "vitest";
 import { StrictMode } from "react";
 import { loadPokemonModel } from "../game/loadPokemonModel";
 import { act, create } from "@react-three/test-renderer";
-import { Box3, Vector3 } from "three";
+import { appendageMotion, rigPokemonAppendages } from "../game/pokemonAppendages";
+import { createPokemonAnimator } from "../game/pokemonAnimation";
+import { POKEMON_MODELS } from "../game/pokemonModels";
+import { clone } from "three/examples/jsm/utils/SkeletonUtils.js";
+import { Box3, Group, SkinnedMesh, Vector3 } from "three";
 import { PokemonModel } from "./PokemonModel";
 
 // Rendering scene objects does not require browser DOM labels or a GPU. The
@@ -120,4 +124,108 @@ it("keeps species size differences readable without extreme proportions", async 
       }
     });
   } finally { await renderer.unmount(); }
+});
+
+
+it("animates all 151 actual rigs without changing their cached source poses", async () => {
+  for (const definition of Object.values(POKEMON_MODELS)) {
+    const gltf = await loadPokemonModel(definition.number);
+    const sourcePose: number[] = [];
+    gltf.scene.traverse(node => sourcePose.push(...node.position.toArray(), ...node.quaternion.toArray(), ...node.scale.toArray()));
+    const scene = clone(gltf.scene);
+    const root = new Group(); root.add(scene);
+    const disposeRig = rigPokemonAppendages(scene, definition.number);
+    const animator = createPokemonAnimator(scene, root, definition, gltf.animations);
+    for (const motion of ["idle", "walk", "attack", "hit", "idle"] as const) {
+      for (let i = 0; i < 20; i++) animator.update(motion, 1 / 60);
+      root.updateMatrixWorld(true);
+      root.traverse(node => expect(node.matrixWorld.elements.every(Number.isFinite), `#${definition.number} ${motion}: ${node.name}`).toBe(true));
+    }
+    animator.dispose();
+    disposeRig();
+    const after: number[] = [];
+    gltf.scene.traverse(node => after.push(...node.position.toArray(), ...node.quaternion.toArray(), ...node.scale.toArray()));
+    expect(after).toEqual(sourcePose);
+  }
+}, 20000);
+
+it("lowers outstretched arms in actual biped idle rigs, including all four Machamp arms", async () => {
+  let checked = 0;
+  for (const number of [4, 7, 25, 65, 66, 68, 94, 107, 122]) {
+    const gltf = await loadPokemonModel(number);
+    const scene = clone(gltf.scene);
+    const root = new Group(); root.add(scene); root.updateMatrixWorld(true);
+    const arms: { bone: typeof scene; elbow: typeof scene }[] = [];
+    scene.traverse(bone => {
+      const normalize = (name: string) => name.replace(/^\d+[ _]?/, "").replace(/_\d+$/, "");
+      if (!/^[LR]Arm\d*$/.test(normalize(bone.name))) return;
+      const elbow = bone.children.find(child => /ForeArm/.test(child.name));
+      if (!elbow) return;
+      const direction = elbow.getWorldPosition(new Vector3()).sub(bone.getWorldPosition(new Vector3())).normalize();
+      if (Math.abs(direction.y) <= 0.65) arms.push({ bone: bone as typeof scene, elbow: elbow as typeof scene });
+    });
+    const definition = Object.values(POKEMON_MODELS).find(entry => entry.number === number)!;
+    const animator = createPokemonAnimator(scene, root, definition, gltf.animations);
+    for (let i = 0; i < 30; i++) animator.update("idle", 1 / 60);
+    root.updateMatrixWorld(true);
+    for (const { bone, elbow } of arms) {
+      const direction = elbow.getWorldPosition(new Vector3()).sub(bone.getWorldPosition(new Vector3())).normalize();
+      expect(direction.y, `#${number} ${bone.name} should point down from its shoulder`).toBeLessThan(-0.7);
+      checked++;
+    }
+    if (number === 68) expect(arms.length).toBe(4);
+    animator.dispose();
+  }
+  expect(checked).toBeGreaterThanOrEqual(12);
+});
+
+
+it("animates wing hinges and distal tail bones that the old name filter skipped", async () => {
+  for (const number of [6, 12, 18, 26, 38, 49, 123, 144, 145, 151]) {
+    const gltf = await loadPokemonModel(number);
+    const scene = clone(gltf.scene); const root = new Group(); root.add(scene);
+    root.updateMatrixWorld(true);
+    const appendages: typeof scene[] = [];
+    scene.traverse(bone => { if (appendageMotion(bone, number)) appendages.push(bone as typeof scene); });
+    expect(appendages.length, `#${number}`).toBeGreaterThan(0);
+    const definition = Object.values(POKEMON_MODELS).find(entry => entry.number === number)!;
+    const animator = createPokemonAnimator(scene, root, definition, gltf.animations);
+    animator.update("idle", 0.05);
+    const before = appendages.map(bone => bone.quaternion.clone());
+    animator.update("idle", 0.1);
+    expect(appendages.every((bone, i) => bone.quaternion.angleTo(before[i]) > 0.00001), `#${number} every appendage should move`).toBe(true);
+    animator.dispose();
+  }
+});
+
+it("skins Golbat wings with normalized weights while keeping the torso and source geometry fixed", async () => {
+  const gltf = await loadPokemonModel(42);
+  const scene = clone(gltf.scene); const root = new Group(); root.add(scene);
+  const dispose = rigPokemonAppendages(scene, 42);
+  let mesh: SkinnedMesh | undefined;
+  scene.traverse(object => { if (object instanceof SkinnedMesh) mesh = object; });
+  expect(mesh).toBeDefined();
+  const wing = mesh!;
+  expect(wing.skeleton.bones.length).toBe(5);
+  const positions = wing.geometry.getAttribute("position");
+  const weights = wing.geometry.getAttribute("skinWeight");
+  root.updateMatrixWorld(true);
+  for (let i = 0; i < positions.count; i++) {
+    expect(weights.getX(i) + weights.getY(i) + weights.getZ(i) + weights.getW(i)).toBeCloseTo(1);
+    const point = new Vector3().fromBufferAttribute(positions, i);
+    expect(wing.applyBoneTransform(i, point.clone()).distanceTo(point)).toBeLessThan(0.00001);
+  }
+  const animator = createPokemonAnimator(scene, root, POKEMON_MODELS.golbat, gltf.animations);
+  for (let i = 0; i < 15; i++) animator.update("idle", 1 / 60);
+  root.updateMatrixWorld(true);
+  let moved = 0;
+  for (let i = 0; i < positions.count; i++) {
+    const point = new Vector3().fromBufferAttribute(positions, i);
+    const distance = wing.applyBoneTransform(i, point.clone()).distanceTo(point);
+    if (weights.getX(i) === 1) expect(distance).toBeLessThan(0.00001);
+    else if (distance > 0.01) moved++;
+  }
+  expect(moved).toBeGreaterThan(100);
+  gltf.scene.traverse(object => { if (object instanceof SkinnedMesh) throw new Error("Cached Golbat must remain unmodified"); });
+  animator.dispose(); dispose();
 });

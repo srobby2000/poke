@@ -8,7 +8,8 @@ output=pathlib.Path(os.environ.get('POKEMON_REVIEW_DIR', pathlib.Path(tempfile.g
 output.mkdir(parents=True, exist_ok=True)
 number=int(sys.argv[-1])
 bpy.ops.wm.read_factory_settings(use_empty=True)
-bpy.ops.import_scene.gltf(filepath=str(root/f'public/models/pokemon/{number}.glb'))
+model_dir=pathlib.Path(os.environ.get('POKEMON_MODEL_DIR', root/'public/models/pokemon'))
+bpy.ops.import_scene.gltf(filepath=str(model_dir/f'{number}.glb'))
 print('IMPORTED',number)
 if number == 12:
  import bmesh
@@ -40,11 +41,11 @@ center=(lo+hi)/2; extent=max(hi-lo)
 for material in bpy.data.materials:
  if material.use_nodes and material.use_backface_culling:
   nodes=material.node_tree.nodes; links=material.node_tree.links
-  output=next((node for node in nodes if node.type=='OUTPUT_MATERIAL'),None)
-  if output and output.inputs['Surface'].links:
-   shader=output.inputs['Surface'].links[0].from_socket
+  material_output=next((node for node in nodes if node.type=='OUTPUT_MATERIAL'),None)
+  if material_output and material_output.inputs['Surface'].links:
+   shader=material_output.inputs['Surface'].links[0].from_socket
    mix=nodes.new('ShaderNodeMixShader'); transparent=nodes.new('ShaderNodeBsdfTransparent'); geo=nodes.new('ShaderNodeNewGeometry')
-   links.new(shader,mix.inputs[1]);links.new(transparent.outputs[0],mix.inputs[2]);links.new(geo.outputs['Backfacing'],mix.inputs[0]);links.new(mix.outputs[0],output.inputs['Surface'])
+   links.new(shader,mix.inputs[1]);links.new(transparent.outputs[0],mix.inputs[2]);links.new(geo.outputs['Backfacing'],mix.inputs[0]);links.new(mix.outputs[0],material_output.inputs['Surface'])
 scene=bpy.context.scene
 scene.render.engine='CYCLES';scene.cycles.samples=8
 scene.render.resolution_x=300;scene.render.resolution_y=300;scene.render.resolution_percentage=100

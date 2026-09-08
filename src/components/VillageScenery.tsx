@@ -72,7 +72,7 @@ export function VillageBuildings({ walls, doors }: { walls: Tile[]; doors: { x: 
     const xs = tiles.map(t => t[0]), zs = tiles.map(t => t[1]);
     const minX = Math.min(...xs), maxX = Math.max(...xs), minZ = Math.min(...zs), maxZ = Math.max(...zs);
     const width = maxX - minX + 1, depth = maxZ - minZ + 1;
-    const isHouse = width <= 8 && depth <= 8 && tiles.length === width * depth;
+    const isHouse = width <= 8 && depth <= 8 && tiles.length === width * depth && doors.some(d => d.x >= minX && d.x <= maxX && d.z >= minZ && d.z <= maxZ);
     if (!isHouse) return <Instances key={index} limit={tiles.length} range={tiles.length} castShadow receiveShadow>
       <boxGeometry args={[1, 1.65, 1]} /><meshStandardMaterial color="#899b98" roughness={1} />
       {tiles.map(([x, z]) => <Instance key={`${x},${z}`} position={[x, 0.825, z]} />)}

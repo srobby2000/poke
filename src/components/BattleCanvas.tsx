@@ -260,7 +260,7 @@ const CreatureUnit = memo(function CreatureUnit({
     }}>
       <Float speed={1.7} rotationIntensity={0.08} floatIntensity={alive ? 0.14 : 0}>
         <group scale={alive ? 1 : 0.82}>
-          <PokemonModel species={unit.sourcePokemon} color={unit.color} hit={unit.hitFlash > 0} />
+          <PokemonModel species={unit.sourcePokemon} color={unit.color} hit={unit.hitFlash > 0} attacking={unit.actionPulse > 0} fainted={!alive} />
         </group>
       </Float>
       {selected && alive ? (

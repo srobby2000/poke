@@ -1,3 +1,4 @@
+import { VillageBuildings, VillagePonds, VillageTrees } from "./VillageScenery";
 import { TrainerModel } from "./TrainerModel";
 import { SceneContextStatus } from "./SceneContextStatus";
 import { Html, Instance, Instances } from "@react-three/drei";
@@ -21,9 +22,10 @@ const WORLD_LABEL_Z_INDEX_RANGE: [number, number] = [20, 0];
 export function WorldCanvas({ state, pickedBerries }: WorldCanvasProps) {
   return (
     <Canvas className="battle-canvas" dpr={[1, 1.5]} shadows camera={{ position: [state.x, 8.2, state.z + 7.4], fov: 50 }}>
-      <color attach="background" args={["#0c1220"]} />
-      <fog attach="fog" args={["#0c1220", 14, 30]} />
-      <ambientLight intensity={0.75} />
+      <color attach="background" args={["#a6c8c5"]} />
+      <fog attach="fog" args={["#a6c8c5", 16, 34]} />
+      <ambientLight intensity={0.95} />
+      <hemisphereLight args={["#e5f2df", "#7a715b", 0.8]} />
       <directionalLight castShadow position={[-6, 12, 6]} intensity={1.9} shadow-mapSize={[1024, 1024]} />
       <StaticVillage map={state.map} pickedBerries={pickedBerries} defeatedTrainers={state.defeatedTrainers} />
       <Player state={state} />
@@ -145,12 +147,12 @@ const StaticVillage = memo(function StaticVillage({
     <group>
       <mesh receiveShadow position={[centerX, -0.02, centerZ]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[map.width + 6, map.height + 6]} />
-        <meshStandardMaterial color="#33415c" roughness={0.92} />
+        <meshStandardMaterial color="#b8ad87" roughness={0.92} />
       </mesh>
 
       <Instances limit={layout.grass.length} range={layout.grass.length}>
         <planeGeometry args={[0.98, 0.98]} />
-        <meshStandardMaterial color="#2f6e4f" roughness={0.9} />
+        <meshStandardMaterial color="#65895c" roughness={0.9} />
         {layout.grass.map(([x, z]) => (
           <Instance key={`g${x},${z}`} position={[x, 0.005, z]} rotation={[-Math.PI / 2, 0, 0]} />
         ))}
@@ -160,7 +162,7 @@ const StaticVillage = memo(function StaticVillage({
         <>
           <Instances limit={layout.tallgrass.length} range={layout.tallgrass.length}>
             <planeGeometry args={[0.98, 0.98]} />
-            <meshStandardMaterial color="#1f5c3c" roughness={0.95} />
+            <meshStandardMaterial color="#49784f" roughness={0.95} />
             {layout.tallgrass.map(([x, z]) => (
               <Instance key={`tg${x},${z}`} position={[x, 0.006, z]} rotation={[-Math.PI / 2, 0, 0]} />
             ))}
@@ -182,27 +184,8 @@ const StaticVillage = memo(function StaticVillage({
         </>
       ) : null}
 
-      <Instances limit={layout.trees.length} range={layout.trees.length} castShadow>
-        <coneGeometry args={[0.55, 1.25, 7]} />
-        <meshStandardMaterial color="#27583f" roughness={0.8} />
-        {layout.trees.map(([x, z]) => (
-          <Instance key={`t${x},${z}`} position={[x, 1.05, z]} />
-        ))}
-      </Instances>
-      <Instances limit={layout.trees.length} range={layout.trees.length}>
-        <cylinderGeometry args={[0.12, 0.16, 0.6, 6]} />
-        <meshStandardMaterial color="#5b4636" roughness={0.85} />
-        {layout.trees.map(([x, z]) => (
-          <Instance key={`tt${x},${z}`} position={[x, 0.3, z]} />
-        ))}
-      </Instances>
-
-      {layout.water.map(([x, z]) => (
-        <mesh key={`w${x},${z}`} position={[x, 0.01, z]} rotation={[-Math.PI / 2, 0, 0]}>
-          <planeGeometry args={[1, 1]} />
-          <meshStandardMaterial color="#1d5f8a" emissive="#1b8ec0" emissiveIntensity={0.25} roughness={0.3} />
-        </mesh>
-      ))}
+      <VillageTrees tiles={layout.trees} />
+      <VillagePonds tiles={layout.water} />
 
       {layout.warps.map((warp) => (
         <group key={`wp${warp.x},${warp.z}`} position={[warp.x, 0, warp.z]}>
@@ -220,45 +203,15 @@ const StaticVillage = memo(function StaticVillage({
         </group>
       ))}
 
-      {layout.walls.map(([x, z]) => (
-        <group key={`h${x},${z}`} position={[x, 0, z]}>
-          <mesh castShadow position={[0, 0.8, 0]}>
-            <boxGeometry args={[1, 1.6, 1]} />
-            <meshStandardMaterial color="#6e7b8c" roughness={0.8} />
-          </mesh>
-          <mesh castShadow position={[0, 1.7, 0]}>
-            <boxGeometry args={[1.06, 0.2, 1.06]} />
-            <meshStandardMaterial color="#8c5b5b" roughness={0.7} />
-          </mesh>
-        </group>
-      ))}
+      <VillageBuildings walls={layout.walls} doors={layout.doors} />
+      {layout.doors.map(door => <Html key={`door-label-${door.x},${door.z}`} center zIndexRange={WORLD_LABEL_Z_INDEX_RANGE} position={[door.x, 3.7, door.z]} className="unit-label" distanceFactor={11}>
+        <span>{door.label}</span>
+      </Html>)}
 
-      {layout.doors.map((door) => (
-        <group key={`d${door.x},${door.z}`} position={[door.x, 0, door.z]}>
-          <mesh castShadow position={[0, 0.8, 0]}>
-            <boxGeometry args={[1, 1.6, 1]} />
-            <meshStandardMaterial color="#6e7b8c" roughness={0.8} />
-          </mesh>
-          <mesh position={[0, 1.7, 0]}>
-            <boxGeometry args={[1.06, 0.2, 1.06]} />
-            <meshStandardMaterial color="#8c5b5b" roughness={0.7} />
-          </mesh>
-          <mesh position={[0, 0.62, 0.51]}>
-            <boxGeometry args={[0.55, 1.1, 0.06]} />
-            <meshStandardMaterial color="#d9a066" emissive="#d9a066" emissiveIntensity={0.18} roughness={0.6} />
-          </mesh>
-          <Html center zIndexRange={WORLD_LABEL_Z_INDEX_RANGE} position={[0, 2.25, 0]} className="unit-label" distanceFactor={11}>
-            <span>{door.label}</span>
-          </Html>
-        </group>
-      ))}
-
-      {layout.fences.map(([x, z]) => (
-        <mesh key={`f${x},${z}`} castShadow position={[x, 0.26, z]}>
-          <boxGeometry args={[0.85, 0.5, 0.18]} />
-          <meshStandardMaterial color="#7c5f46" roughness={0.85} />
-        </mesh>
-      ))}
+      {layout.fences.map(([x, z]) => <group key={`f${x},${z}`} position={[x, 0, z]}>
+        {[-0.36, 0.36].map(offset => <mesh key={offset} castShadow position={[offset, 0.36, 0]}><boxGeometry args={[0.12, 0.72, 0.12]} /><meshStandardMaterial color="#987957" roughness={1} /></mesh>)}
+        {[0.24, 0.54].map(height => <mesh key={height} castShadow position={[0, height, 0]}><boxGeometry args={[0.9, 0.1, 0.08]} /><meshStandardMaterial color="#bea077" roughness={1} /></mesh>)}
+      </group>)}
 
       {layout.berries.map(([x, z]) => {
         const picked = pickedBerries.includes(tileKey(x, z));
