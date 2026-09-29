@@ -2932,3 +2932,97 @@ kbd {
 .pokedex-model-hint { color: #78939d; font-size: 0.7rem; padding-bottom: 10px; text-align: center; }
 .pokemon-model-status { display: block; width: 130px; padding: 8px; border-radius: 8px; background: #173443; color: #d6edf2; font-size: 11px; text-align: center; }
 .pokemon-model-status button { display: block; margin: 6px auto 0; padding: 4px 10px; border: 1px solid #78e1ff; border-radius: 6px; background: #234b5d; color: white; cursor: pointer; }
+
+.world-ride-panel {
+  position: absolute; right: 22px; bottom: 28px; pointer-events: auto;
+  padding: 14px 16px; border: 1px solid #91c4ba55; border-radius: 16px;
+  background: #142830ed; color: #edf8ef; box-shadow: 0 8px 30px #0004;
+}
+.world-ride-caption { display: block; font-size: 10px; letter-spacing: 1.5px; color: #a8d4c9; margin-bottom: 10px; }
+.world-ride-controls { display: flex; gap: 8px; }
+.world-ride-controls select, .world-ride-controls button { border: 1px solid #72958c; border-radius: 8px; padding: 9px; background: #24413e; color: white; font: inherit; font-size: 12px; }
+.world-ride-controls button { cursor: pointer; background: #396658; }
+.world-ride-panel small { display: block; margin-top: 8px; color: #bfd3ce; font-size: 11px; }
+.dungeon-floor-strip { position: absolute; left: 22px; top: 170px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; max-width: 270px; padding: 10px; border-radius: 12px; background: #182135e8; font-size: 11px; color: #d7e1f1; }
+.dungeon-floor-strip > span { padding: 7px; }
+.dungeon-floor-strip .current-floor { border-radius: 6px; background: #a499ff; color: #17132e; font-weight: 800; }
+.dungeon-floor-strip small { width: 100%; padding: 0 7px 4px; }
+@media (max-width: 700px) {
+  .world-ride-panel { right: 10px; bottom: 155px; padding: 10px; }
+  .world-ride-controls select { max-width: 155px; }
+  .dungeon-floor-strip { left: 10px; top: 185px; max-width: 230px; }
+}
+
+.pokedex-motion-controls { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; margin: 10px 0; }
+.pokedex-motion-controls button { cursor: pointer; border: 1px solid #758aa655; border-radius: 7px; background: #203147; color: #e4eef9; padding: 6px 9px; font-size: 11px; }
+.pokedex-motion-controls button[aria-pressed="true"] { background: #3b6a73; border-color: #85ced6; }
+
+/* Pokédex move list: every move plays its own recorded animation in the viewer. */
+.dex-move-motion { align-self: stretch; margin: 2px 4px 8px; font-size: 11px; line-height: 1.45; color: var(--dex-muted, #5b6b80); text-align: left; }
+.dex-move-motion strong { color: var(--dex-text, #1f2a37); }
+/* .pokedex-art centres its children; the list needs the full width for its grid. */
+.dex-move-panel { align-self: stretch; width: 100%; text-align: left; }
+.dex-move-panel h4 { display: flex; justify-content: space-between; align-items: baseline; margin: 10px 4px 5px; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--dex-muted, #5b6b80); }
+.dex-move-panel h4 span { font-size: 11px; letter-spacing: 0; text-transform: none; color: var(--dex-text, #1f2a37); }
+.dex-move-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 5px; }
+.dex-move { display: flex; align-items: center; gap: 6px; min-width: 0; cursor: pointer; border: 1px solid #758aa655; border-radius: 7px; background: #203147; color: #e4eef9; padding: 6px 8px; font-size: 11px; text-align: left; }
+.dex-move[aria-pressed="true"] { background: #3b6a73; border-color: #85ced6; }
+.dex-move-type { flex: none; width: 8px; height: 8px; border-radius: 50%; box-shadow: 0 0 0 1px #ffffff55; }
+.dex-move-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dex-move small { flex: none; color: #9fb3cb; font-size: 10px; }
+
+/* Turn-based battle (trainer's-eye view). Opponent info top-left, the player's above the
+   dock on the right, message box and commands along the bottom, as in the main series. */
+.tb-shell { cursor: default; user-select: none; }
+.tb-topbar { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 12px; padding: 6px 12px; border-radius: 999px; background: #0f1b2bcc; color: #e8f1fb; font-size: 12px; box-shadow: 0 4px 14px #0003; z-index: 3; }
+.tb-title { font-weight: 700; letter-spacing: 0.02em; }
+.tb-turn { color: #9fb7cf; }
+.tb-auto { cursor: pointer; border: 1px solid #6b85a3; border-radius: 999px; background: transparent; color: #e8f1fb; padding: 3px 10px; font-size: 11px; }
+.tb-auto-on { background: #2f8f7a; border-color: #7fe0c8; }
+.tb-info { position: absolute; z-index: 2; width: min(300px, 44vw); padding: 9px 12px 10px; border-radius: 12px 4px 12px 4px; background: linear-gradient(180deg, #fbfdff, #e7eef6); color: #1c2837; box-shadow: 0 6px 18px #0003, inset 0 0 0 2px #fff8; }
+.tb-info-enemy { top: 58px; left: 18px; }
+.tb-info-ally { right: 18px; bottom: 262px; }
+.tb-info-head { display: flex; align-items: baseline; gap: 8px; }
+.tb-info-head strong { font-size: 16px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tb-level { font-weight: 700; font-size: 13px; color: #3c4b5f; }
+.tb-status { font-size: 10px; font-weight: 800; color: #fff; padding: 1px 5px; border-radius: 4px; }
+.tb-status-burn { background: #e2573b; } .tb-status-poison { background: #9c4fc4; } .tb-status-paralysis { background: #d7a800; }
+.tb-hp { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+.tb-hp > span { font-size: 10px; font-weight: 800; color: #e0a300; background: #2c3a4c; padding: 0 4px; border-radius: 3px; }
+.tb-hp-track { position: relative; flex: 1; height: 8px; border-radius: 99px; background: #3a4757; overflow: hidden; display: block; }
+.tb-hp-fill { position: absolute; inset: 0 auto 0 0; border-radius: 99px; transition: width 0.7s ease-out, background-color 0.3s; display: block; }
+.tb-hp-high { background: #3fcf6a; } .tb-hp-mid { background: #f2c230; } .tb-hp-low { background: #ec4f45; }
+.tb-hp-numbers { display: block; text-align: right; margin-top: 3px; font-weight: 700; font-size: 12px; color: #2e3d50; }
+.tb-party { display: flex; gap: 3px; margin-top: 5px; }
+.tb-party i { width: 9px; height: 9px; border-radius: 50%; border: 1px solid #2b3848; }
+.tb-ball-ok { background: linear-gradient(180deg, #e84a4a 50%, #fafafa 50%); } .tb-ball-out { background: #9aa6b3; opacity: 0.6; }
+.tb-dock { position: absolute; left: 12px; right: 12px; bottom: 12px; z-index: 3; display: flex; gap: 10px; align-items: stretch; min-height: 150px; }
+.tb-message { flex: 1.2; min-width: 0; padding: 16px 20px; border-radius: 14px; background: #13233a; border: 3px solid #d7e3f0; color: #f4f8fc; box-shadow: 0 8px 22px #0004; cursor: pointer; }
+.tb-message p { margin: 0; font-size: 18px; line-height: 1.45; }
+.tb-message small { display: block; margin-top: 10px; color: #8ea7c2; font-size: 11px; }
+.tb-menu { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-content: stretch; }
+.tb-menu button { cursor: pointer; border-radius: 12px; border: 2px solid #c9d6e4; background: #f7fafd; color: #1c2837; font: inherit; text-align: left; padding: 10px 12px; box-shadow: 0 4px 12px #0002; }
+.tb-menu button:disabled { cursor: not-allowed; opacity: 0.45; }
+.tb-menu button:not(:disabled):hover { transform: translateY(-1px); box-shadow: 0 6px 16px #0003; }
+.tb-cmd { font-size: 20px; font-weight: 800; text-align: center !important; letter-spacing: 0.02em; }
+.tb-cmd-fight { background: #fde4df !important; border-color: #e35d4a !important; }
+.tb-cmd-bag { background: #fdf0d6 !important; border-color: #e0a431 !important; }
+.tb-cmd-party { background: #dff3e4 !important; border-color: #3fae62 !important; }
+.tb-cmd-run { background: #dfeafd !important; border-color: #4a7fe3 !important; }
+.tb-fight, .tb-party-menu, .tb-bag { max-height: 230px; overflow: auto; align-content: start; }
+.tb-fight .tb-move, .tb-party-menu .tb-member, .tb-bag .tb-member { padding: 7px 10px; }
+.tb-move, .tb-member { display: flex; flex-direction: column; gap: 3px; border-left-width: 6px !important; }
+.tb-move-name { font-weight: 800; font-size: 14px; }
+.tb-move-name kbd, .tb-back kbd, .tb-auto kbd { font-size: 10px; padding: 0 4px; border-radius: 3px; background: #0001; border: 1px solid #0002; }
+.tb-move-meta { display: flex; gap: 8px; align-items: center; font-size: 11px; color: #4a596c; }
+.tb-move-meta i { font-style: normal; color: #fff; text-transform: uppercase; font-size: 9px; font-weight: 800; padding: 1px 6px; border-radius: 3px; }
+.tb-move small, .tb-member small { font-size: 11px; color: #5a687a; }
+.tb-hint-super { color: #c2410c !important; font-weight: 700; } .tb-hint-weak { color: #64748b !important; }
+.tb-sync { border-color: #8b5cf6 !important; background: #f3edff !important; }
+.tb-back { grid-column: 1 / -1; text-align: center !important; font-weight: 700; background: #e8edf3 !important; padding: 5px 10px !important; }
+.tb-empty { margin: 0; align-self: center; color: #d6e0ea; font-size: 13px; }
+@media (max-width: 720px) {
+  .tb-dock { flex-direction: column; min-height: 0; }
+  .tb-info-ally { bottom: 320px; }
+  .tb-message p { font-size: 15px; }
+}

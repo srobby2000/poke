@@ -1,3 +1,4 @@
+import { RIDE_POKEMON, type RideSpecies } from "../game/riding";
 import { Suspense, lazy, useEffect, useReducer, useRef, useState } from "react";
 import type { TileKind, WorldMap } from "../game/maps";
 import type { PlayerProgress } from "../game/progress";
@@ -58,6 +59,9 @@ export function WorldScreen({
     createInitialWorldState(progress.worldPosition, undefined, progress.defeatedTrainers, rematchedToday),
   );
 
+  const [selectedRide, setSelectedRide] = useState<RideSpecies>("arcanine");
+  const rideChoiceRef = useRef(selectedRide);
+  useEffect(() => { rideChoiceRef.current = selectedRide; }, [selectedRide]);
   const worldRef = useRef(world);
   useEffect(() => {
     worldRef.current = world;
@@ -78,9 +82,9 @@ export function WorldScreen({
     const run = (now: number) => {
       accumulated += Math.min((now - last) / 1000, MAX_DELTA_SECONDS);
       last = now;
-      if (accumulated >= LOGIC_STEP_SECONDS) {
-        dispatch({ type: "tick", deltaSeconds: Math.min(accumulated, MAX_DELTA_SECONDS) });
-        accumulated = 0;
+      while (accumulated >= LOGIC_STEP_SECONDS) {
+        dispatch({ type: "tick", deltaSeconds: LOGIC_STEP_SECONDS });
+        accumulated -= LOGIC_STEP_SECONDS;
       }
       frame = requestAnimationFrame(run);
     };
@@ -103,6 +107,7 @@ export function WorldScreen({
       if (event.ctrlKey || event.metaKey || event.altKey) {
         return;
       }
+      if (event.target instanceof HTMLElement && /INPUT|SELECT|TEXTAREA|BUTTON/.test(event.target.tagName)) return;
       const key = event.key.toLowerCase();
       if (["w", "a", "s", "d", "arrowup", "arrowdown", "arrowleft", "arrowright"].includes(key)) {
         event.preventDefault();
@@ -112,6 +117,8 @@ export function WorldScreen({
         }
       } else if ((key === "e" || key === "enter") && !event.repeat) {
         dispatch({ type: "interact" });
+      } else if (key === "r" && !event.repeat) {
+        dispatch({ type: "setRide", species: worldRef.current.ride ? null : rideChoiceRef.current });
       } else if (key === "b" && !event.repeat) {
         openPokedexRef.current();
       } else if (key === "escape") {
@@ -127,9 +134,12 @@ export function WorldScreen({
       }
     };
 
+    const onBlur = () => { pressed.clear(); dispatchVector(); };
+    window.addEventListener("blur", onBlur);
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("keyup", onKeyUp);
     return () => {
+      window.removeEventListener("blur", onBlur);
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
     };
@@ -199,7 +209,7 @@ export function WorldScreen({
 
   return (
     <main className="app-shell">
-      <Suspense fallback={<div className="canvas-loading">Loading village…</div>}>
+      <Suspense fallback={<div className="canvas-loading">Loading world…</div>}>
         <WorldCanvas state={world} pickedBerries={pickedBerries} />
       </Suspense>
 
@@ -207,7 +217,7 @@ export function WorldScreen({
         <section className="top-strip" aria-label="Village status">
           <div className="objective-chip">
             <strong>{world.map.name}</strong>
-            <span>{world.map.id === "village" ? "Explore, then enter the Arena" : "Beat the trainers, catch the wild ones"}</span>
+            <span>{world.map.dungeon ? world.map.dungeon.subtitle : world.map.id === "village" ? "Explore, then enter the Arena" : "Beat the trainers, catch the wild ones"}</span>
           </div>
           <span className="gems-chip">💎 {progress.gems}</span>
           <button className="control-chip world-team-button" onClick={onOpenTeam}>
@@ -220,9 +230,31 @@ export function WorldScreen({
             ⚙️
           </button>
           <div className="control-chip world-hint">
-            <span>WASD move · E interact · B Pokédex</span>
+            <span>WASD move · E interact · R ride</span>
           </div>
         </section>
+
+        <section className="world-ride-panel" aria-label="Trail Pokémon">
+          <span className="world-ride-caption">TRAIL POKÉMON · FREE LOAN</span>
+          <div className="world-ride-controls">
+            <select aria-label="Choose ride Pokémon" value={selectedRide} onChange={event => {
+              const species = event.target.value as RideSpecies;
+              setSelectedRide(species);
+              if (world.ride) dispatch({ type: "setRide", species });
+            }}>
+              {Object.entries(RIDE_POKEMON).map(([species, ride]) => <option key={species} value={species}>{ride.name} · {ride.speed}× speed</option>)}
+            </select>
+            <button onClick={() => dispatch({ type: "setRide", species: world.ride ? null : selectedRide })}>
+              {world.ride ? "Dismount" : "Ride"} <kbd>R</kbd>
+            </button>
+          </div>
+          <small>{world.ride ? `Riding ${RIDE_POKEMON[world.ride].name}` : "Choose a partner to travel faster"}</small>
+        </section>
+        {world.map.dungeon && <div className="dungeon-floor-strip" aria-label="Dungeon depth">
+          <span>CRYSTAL CAVE</span>
+          {[1, 2, 3].map(floor => <span key={floor} className={floor === world.map.dungeon?.floor ? "current-floor" : ""} aria-current={floor === world.map.dungeon?.floor ? "step" : undefined}>B{floor}</span>)}
+          <small>Walk onto stairs to change floors</small>
+        </div>}
 
         <Minimap map={world.map} x={world.x} z={world.z} />
 

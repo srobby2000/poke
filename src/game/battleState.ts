@@ -103,6 +103,8 @@ export type Unit = {
   trainerMove: TrainerMove | null;
   hitFlash: number;
   actionPulse: number;
+  /** The move behind the latest actionPulse, so the model can play that move's animation. */
+  lastMoveId?: string;
   // Equipped held item (allies only) and whether its one-shot effect fired.
   heldItem?: string;
   heldItemUsed?: boolean;
@@ -1494,6 +1496,14 @@ export function getBattleMoveIds(): string[] {
   return [...ids];
 }
 
+/** The battle moves a species uses: its own template's, including evolved forms, which
+ * keep their base form's moves. Ally templates take precedence over enemy-only ones. */
+export function battleMovesFor(species: string): Move[] {
+  const template = allyTemplates.find(t => t.sourcePokemon === species || allyEvolutions[t.id]?.some(stage => stage.sourcePokemon === species))
+    ?? enemyTemplates.find(t => t.sourcePokemon === species);
+  return template ? [...template.moves, template.syncMove] : [];
+}
+
 export const createInitialBattleState = (seed?: number, config?: Partial<BattleConfig>): BattleState => {
   const allyIds = config?.allyIds && config.allyIds.length > 0 ? config.allyIds.slice(0, ALLY_SLOTS.length) : DEFAULT_ALLY_IDS;
   const battleMode = config?.battleMode ?? "ladder";
@@ -1843,7 +1853,7 @@ function performHoldBack(state: BattleState): BattleState {
     moveGauge: state.moveGauge - BALANCE.holdBackCost,
     units: state.units.map((unit) => {
       if (unit.id === actor.id) {
-        return { ...unit, actionPulse: 1 };
+        return { ...unit, actionPulse: 1, lastMoveId: "hold-back" };
       }
       if (unit.id === target.id) {
         return { ...unit, hp: target.hp - damage, hitFlash: 1 };
@@ -2111,7 +2121,7 @@ function performEnemyTrainerAction(state: BattleState, actingEnemyId: string, ac
     enemyTrainer: { ...trainer, buffUses: trainer.buffUses - 1 },
     units: state.units.map((unit) =>
       unit.id === target.id
-        ? { ...unit, attackStage: clamp(unit.attackStage + trainer.buffStages, -3, 6), actionPulse: 0.8 }
+        ? { ...unit, attackStage: clamp(unit.attackStage + trainer.buffStages, -3, 6), actionPulse: 0.8, lastMoveId: "trainer-buff" }
         : unit,
     ),
     log: [`${trainer.name} used X Attack. ${target.name}'s Attack rose.`, ...state.log].slice(0, BALANCE.logLimit),
@@ -2240,9 +2250,9 @@ function performPlayerTrainerMove(state: BattleState): BattleState {
         return unit;
       }
       if (trainerMove.kind === "attackBuff") {
-        return { ...unit, attackStage: clamp(unit.attackStage + trainerMove.stages, -3, 6), actionPulse: 0.8 };
+        return { ...unit, attackStage: clamp(unit.attackStage + trainerMove.stages, -3, 6), actionPulse: 0.8, lastMoveId: "trainer-buff" };
       }
-      return { ...unit, defenseStage: clamp(unit.defenseStage + trainerMove.stages, -3, 6), actionPulse: 0.8 };
+      return { ...unit, defenseStage: clamp(unit.defenseStage + trainerMove.stages, -3, 6), actionPulse: 0.8, lastMoveId: "trainer-buff" };
     }),
     log: [`${actor.name} used ${trainerMove.name}. ${trainerMove.description}.`, ...next.log].slice(0, BALANCE.logLimit),
   };
@@ -2508,7 +2518,7 @@ function applyAttack({
       return normalizeBattle({
         ...state,
         rng: seedAfterBlock,
-        units: state.units.map((unit) => (unit.id === actor.id ? { ...unit, actionPulse: 0.5 } : unit)),
+        units: state.units.map((unit) => (unit.id === actor.id ? { ...unit, actionPulse: 0.5, lastMoveId: "paralyzed" } : unit)),
         log: [`${actor.name} is fully paralyzed and couldn't move!`, ...state.log].slice(0, BALANCE.logLimit),
         feedback: [blockFeedback, ...state.feedback].slice(0, BALANCE.feedbackLimit),
       });
@@ -2538,7 +2548,7 @@ function applyAttack({
 
   const nextUnits = state.units.map((unit) => {
     if (unit.id === actor.id) {
-      return { ...unit, actionPulse: 1 };
+      return { ...unit, actionPulse: 1, lastMoveId: move.id };
     }
     if (unit.id === target.id) {
       return {
@@ -2597,10 +2607,10 @@ function applyStatMove({
 
   const units = state.units.map((unit) => {
     if (unit.id === actor.id && unit.id === target.id) {
-      return applyStages({ ...unit, actionPulse: 1 }, statChange);
+      return applyStages({ ...unit, actionPulse: 1, lastMoveId: move.id }, statChange);
     }
     if (unit.id === actor.id) {
-      return { ...unit, actionPulse: 1 };
+      return { ...unit, actionPulse: 1, lastMoveId: move.id };
     }
     if (unit.id === target.id) {
       return applyStages({ ...unit, hitFlash: statChange.stages < 0 ? 0.45 : unit.hitFlash }, statChange);
@@ -2651,7 +2661,7 @@ function applyUnityAttack({
   const targetHp = clamp(target.hp - damage, 0, target.maxHp);
   const units = state.units.map((unit) => {
     if (unit.team === "ally" && isAlive(unit)) {
-      return { ...unit, actionPulse: 1 };
+      return { ...unit, actionPulse: 1, lastMoveId: "unity-burst" };
     }
     if (unit.id === target.id) {
       return { ...unit, hp: targetHp, hitFlash: 1 };
@@ -2965,7 +2975,8 @@ function normalizeBattle(state: BattleState): BattleState {
 // Held items that strong wild creatures (deep Route 2, Crystal Cave) can drop.
 const WILD_HELD_DROP_POOL = ["hard-stone", "soft-sand", "twisted-spoon", "mystic-water"];
 
-function rollWildDrop(state: BattleState): { rng: number; droppedItem: BattleState["droppedItem"] } {
+/** A wild win's item drop; only the RNG and the encounter level are read. */
+export function rollWildDrop(state: { rng: number; config: { stage: number } }): { rng: number; droppedItem: BattleState["droppedItem"] } {
   const [roll, rngAfterChance] = nextRandom(state.rng);
   if (roll > BALANCE.wildDropChance) {
     return { rng: rngAfterChance, droppedItem: null };

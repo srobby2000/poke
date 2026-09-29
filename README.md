@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/srobby2000/poke/actions/workflows/ci.yml/badge.svg)](https://github.com/srobby2000/poke/actions/workflows/ci.yml)
 
-A real-time, Pokémon Masters-inspired 3v3 battle game built with React, TypeScript, and three.js. Build a team of three from a nine-Pokémon roster and climb an endless ladder of increasingly tough rival battles.
+A Pokémon-style, turn-based battle game built with React, TypeScript, and three.js. Build a team of three, battle one-on-one from your trainer's point of view, and climb an endless ladder of increasingly tough rival battles.
 
 ## Features
 
@@ -19,23 +19,22 @@ A real-time, Pokémon Masters-inspired 3v3 battle game built with React, TypeScr
 - **Gacha scouting** — earn gems by clearing stages and spend them on pulls (×1 or discounted ×10) with an animated rarity reveal; new allies are guaranteed while any remain locked (weighted by ★ rarity), then pulls become level-ups
 - **Rotating rival squads** — four enemy teams rotate by stage, with a Boss Aura team every fifth stage, plus a once-per-day seeded Daily Challenge for bonus gems
 - **16-ally roster** — from 3★ starters to the 5★ chase units Dratini and Lapras, each with a distinct role, rarity, passive, and moveset
-- **Leveling & evolution (hybrid XP)** — allies earn XP from every battle they fight (an XP bar tracks progress to the next level), and you can still spend gems or duplicate pulls for instant levels (+6% stats per level, cap 10); allies evolve at thresholds derived from **real PokeAPI evolution chains** (scaled into the level cap; stone/trade evolutions map to a default level), with real evolved-form stats. The Pokédex detail page shows each creature's full evolution line and triggers
+- **Leveling & evolution (hybrid XP)** — allies earn XP from every battle they fight (an XP bar tracks progress to the next level), and you can still spend gems or duplicate pulls for instant levels (each level adds two battle levels, cap 10); allies evolve at thresholds derived from **real PokeAPI evolution chains** (scaled into the level cap; stone/trade evolutions map to a default level), with real evolved-form stats. The Pokédex detail page shows each creature's full evolution line and triggers
 - **Battle report** — the result screen shows damage dealt per ally, so you can judge team compositions
 - **Achievements** — eight one-time missions (Flawless, League Champion, Full Roster…) that pay gem rewards and persist in the save
 - **Stage progression** — enemies grow stronger every stage, with a first-clear gem bonus; your best cleared stage is saved between sessions
 - **Live PokeAPI data** — base stats, official artwork, and species detail (flavor text, genus, height/weight, base experience, capture/growth rates) are fetched from [pokeapi.co](https://pokeapi.co) and cached for 7 days; battles use identical bundled stats as an offline fallback, and base experience scales battle XP rewards
-- **Real-time combat** — a shared move gauge fills over time; spend it on moves while enemies act on their own cooldowns
-- **Full 18-type chart** — main-series type effectiveness, same-type attack bonus, and role-based damage modifiers
-- **Per-ally sync moves** — each ally charges its own sync countdown by acting; unleash big sync attacks with a team-wide damage boost
-- **Unity attacks** — charge a team gauge and fire a combined attack from all living allies
-- **Status conditions** — burn, poison, and paralysis (which slows your gauge and can fully block actions)
-- **Stat-stage moves** — Withdraw, Growl, and X-item trainer moves raise and lower attack/defense stages
-- **Rival trainer AI** — the enemy team's trainer heals weakened teammates and buffs attackers before sync moves
-- **Damage variance & crits** — seeded RNG (0.85–1.0× rolls, 1/16 crit chance) keeps battles deterministic in tests but varied in play
-- **Smart targeting** — auto mode picks the best matchup; manual mode honors your selected target
-- **Attack projectiles & sound** — moves fly as type-shaped projectiles (flame shards, lightning bolts, spinning leaves, psychic rings, ice crystals) that land exactly when damage applies, with synthesized WebAudio effects (mutable)
-- **Keyboard shortcuts** — `1/2/3` moves, `Q/W/E` switch allies, `Space` sync, `T` trainer move, `U` unity, `M` target mode, `P` pause, `F` 2x speed
-- **Pause and fast-forward** — freeze the battle or run it at double speed
+- **Turn-based, one-on-one battles** — each side fields one Pokémon; both choose, then switches, items and balls resolve before moves, and moves go in Speed order (Quick Attack first). Choose **Fight**, **Pokémon** (switch), **Bag** (potions, cures, your trainer skill, Poké Balls) or **Run** (wild battles). A knocked-out Pokémon is replaced for free
+- **Trainer's-eye view** — the camera stands behind your trainer: your Pokémon faces away across the field toward the opponent, with the rival trainer behind it. Info boxes show level, HP and status; each turn plays back as messages, move animations, hit blinks, draining HP bars and faints
+- **Main-series stats and damage** — HP and stats come from base stats and level; damage uses the main-series formula with same-type bonus (1.5×), the full 18-type chart, crits (1/16) and 0.85–1.0× rolls, all seeded and deterministic in tests. Strong species (Snorlax, Butterfree) arrive at lower levels on early stages
+- **Move animations** — every move in the Red/Blue learnsets (all 151 Pokémon, 1,090 entries) and every battle move has a recorded movement; contact moves dash in, ranged ones fire type-shaped projectiles. Watch any Pokémon's moves in the Pokédex
+- **Sync moves** — each Pokémon charges its Sync move by using three moves, then unleashes it for heavy damage
+- **Status conditions** — burn and poison chip HP each turn (burn also weakens attacks); paralysis halves Speed and can stop a move. Fire, Poison and Electric types resist their matching status
+- **Stat-stage moves** — Withdraw, Growl, and X-item trainer skills raise and lower Attack/Defense stages (main-series ±6 scale)
+- **Rival trainer AI** — picks strong moves (and sometimes its second choice), heals its Pokémon once or twice when low, and uses an X Attack
+- **Auto battle & controls** — **Auto** picks moves for you; `1–4` use moves, `Space`/click skips a message, `Esc` backs out of a menu, `A` toggles Auto
+- **Balance simulator** — `turnBattleSimulation.ts` plays thousands of seeded battles with smart, casual and naive players; the balance report test keeps the difficulty curve where it was tuned
+- **Sound** — synthesized WebAudio effects for hits, super-effective hits, status, faints and captures (mutable)
 
 ## Getting started
 
@@ -59,8 +58,12 @@ npm run dev      # start dev server at http://127.0.0.1:7173
 ```
 src/
 ├── game/
-│   ├── battleState.ts       # All game logic: pure reducer, type chart, AI, balance constants
-│   ├── battleState.test.ts  # Vitest suite for the battle simulation
+│   ├── battleState.ts       # Roster, enemy teams, evolutions and unit construction
+│   ├── turnBattle.ts        # Turn-based battle engine: pure reducer, damage, AI, TURN constants
+│   ├── turnBattleSimulation.ts # Seeded battle simulator used by the balance report
+│   ├── moveAnimations.ts    # Recorded movement for every move, and Red/Blue learnsets
+│   ├── pokemonAnimation.ts  # Procedural clips: idle, walk, gallop, attack, hit, every move
+│   ├── pokemonAppendages.ts # Generated rigs for models shipped without skeletons
 │   ├── maps.ts              # Overworld maps as editable ASCII grids
 │   ├── worldState.ts        # Overworld reducer: movement, collision, interactions
 │   ├── items.ts             # Item definitions, inventory, daily berry picking
@@ -75,17 +78,16 @@ src/
 │   ├── WorldCanvas.tsx      # three.js village scene
 │   ├── TeamSelect.tsx       # Arena hub: roster, scout, achievements
 │   ├── PokedexScreen.tsx    # Seen/caught creature collection
-│   ├── BattleCanvas.tsx     # three.js battle scene (react-three-fiber + drei)
-│   └── BattleHud.tsx        # 2D HUD: gauges, move buttons, battle log
-├── App.tsx                  # Screen flow + 30Hz fixed-rate game loop
+│   ├── TurnBattleScreen.tsx # Battle screen: event playback, menus, results
+│   └── TurnBattleCanvas.tsx # Trainer's-eye battle scene (react-three-fiber + drei)
+├── App.tsx                  # Screen flow, sessions and rewards
 └── styles.css
 ```
 
 ### Architecture notes
 
-- Game logic lives in a **pure reducer** (`battleReducer`) with no React dependencies — fully unit-testable and deterministic via a seedable RNG
-- All tunable numbers (damage modifiers, cooldowns, status durations) live in the exported `BALANCE` object in `battleState.ts`
-- Logic ticks at a fixed **30Hz** while visuals animate at full frame rate; the reducer preserves object identity for unchanged units so memoized components skip re-rendering
+- Battles are a **pure turn reducer** (`turnBattleReducer`) with no React dependencies — fully unit-testable and deterministic via a seedable RNG. Each turn resolves at once into an ordered list of events, which the screen plays back one at a time
+- Battle tuning (damage scale, HP scale, level curves, status odds) lives in the exported `TURN` object in `turnBattle.ts`; the balance report test measures win rates with the simulator
 
 ## Tech stack
 
@@ -94,3 +96,10 @@ src/
 ---
 
 *Fan project for learning purposes. Pokémon is a trademark of Nintendo/Creatures Inc./GAME FREAK inc. — this project is not affiliated with or endorsed by them.*
+
+### Dungeon exploration and riding
+
+- Reach Crystal Cave through the eastern gate on Route 2. The cave now has three connected floors: Crystal Threshold (B1), Sunken Galleries (B2), and Crystal Heart (B3).
+- Walk onto the labeled stairs to descend or return. Each deeper floor has stronger encounters; Crystal Keeper Lyra waits on B3. Your map and position use the existing save system.
+- Choose Arcanine (1.5× speed) or Rapidash (1.75× speed) in the Trail Pokémon panel, then press **R** or **Ride**. Press again to dismount. These free trail loans are separate from the battle team, retain normal collisions and encounters, and can travel between floors. Returning from battle starts on foot.
+- World movement and turning are smoothed between logic updates. Mounts gallop while ridden (Arcanine a rotary dog gallop, Rapidash a transverse horse gallop), and the rider sits in a saddle measured from the mount's back, moving with its stride.

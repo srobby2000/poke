@@ -51,7 +51,10 @@ export type EncounterZone = {
   encounters: EncounterEntry[];
 };
 
+export type DungeonFloor = { floor: number; total: number; subtitle: string; color: string };
+
 export type WorldMap = {
+  dungeon?: DungeonFloor;
   id: string;
   name: string;
   width: number;
@@ -73,6 +76,7 @@ export type WorldMap = {
 };
 
 type MapLegend = {
+  dungeon?: DungeonFloor;
   name: string;
   doors?: Record<string, DoorMeta>;
   npcs?: Record<string, NpcMeta>;
@@ -149,6 +153,7 @@ function parseMap(id: string, layout: string[], legend: MapLegend): WorldMap {
   return {
     id,
     name: legend.name,
+    dungeon: legend.dungeon,
     width,
     height,
     tiles,
@@ -406,15 +411,17 @@ const CAVE_LAYOUT = [
   "H........HH........H",
   "H.....HH.....HH....H",
   "H........B.........H",
-  "H..................H",
+  "H................>.H",
   "HHHHHHHHHHHHHHHHHHHH",
 ];
 
 export const CAVE_MAP = parseMap("cave", CAVE_LAYOUT, {
-  name: "Crystal Cave",
+  name: "Crystal Cave · B1",
+  dungeon: { floor: 1, total: 3, subtitle: "Crystal threshold", color: "#72dfef" },
   encounterTile: "path",
   warps: {
-    "<": { toMap: "route2", toX: 26, toZ: 8, label: "Route 2" },
+    "<": { toMap: "route2", toX: 26, toZ: 8, label: "Surface · Route 2" },
+    ">": { toMap: "cave-depths", toX: 2, toZ: 1, label: "↓ B2 · Sunken galleries" },
   },
   trainers: {
     C: {
@@ -440,11 +447,80 @@ export const CAVE_MAP = parseMap("cave", CAVE_LAYOUT, {
   ],
 });
 
+// Hand-authored chambers joined by narrow passages; stairs always land beside
+// their return stair to avoid immediate warp loops.
+export const CAVE_DEPTHS_MAP = parseMap("cave-depths", [
+  "HHHHHHHHHHHHHHHHHHHH",
+  "H<P....H...........H",
+  "H......H...HHHH....H",
+  "H..........H.......H",
+  "HHHH.HHH...H..~~~..H",
+  "H......H......~~~..H",
+  "H..HH..HHHHH.......H",
+  "H..HH......H..HHHH.H",
+  "H......HH..H.......H",
+  "H..HH......H.......H",
+  "H..............H.>.H",
+  "HHHHHHHHHHHHHHHHHHHH",
+], {
+  name: "Crystal Cave · B2",
+  dungeon: { floor: 2, total: 3, subtitle: "Sunken galleries", color: "#a499ff" },
+  encounterTile: "path",
+  warps: {
+    "<": { toMap: "cave", toX: 16, toZ: 10, label: "↑ B1 · Crystal threshold" },
+    ">": { toMap: "cave-heart", toX: 2, toZ: 1, label: "↓ B3 · Crystal heart" },
+  },
+  encounters: [
+    { speciesId: "geodude", weight: 35, minLevel: 13, maxLevel: 16 },
+    { speciesId: "cubone", weight: 30, minLevel: 13, maxLevel: 17 },
+    { speciesId: "haunter", weight: 25, minLevel: 14, maxLevel: 17 },
+    { speciesId: "dratini", weight: 10, minLevel: 15, maxLevel: 18 },
+  ],
+});
+
+export const CAVE_HEART_MAP = parseMap("cave-heart", [
+  "HHHHHHHHHHHHHHHHHHHH",
+  "H<P................H",
+  "H..HHHH..HH..HHHH..H",
+  "H.....H......H.....H",
+  "H..H..H..HH..H..H..H",
+  "H..H............H..H",
+  "H..HHH..HHHH..HHH..H",
+  "H..................H",
+  "H....HH..C...HH....H",
+  "H....HH......HH....H",
+  "H..................H",
+  "HHHHHHHHHHHHHHHHHHHH",
+], {
+  name: "Crystal Cave · B3",
+  dungeon: { floor: 3, total: 3, subtitle: "Crystal heart · challenge the keeper", color: "#ffbd79" },
+  encounterTile: "path",
+  warps: {
+    "<": { toMap: "cave-depths", toX: 16, toZ: 10, label: "↑ B2 · Sunken galleries" },
+  },
+  trainers: {
+    C: {
+      id: "crystal-heart-keeper", name: "Crystal Keeper Lyra", teamId: "aurora-boss",
+      level: 19, reward: 240, facing: "up", sightRange: 3, itemReward: "focus-sash",
+      dialogue: "You have crossed all three floors. Let the heart test your bond!",
+      afterDialogue: "The crystal heart shines for your team. You have conquered the depths.",
+    },
+  },
+  encounters: [
+    { speciesId: "haunter", weight: 35, minLevel: 16, maxLevel: 19 },
+    { speciesId: "cubone", weight: 30, minLevel: 16, maxLevel: 19 },
+    { speciesId: "abra", weight: 20, minLevel: 17, maxLevel: 20 },
+    { speciesId: "dratini", weight: 15, minLevel: 17, maxLevel: 20 },
+  ],
+});
+
 // Every traversable map, keyed by id, for warp lookups and save restoration.
 export const MAPS: Record<string, WorldMap> = {
   village: VILLAGE_MAP,
   route2: ROUTE2_MAP,
   cave: CAVE_MAP,
+  "cave-depths": CAVE_DEPTHS_MAP,
+  "cave-heart": CAVE_HEART_MAP,
 };
 
 export function getMap(id: string | undefined): WorldMap {
