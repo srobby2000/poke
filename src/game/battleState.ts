@@ -2975,7 +2975,8 @@ function normalizeBattle(state: BattleState): BattleState {
 // Held items that strong wild creatures (deep Route 2, Crystal Cave) can drop.
 const WILD_HELD_DROP_POOL = ["hard-stone", "soft-sand", "twisted-spoon", "mystic-water"];
 
-function rollWildDrop(state: BattleState): { rng: number; droppedItem: BattleState["droppedItem"] } {
+/** A wild win's item drop; only the RNG and the encounter level are read. */
+export function rollWildDrop(state: { rng: number; config: { stage: number } }): { rng: number; droppedItem: BattleState["droppedItem"] } {
   const [roll, rngAfterChance] = nextRandom(state.rng);
   if (roll > BALANCE.wildDropChance) {
     return { rng: rngAfterChance, droppedItem: null };

@@ -1,14 +1,13 @@
-import { Suspense, lazy, useCallback, useEffect, useReducer, useRef, useState } from "react";
-import type { Dispatch } from "react";
-import { BattleHud } from "./components/BattleHud";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { PokedexModal } from "./components/PokedexModal";
 import { SettingsModal } from "./components/SettingsModal";
 import { TeamPickerModal } from "./components/TeamPickerModal";
 import { ShopScreen } from "./components/ShopScreen";
 import { TeamSelect } from "./components/TeamSelect";
 import { WorldScreen } from "./components/WorldScreen";
-import type { ApiMoveData, BattleAction, BattleMode, BattleState, PokemonBaseStats } from "./game/battleState";
-import { applyApiEvolutionLevels, battleReducer, createInitialBattleState, dailyChallengeKey, dailyChallengeStage, enemyTeamSpeciesIds, getBattleMoveIds, isAlive, teamUnits, tickBattle } from "./game/battleState";
+import type { ApiMoveData, BattleMode, PokemonBaseStats } from "./game/battleState";
+import { applyApiEvolutionLevels, dailyChallengeKey, dailyChallengeStage, enemyTeamSpeciesIds, getBattleMoveIds } from "./game/battleState";
+import { TurnBattle } from "./components/TurnBattleScreen";
 import type { AchievementDef, BattleSummary } from "./game/achievements";
 import { evaluateAchievements } from "./game/achievements";
 import type { PullResult } from "./game/gacha";
@@ -32,19 +31,11 @@ import { fetchGen1Pokedex, fetchMoveData } from "./game/pokeApi";
 import type { PlayerProgress } from "./game/progress";
 import { defaultProgress, exportProgress, importProgress, loadProgress, saveProgress } from "./game/progress";
 import { buyItem, sellItem } from "./game/shop";
-import { playFeedbackSound, playKoSound } from "./game/sound";
+import { playFeedbackSound } from "./game/sound";
 
-// Game logic runs at a fixed 30Hz instead of once per animation frame, so the
-// React tree re-renders at most 30 times per second. Purely visual motion
-// (idle float, camera) still animates at full frame rate inside the canvas.
-const LOGIC_STEP_SECONDS = 1 / 30;
-const MAX_DELTA_SECONDS = 0.08;
-
-// The 3D canvas (and the ~1MB three.js chunk behind it) loads lazily so the
-// team-select screen paints immediately; preloadCanvas() starts the download
-// in the background while the player is still picking a team.
-const preloadCanvas = () => import("./components/BattleCanvas");
-const BattleCanvas = lazy(() => preloadCanvas().then((module) => ({ default: module.BattleCanvas })));
+// The battle's 3D scene (and the ~1MB three.js chunk behind it) loads lazily;
+// preloadCanvas() starts the download while the player is still picking a team.
+const preloadCanvas = () => import("./components/TurnBattleCanvas");
 
 type WildSession = { speciesId: string; level: number; balls: Record<string, number>; captureRate?: number };
 
@@ -437,7 +428,7 @@ export default function App() {
   }
 
   return (
-    <Battle
+    <TurnBattle
       key={`${session.runId}-${session.battleMode}-${session.stage}-${session.dailyKey ?? session.wild?.speciesId ?? session.trainer?.id ?? "ladder"}`}
       allyIds={session.allyIds}
       stage={session.stage}
@@ -546,330 +537,4 @@ export default function App() {
       }}
     />
   );
-}
-
-type BattleProps = {
-  allyIds: string[];
-  stage: number;
-  battleMode: BattleMode;
-  dailyKey?: string;
-  enemyTeamId?: string;
-  wild?: WildSession;
-  isTrainer?: boolean;
-  autoFight?: boolean;
-  speciesStats: Record<string, PokemonBaseStats> | null;
-  allyLevels: Record<string, number>;
-  evolutionChoices: Record<string, string>;
-  heldItems: Record<string, string>;
-  usePokeApiRates: boolean;
-  usePokeApiMovesets: boolean;
-  moveData: Record<string, ApiMoveData> | null;
-  items: Record<string, number>;
-  onItemUsed: (itemId: string, quantity: number) => void;
-  onBattleCleared: (summary: BattleSummary) => void;
-  onWildEnd?: (summary: WildEndSummary) => void;
-  onExitToWorld?: () => void;
-  onNextStage?: () => void;
-  onRetry: () => void;
-  onChangeTeam: () => void;
-  onBackToLobby: () => void;
-};
-
-function Battle({
-  allyIds,
-  stage,
-  battleMode,
-  dailyKey,
-  enemyTeamId,
-  wild,
-  isTrainer,
-  autoFight = false,
-  speciesStats,
-  allyLevels,
-  evolutionChoices,
-  heldItems,
-  usePokeApiRates,
-  usePokeApiMovesets,
-  moveData,
-  items,
-  onItemUsed,
-  onBattleCleared,
-  onWildEnd,
-  onExitToWorld,
-  onNextStage,
-  onRetry,
-  onChangeTeam,
-  onBackToLobby,
-}: BattleProps) {
-  const [battle, dispatch] = useReducer(battleReducer, undefined, () =>
-    createInitialBattleState(undefined, {
-      allyIds,
-      stage,
-      battleMode,
-      dailyKey,
-      enemyTeamId,
-      wild,
-      speciesStats: speciesStats ?? undefined,
-      allyLevels,
-      evolutionChoices,
-      heldItems,
-      usePokeApiRates,
-      usePokeApiMovesets,
-      moveData: moveData ?? undefined,
-      items,
-    }),
-  );
-
-  // Seeded from the team-select choice, but toggleable mid-battle (button + "A").
-  const [autoFightOn, setAutoFightOn] = useState(autoFight);
-
-  useBattleSounds(battle);
-  useConsumedItems(battle, onItemUsed);
-  useAutoFight(battle, dispatch, autoFightOn);
-
-  const battleRef = useRef(battle);
-  useEffect(() => {
-    battleRef.current = battle;
-  }, [battle]);
-
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.repeat || event.ctrlKey || event.metaKey || event.altKey) {
-        return;
-      }
-      const current = battleRef.current;
-      const key = event.key.toLowerCase();
-
-      if (key === "p") {
-        dispatch({ type: "togglePause" });
-        return;
-      }
-      if (key === "f") {
-        dispatch({ type: "cycleTimeScale" });
-        return;
-      }
-      if (key === "a") {
-        setAutoFightOn((value) => !value);
-        return;
-      }
-      if (current.status !== "playing" || current.paused) {
-        return;
-      }
-
-      const allies = current.units.filter((unit) => unit.team === "ally");
-      const selectedAlly = allies.find((unit) => unit.id === current.selectedAllyId);
-
-      if (key === "1" || key === "2" || key === "3") {
-        const move = selectedAlly?.moves[Number(key) - 1];
-        if (move) {
-          dispatch({ type: "useMove", moveId: move.id });
-        }
-      } else if (key === "q" || key === "w" || key === "e") {
-        const ally = allies[{ q: 0, w: 1, e: 2 }[key]];
-        if (ally) {
-          dispatch({ type: "selectAlly", unitId: ally.id });
-        }
-      } else if (key === " ") {
-        event.preventDefault();
-        dispatch({ type: "useSyncMove" });
-      } else if (key === "t") {
-        dispatch({ type: "useTrainerMove" });
-      } else if (key === "u") {
-        dispatch({ type: "useUnityAttack" });
-      } else if (key === "m") {
-        dispatch({ type: "setTargetMode", mode: current.targetMode === "auto" ? "manual" : "auto" });
-      }
-    };
-
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
-
-  useEffect(() => {
-    let last = performance.now();
-    let accumulated = 0;
-    let frame = 0;
-
-    const run = (now: number) => {
-      accumulated += Math.min((now - last) / 1000, MAX_DELTA_SECONDS);
-      last = now;
-      if (accumulated >= LOGIC_STEP_SECONDS) {
-        dispatch(tickBattle(Math.min(accumulated, MAX_DELTA_SECONDS)));
-        accumulated = 0;
-      }
-      frame = requestAnimationFrame(run);
-    };
-
-    frame = requestAnimationFrame(run);
-    return () => cancelAnimationFrame(frame);
-  }, []);
-
-  // Gems and best-stage are awarded exactly once per battle, even though the
-  // status stays "won" and the callback identity changes across renders.
-  // Wild battles settle through onWildEnd when the player returns to the
-  // village; ladder/daily battles pay out the moment they're won.
-  const won = battle.status === "won" && battleMode !== "wild";
-  const rewardedRef = useRef(false);
-  useEffect(() => {
-    if (won && !rewardedRef.current) {
-      rewardedRef.current = true;
-      const allies = battleRef.current.units.filter((unit) => unit.team === "ally");
-      onBattleCleared({
-        won: true,
-        alliesAlive: allies.filter(isAlive).length,
-        alliesTotal: allies.length,
-      });
-    }
-  }, [won, onBattleCleared]);
-
-  const handleReturnToWorld =
-    battleMode === "wild" && onWildEnd
-      ? () => {
-          const current = battleRef.current;
-          const outcome =
-            current.status === "captured" || current.status === "fled" || current.status === "won" || current.status === "lost"
-              ? current.status
-              : "fled";
-          onWildEnd({ outcome, ballsRemaining: current.balls, droppedItem: current.droppedItem });
-        }
-      : isTrainer
-        ? onExitToWorld
-        : undefined;
-
-  return (
-    <main className="app-shell">
-      <Suspense fallback={<div className="canvas-loading">Loading arena…</div>}>
-        <BattleCanvas state={battle} dispatch={dispatch} />
-      </Suspense>
-      <BattleHud
-        state={battle}
-        dispatch={dispatch}
-        autoFight={autoFightOn}
-        onToggleAutoFight={() => setAutoFightOn((value) => !value)}
-        onNextStage={onNextStage}
-        onRetry={onRetry}
-        onChangeTeam={battleMode === "wild" || isTrainer ? undefined : onChangeTeam}
-        onBackToLobby={battleMode === "wild" || isTrainer ? undefined : onBackToLobby}
-        onReturnToWorld={handleReturnToWorld}
-      />
-    </main>
-  );
-}
-
-function useConsumedItems(state: BattleState, onItemUsed: (itemId: string, quantity: number) => void) {
-  const previousItems = useRef(state.items);
-
-  useEffect(() => {
-    for (const [itemId, previousCount] of Object.entries(previousItems.current)) {
-      const count = state.items[itemId] ?? 0;
-      if (count < previousCount) {
-        onItemUsed(itemId, previousCount - count);
-      }
-    }
-    previousItems.current = state.items;
-  }, [state.items, onItemUsed]);
-}
-
-function useAutoFight(state: BattleState, dispatch: Dispatch<BattleAction>, enabled: boolean) {
-  const stateRef = useRef(state);
-
-  useEffect(() => {
-    stateRef.current = state;
-  }, [state]);
-
-  useEffect(() => {
-    if (!enabled) {
-      return;
-    }
-
-    const interval = window.setInterval(() => {
-      const current = stateRef.current;
-      if (current.status !== "playing" || current.paused) {
-        return;
-      }
-
-      const allies = teamUnits(current, "ally").filter(isAlive);
-      const enemies = teamUnits(current, "enemy").filter(isAlive);
-      if (allies.length === 0 || enemies.length === 0) {
-        return;
-      }
-      if (current.actionQueue.some((action) => allies.some((ally) => ally.id === action.actorId))) {
-        return;
-      }
-
-      if (current.unityGauge >= current.maxUnityGauge) {
-        dispatch({ type: "useUnityAttack" });
-        return;
-      }
-
-      const selected = allies.find((ally) => ally.id === current.selectedAllyId) ?? allies[0];
-      const syncReady = allies.find((ally) => ally.syncCountdown === 0);
-      if (syncReady && syncReady.id !== selected.id) {
-        dispatch({ type: "selectAlly", unitId: syncReady.id });
-        return;
-      }
-      if (syncReady && syncReady.id === selected.id) {
-        dispatch({ type: "useSyncMove" });
-        return;
-      }
-
-      const hurtAlly = allies.some((ally) => ally.hp / ally.maxHp < 0.55);
-      const trainerCandidate = allies.find((ally) => ally.trainerMove && ally.trainerMove.uses > 0);
-      if (hurtAlly && selected.trainerMove && selected.trainerMove.uses > 0) {
-        dispatch({ type: "useTrainerMove" });
-        return;
-      }
-      if (hurtAlly && trainerCandidate && trainerCandidate.id !== selected.id) {
-        dispatch({ type: "selectAlly", unitId: trainerCandidate.id });
-        return;
-      }
-
-      const affordable = selected.moves
-        .filter((move) => move.cost <= current.moveGauge)
-        .sort((left, right) => autoMoveScore(right) - autoMoveScore(left))[0];
-      if (affordable) {
-        dispatch({ type: "useMove", moveId: affordable.id });
-        return;
-      }
-
-      const nextActor = allies.find((ally) => ally.moves.some((move) => move.cost <= current.moveGauge));
-      if (nextActor && nextActor.id !== selected.id) {
-        dispatch({ type: "selectAlly", unitId: nextActor.id });
-      }
-    }, 420);
-
-    return () => window.clearInterval(interval);
-  }, [dispatch, enabled]);
-}
-
-function autoMoveScore(move: BattleState["units"][number]["moves"][number]) {
-  return move.power + (move.statusEffect ? 18 : 0) + (move.statChange ? 10 : 0) - move.cost * 3;
-}
-
-// Plays a sound for each new feedback entry, for KOs, and a capture fanfare.
-function useBattleSounds(state: BattleState) {
-  const seenFeedback = useRef<Set<string>>(new Set());
-  const aliveById = useRef<Map<string, boolean>>(new Map());
-  const previousStatus = useRef(state.status);
-
-  useEffect(() => {
-    for (const entry of state.feedback) {
-      if (!seenFeedback.current.has(entry.id)) {
-        seenFeedback.current.add(entry.id);
-        playFeedbackSound(entry.kind);
-      }
-    }
-    for (const unit of state.units) {
-      const wasAlive = aliveById.current.get(unit.id);
-      const aliveNow = isAlive(unit);
-      if (wasAlive === true && !aliveNow) {
-        playKoSound();
-      }
-      aliveById.current.set(unit.id, aliveNow);
-    }
-    if (previousStatus.current !== state.status && state.status === "captured") {
-      playFeedbackSound("unity");
-    }
-    previousStatus.current = state.status;
-  }, [state]);
 }
