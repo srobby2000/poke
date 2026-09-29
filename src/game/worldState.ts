@@ -1,3 +1,4 @@
+import { isRideSpecies, RIDE_POKEMON, type RideSpecies } from "./riding";
 import type { TrainerMeta, WorldMap } from "./maps";
 import { encountersAt, getMap, isWalkableTile, tileAt, tileKey, warpAt } from "./maps";
 
@@ -55,6 +56,7 @@ export type WorldState = {
   inputX: number;
   inputZ: number;
   moving: boolean;
+  ride: RideSpecies | null;
   nearby: WorldInteraction | null;
   enteredBuilding: string | null;
   // Tile key of a berry tree the player just checked; the screen layer
@@ -85,6 +87,7 @@ export type WorldAction =
   | { type: "tick"; deltaSeconds: number }
   | { type: "setMoveInput"; x: number; z: number }
   | { type: "interact" }
+  | { type: "setRide"; species: string | null }
   | { type: "clearEntry" }
   | { type: "clearBerryTarget" }
   | { type: "clearEncounter" }
@@ -112,6 +115,7 @@ export function createInitialWorldState(
     inputX: 0,
     inputZ: 0,
     moving: false,
+    ride: null,
     nearby: null,
     enteredBuilding: null,
     berryTarget: null,
@@ -247,6 +251,12 @@ const DIRECTION_STEP: Record<string, { x: number; z: number }> = {
 };
 
 export function worldReducer(state: WorldState, action: WorldAction): WorldState {
+  if (action.type === "setRide") {
+    if (state.pendingWarp || state.encounter || state.trainerBattle) return state;
+    if (action.species !== null && !isRideSpecies(action.species)) return state;
+    return { ...state, ride: action.species, moving: false };
+  }
+
   if (action.type === "setMoveInput") {
     const length = Math.hypot(action.x, action.z);
     const scale = length > 1 ? 1 / length : 1;
@@ -339,7 +349,7 @@ export function worldReducer(state: WorldState, action: WorldAction): WorldState
     let distanceMoved = 0;
 
     if (moving) {
-      const step = WORLD_BALANCE.moveSpeed * action.deltaSeconds;
+      const step = WORLD_BALANCE.moveSpeed * (state.ride ? RIDE_POKEMON[state.ride].speed : 1) * Math.max(0, Math.min(action.deltaSeconds, 0.08));
       const beforeX = x;
       const beforeZ = z;
       // Move per axis so the player slides along walls instead of sticking.
@@ -392,7 +402,7 @@ export function worldReducer(state: WorldState, action: WorldAction): WorldState
       z,
       facingX,
       facingZ,
-      moving,
+      moving: distanceMoved > 0.0001,
       grassProgress,
       rng,
       encounter,

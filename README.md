@@ -94,3 +94,10 @@ src/
 ---
 
 *Fan project for learning purposes. Pokémon is a trademark of Nintendo/Creatures Inc./GAME FREAK inc. — this project is not affiliated with or endorsed by them.*
+
+### Dungeon exploration and riding
+
+- Reach Crystal Cave through the eastern gate on Route 2. The cave now has three connected floors: Crystal Threshold (B1), Sunken Galleries (B2), and Crystal Heart (B3).
+- Walk onto the labeled stairs to descend or return. Each deeper floor has stronger encounters; Crystal Keeper Lyra waits on B3. Your map and position use the existing save system.
+- Choose Arcanine (1.5× speed) or Rapidash (1.75× speed) in the Trail Pokémon panel, then press **R** or **Ride**. Press again to dismount. These free trail loans are separate from the battle team, retain normal collisions and encounters, and can travel between floors. Returning from battle starts on foot.
+- World movement and turning are smoothed between logic updates. Mounts gallop while ridden (Arcanine a rotary dog gallop, Rapidash a transverse horse gallop), and the rider sits in a saddle measured from the mount's back, moving with its stride.

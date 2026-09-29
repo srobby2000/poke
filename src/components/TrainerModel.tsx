@@ -3,21 +3,44 @@ import { useRef } from "react";
 import type { Group } from "three";
 
 // An original articulated, stylized trainer, approximately 1.7 world metres tall.
-export function TrainerModel({ walking = false, shirt = "#317cbd", cap = "#e45459", backpack = true }: {
-  walking?: boolean; shirt?: string; cap?: string; backpack?: boolean;
+export function TrainerModel({ walking = false, riding = false, shirt = "#317cbd", cap = "#e45459", backpack = true }: {
+  walking?: boolean; riding?: boolean; shirt?: string; cap?: string; backpack?: boolean;
 }) {
   const body = useRef<Group>(null);
   const leftArm = useRef<Group>(null);
   const rightArm = useRef<Group>(null);
   const leftLeg = useRef<Group>(null);
   const rightLeg = useRef<Group>(null);
+  const leftElbow = useRef<Group>(null);
+  const rightElbow = useRef<Group>(null);
+  const leftKnee = useRef<Group>(null);
+  const rightKnee = useRef<Group>(null);
+  const leftAnkle = useRef<Group>(null);
+  const rightAnkle = useRef<Group>(null);
+  const phase = useRef(0);
+  const blend = useRef(0);
   useFrame(({ clock }, delta) => {
-    const stride = walking ? Math.sin(clock.elapsedTime * 10) : 0;
-    const ease = Math.min(1, delta * 14);
-    for (const [ref, target] of [[leftArm, -stride * 0.5], [rightArm, stride * 0.5], [leftLeg, stride * 0.58], [rightLeg, -stride * 0.58]] as const) {
+    const ease = 1 - Math.exp(-delta * 14);
+    blend.current += ((walking ? 1 : 0) - blend.current) * ease;
+    phase.current += delta * 10 * blend.current;
+    const stride = Math.sin(phase.current) * blend.current;
+    for (const [ref, target] of [[leftArm, riding ? -0.65 : -stride * 0.5], [rightArm, riding ? -0.65 : stride * 0.5], [leftLeg, riding ? -1.1 : stride * 0.58], [rightLeg, riding ? -1.1 : -stride * 0.58]] as const) {
       if (ref.current) ref.current.rotation.x += (target - ref.current.rotation.x) * ease;
     }
-    if (body.current) body.current.position.y = walking ? Math.abs(stride) * 0.025 : Math.sin(clock.elapsedTime * 2) * 0.008;
+    for (const [knee, ankle, elbow, offset] of [[leftKnee, leftAnkle, leftElbow, 0], [rightKnee, rightAnkle, rightElbow, Math.PI]] as const) {
+      const swing = Math.sin(phase.current + offset);
+      const bend = riding ? 1.25 : Math.max(0, swing) * 0.7 * blend.current;
+      if (knee.current) knee.current.rotation.x += (bend - knee.current.rotation.x) * ease;
+      if (ankle.current) ankle.current.rotation.x += ((riding ? -0.15 : -bend * 0.45) - ankle.current.rotation.x) * ease;
+      if (elbow.current) elbow.current.rotation.x += ((riding ? -0.65 : -0.12 - Math.max(0, -swing) * 0.3 * blend.current) - elbow.current.rotation.x) * ease;
+    }
+    if (leftLeg.current) leftLeg.current.rotation.z += ((riding ? -0.32 : 0) - leftLeg.current.rotation.z) * ease;
+    if (rightLeg.current) rightLeg.current.rotation.z += ((riding ? 0.32 : 0) - rightLeg.current.rotation.z) * ease;
+    if (body.current) {
+      // A mounted rider is carried by the mount's stride, so only lean into the gallop.
+      body.current.position.y = riding ? 0 : Math.abs(stride) * 0.035 + Math.sin(clock.elapsedTime * 2) * 0.008 * (1 - blend.current);
+      body.current.rotation.x += ((riding ? 0.12 + blend.current * 0.14 : blend.current * 0.035) - body.current.rotation.x) * ease;
+    }
   });
   const skin = "#eac29d";
   return <group ref={body} name="trainer-body">
@@ -43,15 +66,21 @@ export function TrainerModel({ walking = false, shirt = "#317cbd", cap = "#e4545
     {([-1, 1] as const).map(side => <group key={`limbs-${side}`}>
       <group ref={side === -1 ? leftArm : rightArm} position={[side * 0.27, 1.15, 0]} rotation={[0, 0, side * 0.1]}>
         <mesh castShadow position={[0, -0.1, 0]}><capsuleGeometry args={[0.09, 0.13, 4, 10]} /><meshStandardMaterial color={shirt} /></mesh>
-        <mesh castShadow position={[0, -0.29, 0.01]}><capsuleGeometry args={[0.062, 0.18, 4, 10]} /><meshStandardMaterial color={skin} /></mesh>
-        <mesh castShadow position={[0, -0.425, 0.02]} scale={[0.07, 0.085, 0.055]}><sphereGeometry args={[1, 12, 10]} /><meshStandardMaterial color={skin} /></mesh>
-        <mesh position={[0, -0.36, 0.01]}><cylinderGeometry args={[0.068, 0.068, 0.045, 10]} /><meshStandardMaterial color="#263445" /></mesh>
+        <group name={side === -1 ? "trainer-left-elbow" : "trainer-right-elbow"} ref={side === -1 ? leftElbow : rightElbow} position={[0, -0.21, 0]}>
+        <mesh castShadow position={[0, -0.08, 0.01]}><capsuleGeometry args={[0.062, 0.18, 4, 10]} /><meshStandardMaterial color={skin} /></mesh>
+        <mesh castShadow position={[0, -0.215, 0.02]} scale={[0.07, 0.085, 0.055]}><sphereGeometry args={[1, 12, 10]} /><meshStandardMaterial color={skin} /></mesh>
+        <mesh position={[0, -0.15, 0.01]}><cylinderGeometry args={[0.068, 0.068, 0.045, 10]} /><meshStandardMaterial color="#263445" /></mesh>
+        </group>
       </group>
-      <group ref={side === -1 ? leftLeg : rightLeg} position={[side * 0.125, 0.76, 0]}>
+      <group name={side === -1 ? "trainer-left-leg" : "trainer-right-leg"} ref={side === -1 ? leftLeg : rightLeg} position={[side * 0.125, 0.76, 0]}>
         <mesh castShadow position={[0, -0.18, 0]}><capsuleGeometry args={[0.108, 0.23, 4, 12]} /><meshStandardMaterial color="#354257" /></mesh>
-        <mesh castShadow position={[0, -0.46, 0]}><capsuleGeometry args={[0.085, 0.25, 4, 12]} /><meshStandardMaterial color="#354257" /></mesh>
-        <mesh castShadow position={[0, -0.66, 0.05]} scale={[0.11, 0.085, 0.18]}><sphereGeometry args={[1, 12, 10]} /><meshStandardMaterial color="#f1f2e8" /></mesh>
-        <mesh position={[0, -0.7, 0.055]}><boxGeometry args={[0.2, 0.045, 0.28]} /><meshStandardMaterial color="#293445" /></mesh>
+        <group name={side === -1 ? "trainer-left-knee" : "trainer-right-knee"} ref={side === -1 ? leftKnee : rightKnee} position={[0, -0.34, 0]}>
+        <mesh castShadow position={[0, -0.12, 0]}><capsuleGeometry args={[0.085, 0.25, 4, 12]} /><meshStandardMaterial color="#354257" /></mesh>
+        <group name={side === -1 ? "trainer-left-ankle" : "trainer-right-ankle"} ref={side === -1 ? leftAnkle : rightAnkle} position={[0, -0.28, 0]}>
+        <mesh castShadow position={[0, -0.04, 0.05]} scale={[0.11, 0.085, 0.18]}><sphereGeometry args={[1, 12, 10]} /><meshStandardMaterial color="#f1f2e8" /></mesh>
+        <mesh position={[0, -0.08, 0.055]}><boxGeometry args={[0.2, 0.045, 0.28]} /><meshStandardMaterial color="#293445" /></mesh>
+        </group>
+        </group>
       </group>
     </group>)}
     {backpack && <group>

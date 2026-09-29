@@ -2932,3 +2932,41 @@ kbd {
 .pokedex-model-hint { color: #78939d; font-size: 0.7rem; padding-bottom: 10px; text-align: center; }
 .pokemon-model-status { display: block; width: 130px; padding: 8px; border-radius: 8px; background: #173443; color: #d6edf2; font-size: 11px; text-align: center; }
 .pokemon-model-status button { display: block; margin: 6px auto 0; padding: 4px 10px; border: 1px solid #78e1ff; border-radius: 6px; background: #234b5d; color: white; cursor: pointer; }
+
+.world-ride-panel {
+  position: absolute; right: 22px; bottom: 28px; pointer-events: auto;
+  padding: 14px 16px; border: 1px solid #91c4ba55; border-radius: 16px;
+  background: #142830ed; color: #edf8ef; box-shadow: 0 8px 30px #0004;
+}
+.world-ride-caption { display: block; font-size: 10px; letter-spacing: 1.5px; color: #a8d4c9; margin-bottom: 10px; }
+.world-ride-controls { display: flex; gap: 8px; }
+.world-ride-controls select, .world-ride-controls button { border: 1px solid #72958c; border-radius: 8px; padding: 9px; background: #24413e; color: white; font: inherit; font-size: 12px; }
+.world-ride-controls button { cursor: pointer; background: #396658; }
+.world-ride-panel small { display: block; margin-top: 8px; color: #bfd3ce; font-size: 11px; }
+.dungeon-floor-strip { position: absolute; left: 22px; top: 170px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; max-width: 270px; padding: 10px; border-radius: 12px; background: #182135e8; font-size: 11px; color: #d7e1f1; }
+.dungeon-floor-strip > span { padding: 7px; }
+.dungeon-floor-strip .current-floor { border-radius: 6px; background: #a499ff; color: #17132e; font-weight: 800; }
+.dungeon-floor-strip small { width: 100%; padding: 0 7px 4px; }
+@media (max-width: 700px) {
+  .world-ride-panel { right: 10px; bottom: 155px; padding: 10px; }
+  .world-ride-controls select { max-width: 155px; }
+  .dungeon-floor-strip { left: 10px; top: 185px; max-width: 230px; }
+}
+
+.pokedex-motion-controls { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; margin: 10px 0; }
+.pokedex-motion-controls button { cursor: pointer; border: 1px solid #758aa655; border-radius: 7px; background: #203147; color: #e4eef9; padding: 6px 9px; font-size: 11px; }
+.pokedex-motion-controls button[aria-pressed="true"] { background: #3b6a73; border-color: #85ced6; }
+
+/* Pokédex move list: every move plays its own recorded animation in the viewer. */
+.dex-move-motion { align-self: stretch; margin: 2px 4px 8px; font-size: 11px; line-height: 1.45; color: var(--dex-muted, #5b6b80); text-align: left; }
+.dex-move-motion strong { color: var(--dex-text, #1f2a37); }
+/* .pokedex-art centres its children; the list needs the full width for its grid. */
+.dex-move-panel { align-self: stretch; width: 100%; text-align: left; }
+.dex-move-panel h4 { display: flex; justify-content: space-between; align-items: baseline; margin: 10px 4px 5px; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--dex-muted, #5b6b80); }
+.dex-move-panel h4 span { font-size: 11px; letter-spacing: 0; text-transform: none; color: var(--dex-text, #1f2a37); }
+.dex-move-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 5px; }
+.dex-move { display: flex; align-items: center; gap: 6px; min-width: 0; cursor: pointer; border: 1px solid #758aa655; border-radius: 7px; background: #203147; color: #e4eef9; padding: 6px 8px; font-size: 11px; text-align: left; }
+.dex-move[aria-pressed="true"] { background: #3b6a73; border-color: #85ced6; }
+.dex-move-type { flex: none; width: 8px; height: 8px; border-radius: 50%; box-shadow: 0 0 0 1px #ffffff55; }
+.dex-move-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dex-move small { flex: none; color: #9fb3cb; font-size: 10px; }

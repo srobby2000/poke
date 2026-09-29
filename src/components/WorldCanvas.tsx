@@ -1,16 +1,13 @@
+import { WorldParty } from "./WorldParty";
 import { VillageBuildings, VillagePonds, VillageTrees } from "./VillageScenery";
 import { TrainerModel } from "./TrainerModel";
 import { SceneContextStatus } from "./SceneContextStatus";
 import { Html, Instance, Instances } from "@react-three/drei";
-import { Canvas, useFrame } from "@react-three/fiber";
-import { memo, useMemo, useRef } from "react";
-import type { Group } from "three";
+import { Canvas } from "@react-three/fiber";
+import { memo, useMemo } from "react";
 import type { WorldMap } from "../game/maps";
 import { tileKey } from "../game/maps";
 import type { WorldState } from "../game/worldState";
-import { PokemonModel } from "./PokemonModel";
-import { stepCompanion } from "../game/companionMotion";
-import type { CompanionPose } from "../game/companionMotion";
 
 type WorldCanvasProps = {
   state: WorldState;
@@ -20,17 +17,16 @@ type WorldCanvasProps = {
 const WORLD_LABEL_Z_INDEX_RANGE: [number, number] = [20, 0];
 
 export function WorldCanvas({ state, pickedBerries }: WorldCanvasProps) {
+  const cave = state.map.dungeon;
   return (
-    <Canvas className="battle-canvas" dpr={[1, 1.5]} shadows camera={{ position: [state.x, 8.2, state.z + 7.4], fov: 50 }}>
-      <color attach="background" args={["#a6c8c5"]} />
-      <fog attach="fog" args={["#a6c8c5", 16, 34]} />
-      <ambientLight intensity={0.95} />
+    <Canvas className="battle-canvas" dpr={[1, 2]} shadows camera={{ position: [0, 8.2, 7.4], fov: 50 }}>
+      <color attach="background" args={[cave ? "#111827" : "#a6c8c5"]} />
+      <fog attach="fog" args={[cave ? "#111827" : "#a6c8c5", 16, 34]} />
+      <ambientLight intensity={cave ? 0.65 : 0.95} />
       <hemisphereLight args={["#e5f2df", "#7a715b", 0.8]} />
       <directionalLight castShadow position={[-6, 12, 6]} intensity={1.9} shadow-mapSize={[1024, 1024]} />
       <StaticVillage map={state.map} pickedBerries={pickedBerries} defeatedTrainers={state.defeatedTrainers} />
-      <Player state={state} />
-      <Partner key={state.map.id} state={state} />
-      <CameraRig x={state.x} z={state.z} />
+      <WorldParty key={state.map.id} state={state} />
     <SceneContextStatus />
     </Canvas>
   );
@@ -43,53 +39,6 @@ const TRAINER_STEP_ASIDE: Record<string, { x: number; z: number }> = {
   left: { x: 0, z: 0.45 },
   right: { x: 0, z: 0.45 },
 };
-
-function CameraRig({ x, z }: { x: number; z: number }) {
-  useFrame(({ camera }, delta) => {
-    const ease = Math.min(1, delta * 4.5);
-    camera.position.x += (x - camera.position.x) * ease;
-    camera.position.z += (z + 7.4 - camera.position.z) * ease;
-    camera.position.y += (8.2 - camera.position.y) * ease;
-    camera.lookAt(camera.position.x, 0.4, camera.position.z - 7.4);
-  });
-  return null;
-}
-
-function Partner({ state }: { state: WorldState }) {
-  const ref = useRef<Group>(null);
-  const pose = useRef<CompanionPose | null>(null);
-  useFrame(({ clock }, delta) => {
-    if (!ref.current) return;
-    pose.current = stepCompanion(pose.current, state, delta);
-    ref.current.position.set(pose.current.x, state.moving ? Math.abs(Math.sin(clock.elapsedTime * 10)) * 0.06 : 0, pose.current.z);
-    ref.current.rotation.y = pose.current.yaw;
-  });
-  return <group ref={ref}>
-    <PokemonModel species="squirtle" walking={state.moving} />
-  </group>;
-}
-
-function Player({ state }: { state: WorldState }) {
-  const ref = useRef<Group>(null);
-
-  useFrame(({ clock }) => {
-    if (!ref.current) {
-      return;
-    }
-    ref.current.position.x = state.x;
-    ref.current.position.z = state.z;
-    ref.current.position.y = state.moving ? Math.abs(Math.sin(clock.elapsedTime * 9)) * 0.08 : 0;
-    if (state.moving || Math.hypot(state.facingX, state.facingZ) > 0.01) {
-      ref.current.rotation.y = Math.atan2(state.facingX, state.facingZ);
-    }
-  });
-
-  return (
-    <group ref={ref} position={[state.x, 0, state.z]}>
-      <TrainerModel walking={state.moving} />
-    </group>
-  );
-}
 
 // The village geometry only changes when a berry tree is picked, so this
 // subtree renders rarely and React.memo skips it on every movement tick.
@@ -147,7 +96,7 @@ const StaticVillage = memo(function StaticVillage({
     <group>
       <mesh receiveShadow position={[centerX, -0.02, centerZ]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[map.width + 6, map.height + 6]} />
-        <meshStandardMaterial color="#b8ad87" roughness={0.92} />
+        <meshStandardMaterial color={map.dungeon ? "#30384c" : "#b8ad87"} roughness={0.92} />
       </mesh>
 
       <Instances limit={layout.grass.length} range={layout.grass.length}>
@@ -189,6 +138,12 @@ const StaticVillage = memo(function StaticVillage({
 
       {layout.warps.map((warp) => (
         <group key={`wp${warp.x},${warp.z}`} position={[warp.x, 0, warp.z]}>
+          {map.dungeon && <group>
+            {[0, 1, 2, 3].map(step => <mesh key={step} receiveShadow position={[0, 0.035 + step * 0.055, 0.3 - step * 0.2]}>
+              <boxGeometry args={[0.88, 0.07 + step * 0.11, 0.2]} />
+              <meshStandardMaterial color="#aac0d4" emissive={map.dungeon!.color} emissiveIntensity={0.12} />
+            </mesh>)}
+          </group>}
           <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
             <circleGeometry args={[0.46, 24]} />
             <meshStandardMaterial color="#a855f7" emissive="#a855f7" emissiveIntensity={0.5} roughness={0.3} />
@@ -203,7 +158,7 @@ const StaticVillage = memo(function StaticVillage({
         </group>
       ))}
 
-      <VillageBuildings walls={layout.walls} doors={layout.doors} />
+      {map.dungeon ? <DungeonWalls walls={layout.walls} color={map.dungeon.color} /> : <VillageBuildings walls={layout.walls} doors={layout.doors} />}
       {layout.doors.map(door => <Html key={`door-label-${door.x},${door.z}`} center zIndexRange={WORLD_LABEL_Z_INDEX_RANGE} position={[door.x, 3.7, door.z]} className="unit-label" distanceFactor={11}>
         <span>{door.label}</span>
       </Html>)}
@@ -264,3 +219,19 @@ const StaticVillage = memo(function StaticVillage({
     </group>
   );
 });
+
+function DungeonWalls({ walls, color }: { walls: [number, number][]; color: string }) {
+  return <group>
+    <Instances limit={walls.length} range={walls.length} castShadow receiveShadow>
+      <boxGeometry args={[0.98, 1.15, 0.98]} />
+      <meshStandardMaterial color="#424b65" roughness={0.95} />
+      {walls.map(([x, z]) => <Instance key={`${x},${z}`} position={[x, 0.55, z]} />)}
+    </Instances>
+    {walls.filter(([x, z]) => (x * 7 + z * 3) % 11 === 0).map(([x, z]) => <group key={`${x},${z}`} position={[x, 1.15, z]}>
+      <mesh rotation={[0.15, x, 0.25]}>
+        <octahedronGeometry args={[0.28, 0]} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.8} roughness={0.3} />
+      </mesh>
+    </group>)}
+  </group>;
+}

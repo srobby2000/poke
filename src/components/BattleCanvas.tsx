@@ -1,7 +1,7 @@
 import { pokemonDisplayHeight } from "../game/pokemonScale";
 import { POKEMON_MODELS } from "../game/pokemonModels";
 import { SceneContextStatus } from "./SceneContextStatus";
-import { ContactShadows, Float, Html, OrbitControls } from "@react-three/drei";
+import { ContactShadows, Html, OrbitControls } from "@react-three/drei";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { memo, useMemo, useRef } from "react";
 import type { Dispatch } from "react";
@@ -241,11 +241,11 @@ const CreatureUnit = memo(function CreatureUnit({
     }
     const t = clock.elapsedTime;
     const side = unit.team === "ally" ? 1 : -1;
-    const targetY = alive ? Math.sin(t * 2.2 + unit.position[2]) * 0.045 + unit.actionPulse * 0.1 : -0.18;
+    const targetY = alive ? unit.actionPulse * 0.06 : -0.18;
     const targetRotZ = alive ? 0 : side * 0.7;
     // Ease toward KO pose instead of snapping, so faints read as a fall.
-    ref.current.position.y += (targetY - ref.current.position.y) * Math.min(1, delta * (alive ? 14 : 5));
-    ref.current.rotation.z += (targetRotZ - ref.current.rotation.z) * Math.min(1, delta * 5);
+    ref.current.position.y += (targetY - ref.current.position.y) * (1 - Math.exp(-delta * (alive ? 14 : 5)));
+    ref.current.rotation.z += (targetRotZ - ref.current.rotation.z) * (1 - Math.exp(-delta * 5));
     ref.current.position.x = unit.position[0] + unit.actionPulse * 0.35 * side;
     ref.current.rotation.y = (unit.team === "ally" ? Math.PI / 2 : -Math.PI / 2) + Math.sin(t + unit.position[2]) * 0.05;
   });
@@ -258,11 +258,11 @@ const CreatureUnit = memo(function CreatureUnit({
         dispatch({ type: unit.team === "ally" ? "selectAlly" : "selectEnemy", unitId: unit.id });
       }
     }}>
-      <Float speed={1.7} rotationIntensity={0.08} floatIntensity={alive ? 0.14 : 0}>
+
         <group scale={alive ? 1 : 0.82}>
-          <PokemonModel species={unit.sourcePokemon} color={unit.color} hit={unit.hitFlash > 0} attacking={unit.actionPulse > 0} fainted={!alive} />
+          <PokemonModel species={unit.sourcePokemon} color={unit.color} hit={unit.hitFlash > 0} attacking={unit.actionPulse > 0} moveId={unit.lastMoveId} fainted={!alive} />
         </group>
-      </Float>
+
       {selected && alive ? (
         <mesh position={[0, 0.04, 0]} rotation={[-Math.PI / 2, 0, 0]}>
           <ringGeometry args={[0.72, 0.82, 48]} />
