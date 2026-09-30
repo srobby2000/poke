@@ -1,5 +1,7 @@
 # Animation and joint audit
 
+See the newer [per-species locomotion review](pokemon-locomotion-review.md) for flight, swimming, crawling and other travel corrections, including run samples. The report below records the earlier joint audit.
+
 ## Changes
 
 - Trainer: six added pivot joints (left/right elbows, knees and ankles). Knees flex during the swing phase and bend while riding; elbows bend toward the riding grip.

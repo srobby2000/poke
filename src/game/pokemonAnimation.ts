@@ -1,6 +1,7 @@
-import { AnimationClip, AnimationMixer, Group, LoopOnce, LoopRepeat, NumberKeyframeTrack, PropertyBinding, Quaternion, QuaternionKeyframeTrack, Vector3 } from "three";
+import { Box3, AnimationClip, AnimationMixer, Group, LoopOnce, LoopRepeat, NumberKeyframeTrack, PropertyBinding, Quaternion, QuaternionKeyframeTrack, Vector3 } from "three";
 import type { AnimationAction, KeyframeTrack, Object3D } from "three";
-import { appendageMotion } from "./pokemonAppendages";
+import { POKEMON_LOCOMOTION, isSuspended } from "./pokemonLocomotion";
+import { appendageMotion, normalizePokemonBone } from "./pokemonAppendages";
 import type { PokemonModelDefinition } from "./pokemonModels";
 import { pokemonDisplayHeight } from "./pokemonScale";
 import { MOVE_ARCHETYPES, moveAnimationFor } from "./moveAnimations";
@@ -46,7 +47,6 @@ export function applyRestPose(scene: Object3D, number: number, clips: AnimationC
   scene.updateMatrixWorld(true);
 }
 
-const floatingSpecies = new Set([6, 12, 15, 41, 42, 49, 72, 73, 81, 82, 92, 93, 109, 110, 116, 117, 118, 119, 129, 142, 144, 145, 146, 151]);
 const swayingFamilies = new Set(["snake", "rocksnake", "serpent", "caterpillar", "cocoon", "flower", "bell", "vine"]);
 const softFamilies = new Set(["sludge", "blob", "sleeper", "eggs"]);
 
@@ -57,7 +57,6 @@ const relaxedArmSpecies = new Set([
   96, 97, 104, 105, 106, 107, 108, 112, 113, 115, 122, 124, 125, 126,
   127, 143, 149, 150, 151,
 ]);
-const quadrupedSpecies = new Set([1, 2, 3, 19, 20, 29, 30, 32, 33, 37, 38, 53, 58, 59, 77, 78, 79, 111, 128, 133, 134, 135, 136]);
 
 // Convert anatomical axes to each imported rig's own coordinates. Some rigs
 // are Z-up or mirror their left/right bone bases. Axes are given in the model's
@@ -69,7 +68,7 @@ function rigAxis(bone: Object3D, frame: Quaternion, rest: Quaternion, x: number,
   const world = bone.getWorldQuaternion(new Quaternion()).multiply(bone.quaternion.clone().invert()).multiply(rest);
   return new Vector3(x, y, z).applyQuaternion(frame).applyQuaternion(world.invert()).normalize();
 }
-const boneName = (name: string) => name.replace(/^\d+[ _]?/, "").replace(/_\d+$/, "").replace(/_/g, "");
+const boneName = normalizePokemonBone;
 
 /** Lower outstretched upper arms using the actual rig axes, including mirrored rigs. */
 function relaxedArmPose(bone: Object3D, definition: PokemonModelDefinition, frame: Quaternion) {
@@ -106,8 +105,11 @@ const MOTION_SECONDS = { walk: 0.7, attack: 0.75, hit: 0.6 } as const;
 
 /** Animate around a relaxed pose without mutating the cached model or its bind matrices. */
 export function createPokemonFallback(scene: Object3D, root: Group, definition: PokemonModelDefinition, requested: PokemonMotion): AnimationClip {
+  if ((requested === "walk" || requested === "run") && !["biped", "quadruped"].includes(POKEMON_LOCOMOTION[definition.number])) {
+    return createLocomotion(scene, root, definition, requested);
+  }
   if (requested === "run") {
-    if (quadrupedSpecies.has(definition.number)) return createGallop(scene, root, definition);
+    if (POKEMON_LOCOMOTION[definition.number] === "quadruped") return createGallop(scene, root, definition);
     // Bipeds and others run as a quicker, fuller walk.
     const clip = createPokemonFallback(scene, root, definition, "walk");
     clip.name = `procedural-${definition.number}-run`;
@@ -118,9 +120,9 @@ export function createPokemonFallback(scene: Object3D, root: Group, definition: 
   const motion = requested;
   scene.updateWorldMatrix(true, true);
   const frame = root.getWorldQuaternion(new Quaternion());
-  const floating = floatingSpecies.has(definition.number);
+  const floating = isSuspended(definition.number);
   const swaying = swayingFamilies.has(definition.family);
-  const quadruped = quadrupedSpecies.has(definition.number);
+  const quadruped = POKEMON_LOCOMOTION[definition.number] === "quadruped";
   const size = Number.isFinite(definition.heightM) ? pokemonDisplayHeight(definition.heightM) : 1;
   const duration = motion === "idle" ? 2.4 + (definition.number % 7) * 0.13 : MOTION_SECONDS[motion as keyof typeof MOTION_SECONDS];
   const times = Array.from({ length: 97 }, (_, i) => duration * i / 96);
@@ -128,13 +130,20 @@ export function createPokemonFallback(scene: Object3D, root: Group, definition: 
   const { windup, strike, flinch, recoil } = choreography;
   // Delayed curves let heads, tails and tips follow through after the body.
   const late = (curve: (u: number) => number, delay: number) => (u: number) => curve(Math.max(0, u - delay) / (1 - delay));
+  let spineBones = 0, headBones = 0;
+  scene.traverse(bone => {
+    if (!(bone as Object3D & { isBone?: boolean }).isBone) return;
+    const name = boneName(bone.name);
+    if (/^(Spine|Chest)\d*$/i.test(name)) spineBones++;
+    if (/^(Head|Neck)[A-Z]?\d*$/i.test(name)) headBones++;
+  });
   const tracks: KeyframeTrack[] = [];
   const scalar = (property: string, sample: (t: number, u: number) => number) => tracks.push(new NumberKeyframeTrack(`${root.uuid}.${property}`, times, times.map(t => sample(t, t / duration))));
-  const hover = floating ? 0.045 : 0;
+  const hover = floating ? 0.12 * size : 0;
   const breathe = softFamilies.has(definition.family) ? 0.018 : 0.006;
   const side = definition.number % 2 ? 1 : -1;
   scalar("position[y]", (t, u) => ({
-    idle: (1 - Math.cos(cycle(t))) * (floating ? 0.045 : 0.004),
+    idle: hover + (1 - Math.cos(cycle(t))) * (floating ? 0.025 * size : 0.004),
     // Two footfalls per stride; flyers glide with a slower swell.
     walk: floating ? hover + (1 - Math.cos(cycle(t))) * 0.03 : Math.abs(Math.sin(cycle(t))) * 0.035 * size,
     attack: hover + (0.012 * windup(u) + 0.04 * strike(u)) * size,
@@ -191,12 +200,7 @@ export function createPokemonFallback(scene: Object3D, root: Group, definition: 
     if (/^[LR](Thigh|Arm|UpperArm)[A-Z]?\d*$/.test(name)) {
       const arm = /Arm/.test(name);
       const foreleg = arm && quadruped;
-      if (floating && arm) {
-        // Flyers' arms beat sideways; mirrored by side.
-        axis = rigAxis(bone, frame, rest, 0, 0, 1);
-        const s = R ? -1 : 1;
-        angle = (t, u) => s * ({ idle: stride(t, 0) * 0.18, walk: stride(t, 0) * 0.3, attack: -0.5 * windup(u) + 0.8 * strike(u), hit: 0.5 * recoil(u) })[motion];
-      } else if (arm && !foreleg) {
+      if (arm && !foreleg) {
         // Arms counter-swing on a stride; the right arm leads a punch.
         const lead = R ? 1 : 0.45;
         angle = (t, u) => ({ idle: stride(t, legPhase) * 0.06, walk: stride(t, legPhase) * 0.35, attack: lead * (0.5 * windup(u) - 0.95 * strike(u)), hit: -0.35 * flinch(u) })[motion];
@@ -220,9 +224,9 @@ export function createPokemonFallback(scene: Object3D, root: Group, definition: 
     } else if (/^(Spine|Chest)\d*$/i.test(name)) {
       const bend = swaying && (motion === "idle" || motion === "walk");
       if (bend) axis = rigAxis(bone, frame, rest, 0, 0, 1);
-      angle = (t, u) => ({ idle: stride(t, -0.4) * (bend ? 0.017 : 0.012), walk: Math.sin(cycle(t) * 2 - 0.4) * (bend ? 0.035 : 0.025), attack: -0.12 * windup(u) + 0.2 * strike(u), hit: -0.25 * recoil(u) })[motion];
+      angle = (t, u) => ({ idle: stride(t, -0.4) * (bend ? 0.017 : 0.012), walk: Math.sin(cycle(t) * 2 - 0.4) * (bend ? 0.035 : 0.025), attack: (-0.12 * windup(u) + 0.2 * strike(u)) / Math.max(1, spineBones), hit: -0.25 * recoil(u) / Math.max(1, spineBones) })[motion];
     } else if (/^(Head|Neck)[A-Z]?\d*$/i.test(name)) {
-      angle = (t, u) => ({ idle: stride(t, -0.65) * 0.02, walk: Math.sin(cycle(t) * 2 - 0.65) * 0.04, attack: -0.1 * windup(u) + 0.14 * late(strike, 0.04)(u), hit: -0.3 * late(recoil, 0.03)(u) })[motion];
+      angle = (t, u) => ({ idle: stride(t, -0.65) * 0.02, walk: Math.sin(cycle(t) * 2 - 0.65) * 0.04, attack: (-0.1 * windup(u) + 0.14 * late(strike, 0.04)(u)) / Math.max(1, headBones), hit: -0.3 * late(recoil, 0.03)(u) / Math.max(1, headBones) })[motion];
     } else if (/^[LR]Ear\d*$/i.test(name)) {
       axis = rigAxis(bone, frame, rest, 0, 0, 1);
       angle = (t, u) => (R ? -1 : 1) * ({ idle: stride(t, R ? 1.2 : 0) * 0.025, walk: Math.sin(cycle(t) * 2 + (R ? 1.2 : 0)) * 0.05, attack: -0.15 * windup(u) + 0.1 * strike(u), hit: 0.3 * recoil(u) })[motion];
@@ -237,12 +241,111 @@ export function createPokemonFallback(scene: Object3D, root: Group, definition: 
   return new AnimationClip(`procedural-${definition.number}-${motion}`, duration, tracks);
 }
 
+/** Authored ground clips must not override a species' chosen travel mode. */
+export function selectSpeciesClip(clips: AnimationClip[], motion: PokemonMotion, number: number) {
+  const mode = POKEMON_LOCOMOTION[number];
+  if (number === 41 && ["idle", "walk", "run"].includes(motion)) {
+    const flight = clips.find(clip => clip.name === "Take 001" && clip.duration > 0);
+    if (flight && motion === "run") {
+      const fast = flight.clone();
+      fast.tracks.forEach(track => track.scale(0.75));
+      fast.duration *= 0.75;
+      return fast;
+    }
+    return flight;
+  }
+  if ((motion === "walk" || motion === "run") && mode !== "biped" && mode !== "quadruped") return undefined;
+  if (motion === "idle" && mode === "fly") return undefined;
+  const selected = selectPokemonClip(clips, motion);
+  if (!selected || (motion !== "walk" && motion !== "run")) return selected;
+  const travelTracks = selected.tracks.filter(track => {
+    const { nodeName, propertyName } = PropertyBinding.parseTrackName(track.name);
+    return propertyName === "position" && /^origin$/i.test(boneName(nodeName));
+  });
+  if (!travelTracks.length) return selected;
+  // Gameplay moves the actor. Embedded origin translation otherwise makes it leave its
+  // tile/preview and teleport back at the loop seam (Mewtwo travels 7 units per run).
+  const inPlace = selected.clone();
+  for (const track of inPlace.tracks) if (travelTracks.some(source => source.name === track.name)) {
+    const width = track.getValueSize();
+    for (let i = width; i < track.values.length; i++) track.values[i] = track.values[i % width];
+  }
+  return inPlace;
+}
+
+/** Non-walking travel: no alternating knees, footfall bounce or arm-as-wing guesses. */
+function createLocomotion(scene: Object3D, root: Group, definition: PokemonModelDefinition, motion: "walk" | "run") {
+  scene.updateWorldMatrix(true, true);
+  const mode = POKEMON_LOCOMOTION[definition.number];
+  const frame = root.getWorldQuaternion(new Quaternion());
+  const size = Number.isFinite(definition.heightM) ? pokemonDisplayHeight(definition.heightM) : 1;
+  const baseDuration = mode === "swim" || mode === "slither" ? 1.2 : 0.9;
+  const duration = baseDuration * (motion === "run" ? 0.7 : 1);
+  const times = Array.from({ length: 97 }, (_, i) => duration * i / 96);
+  const cycle = (t: number) => t / duration * Math.PI * 2;
+  const tracks: KeyframeTrack[] = [];
+  const scalar = (property: string, sample: (t: number) => number) => tracks.push(new NumberKeyframeTrack(`${root.uuid}.${property}`, times, times.map(sample)));
+  const suspended = isSuspended(definition.number);
+  // Roll around the model centre, compensating for the floor-level animation root.
+  const center = mode === "roll"
+    ? new Box3().setFromObject(scene).applyMatrix4(root.matrixWorld.clone().invert()).getCenter(new Vector3()) : new Vector3();
+  scalar("position[y]", t => mode === "roll" ? center.y * (1 - Math.cos(cycle(t))) + center.z * Math.sin(cycle(t))
+    : suspended ? size * (0.12 + 0.025 * (1 - Math.cos(cycle(t))))
+    : mode === "hop" ? size * 0.07 * (1 - Math.cos(cycle(t)))
+    : mode === "crawl" ? size * 0.003 * (1 - Math.cos(cycle(t) * 2)) : 0);
+  scalar("position[z]", t => mode === "roll" ? center.z * (1 - Math.cos(cycle(t))) - center.y * Math.sin(cycle(t)) : 0);
+  scalar("rotation[x]", t => mode === "roll" ? cycle(t) : mode === "fly" ? 0.04 : mode === "hop" ? 0.05 * Math.sin(cycle(t)) : 0);
+  scalar("rotation[z]", t => Math.sin(cycle(t)) * (mode === "burrow" ? 0.018 : suspended ? 0.012 : 0));
+  scalar("scale[y]", t => 1 + (1 - Math.cos(cycle(t))) * (mode === "ooze" ? -0.035 : mode === "hop" ? -0.018 : 0));
+  scalar("scale[x]", t => 1 + (1 - Math.cos(cycle(t))) * (mode === "ooze" ? 0.018 : 0));
+  scene.traverse(bone => {
+    if (!(bone as Object3D & { isBone?: boolean }).isBone) return;
+    const name = boneName(bone.name);
+    const rest = relaxedArmPose(bone, definition, frame);
+    const appendage = appendageMotion(bone, definition.number, frame);
+    const side = name.startsWith("R") ? -1 : 1;
+    const segment = Number(name.match(/\d+$/)?.[0] ?? 1);
+    let axis = rigAxis(bone, frame, rest, 1, 0, 0);
+    let angle: (t: number) => number = () => 0;
+    if (appendage) {
+      axis = appendage.axis;
+      const beats = appendage.kind === "wing" ? Math.max(1, Math.round(baseDuration * appendage.frequency)) : 1;
+      angle = t => appendage.offset + Math.sin(cycle(t) * beats + appendage.phase) * appendage.amplitude * (appendage.kind === "wing" ? 1.5 : 1.2);
+      // Fish and snakes propagate a lateral wave along the tail, rather than pitching it.
+      if (appendage.kind === "tail" && (mode === "swim" || mode === "slither")) {
+        axis = rigAxis(bone, frame, rest, 0, 1, 0);
+        angle = t => Math.sin(cycle(t) - segment * 0.55) * (definition.number === 130 ? 0.07 : 0.11);
+      }
+    } else if ((mode === "swim" || mode === "slither" || mode === "crawl") && /^(Spine|Bone)\d+$/i.test(name)) {
+      axis = rigAxis(bone, frame, rest, 0, mode === "crawl" ? 0 : 1, mode === "crawl" ? 1 : 0);
+      angle = t => Math.sin(cycle(t) - segment * 0.55) * (mode === "crawl" ? 0.035 : 0.045);
+    } else if (mode === "swim" && /^[LR](Arm|ForeArm|Hand)\d*$/i.test(name)) {
+      // Fins paddle together; never interpret them as alternating walking arms.
+      axis = rigAxis(bone, frame, rest, 0, 0, 1);
+      angle = t => side * Math.sin(cycle(t) - segment * 0.3) * 0.14;
+    } else if ((mode === "swim" || mode === "crawl") && /^[LR]Feeler[A-Z]?\d*$/i.test(name)) {
+      angle = t => Math.sin(cycle(t) - segment * 0.5 + (side < 0 ? Math.PI : 0)) * 0.1;
+    } else if (mode === "crawl" && /^[LR](Thigh|Leg|Foot|Arm|ForeArm|Hand)[A-Z]?\d*$/i.test(name)) {
+      // Stagger adjacent pairs, including Paras' second rear legs and Weedle's feet.
+      const pair = name.match(/(?:Thigh|Leg|Foot|Arm|ForeArm|Hand)([A-Z])/i)?.[1];
+      const phase = (side < 0 ? Math.PI : 0) + (pair ? pair.charCodeAt(0) * 0.8 : segment * 1.3);
+      angle = t => Math.sin(cycle(t) + phase) * 0.2;
+    } else if (/^(Head|Neck)\d*$/i.test(name)) {
+      angle = t => Math.sin(cycle(t) - 0.4) * 0.015;
+    }
+    // Constant tracks hold feet/arms in their own rest pose and clear the previous action.
+    tracks.push(new QuaternionKeyframeTrack(`${bone.uuid}.quaternion`, times,
+      times.flatMap(t => rest.clone().multiply(new Quaternion().setFromAxisAngle(axis, angle(t))).toArray())));
+  });
+  return new AnimationClip(`procedural-${definition.number}-${motion}`, duration, tracks);
+}
+
 export function createPokemonAnimator(scene: Object3D, root: Group, definition: PokemonModelDefinition, clips: AnimationClip[]) {
   const mixer = new AnimationMixer(root);
   // Capture every fallback from the rest pose before any action changes bones.
   const available = new Map<PokemonAction, AnimationClip>();
   for (const motion of ["idle", "walk", "run", "attack", "hit"] as const) {
-    available.set(motion, (definition.number === 41 && motion === "idle" ? clips.find(clip => clip.name === "Take 001") : selectPokemonClip(clips, motion)) ?? createPokemonFallback(scene, root, definition, motion));
+    available.set(motion, selectSpeciesClip(clips, motion, definition.number) ?? createPokemonFallback(scene, root, definition, motion));
   }
   // Move clips are built on first use, from this rest pose rather than whatever pose is playing.
   const restPose: { node: Object3D; position: Vector3; quaternion: Quaternion; scale: Vector3 }[] = [];
@@ -264,6 +367,7 @@ export function createPokemonAnimator(scene: Object3D, root: Group, definition: 
   const oneShot = (motion?: PokemonAction) => motion === "attack" || motion === "hit" || !!motion?.startsWith("move:");
   const isAttack = (motion?: PokemonAction) => motion === "attack" || !!motion?.startsWith("move:");
   return {
+    getPlayback() { return { action: state, time: current?.time ?? 0, duration: current?.getClip().duration ?? 1 }; },
     update(requested: PokemonAction, delta: number, paused = false) {
       if (paused) return;
       // Battle flags are shorter than a full attack, so a started one-shot plays out.
@@ -345,8 +449,8 @@ export function createMoveClip(scene: Object3D, root: Group, definition: Pokemon
   scene.updateWorldMatrix(true, true);
   const frame = root.getWorldQuaternion(new Quaternion());
   const { duration, sample } = moveTimeline(moveId);
-  const floating = floatingSpecies.has(definition.number);
-  const quadruped = quadrupedSpecies.has(definition.number);
+  const floating = isSuspended(definition.number);
+  const quadruped = POKEMON_LOCOMOTION[definition.number] === "quadruped";
   const size = Number.isFinite(definition.heightM) ? pokemonDisplayHeight(definition.heightM) : 1;
   const count = Math.max(61, Math.round(duration * 80));
   const times = Array.from({ length: count }, (_, i) => duration * i / (count - 1));
@@ -354,7 +458,7 @@ export function createMoveClip(scene: Object3D, root: Group, definition: Pokemon
   const wave = (t: number, hertz: number, phase = 0) => Math.sin(2 * Math.PI * hertz * t + phase);
   const tracks: KeyframeTrack[] = [];
   const scalar = (property: string, value: (pose: Pose, t: number) => number) => tracks.push(new NumberKeyframeTrack(`${root.uuid}.${property}`, times, poses.map((pose, i) => value(pose, times[i]))));
-  const hover = floating ? 0.045 : 0;
+  const hover = floating ? 0.12 * size : 0;
   scalar("position[x]", (p, t) => (p.slide + p.tremble * 0.5 * wave(t, 23)) * size);
   scalar("position[y]", p => hover + p.hop * size);
   scalar("position[z]", p => p.lunge * size);
@@ -385,8 +489,7 @@ export function createMoveClip(scene: Object3D, root: Group, definition: Pokemon
           : (p, t) => offset + amplitude * (p.parts * 3 + p.tail * 1.5 + p.flap * 2 * wave(t, 6, phase));
     } else if (/^[LR](Arm|UpperArm)[A-Z]?\d*$/.test(name)) {
       const raise = (p: Pose) => lead ? p.leadArm : p.offArm;
-      if (floating) { axis = rigAxis(bone, frame, rest, 0, 0, 1); angle = p => (lead ? -1 : 1) * raise(p) * 0.5; }
-      else angle = p => -raise(p) * (quadruped ? 0.5 : 1);
+      angle = p => -raise(p) * (quadruped ? 0.5 : 1);
     } else if (/^[LR]ForeArm[A-Z]?\d*$/i.test(name)) {
       const bend = (p: Pose) => lead ? p.leadElbow : p.offElbow;
       angle = quadruped ? p => bend(p) * 0.5 + p.crouch * 0.7 : p => -bend(p);

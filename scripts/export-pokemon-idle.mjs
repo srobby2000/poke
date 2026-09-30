@@ -17,7 +17,11 @@ const compile = async (path, replacements = {}) => {
 };
 const appendagesURL = await compile('src/game/pokemonAppendages.ts');
 const { rigPokemonAppendages } = await import(appendagesURL);
-const { createPokemonAnimator } = await import(await compile('src/game/pokemonAnimation.ts', { './pokemonAppendages': appendagesURL }));
+const locomotion = await compile('src/game/pokemonLocomotion.ts');
+const scale = await compile('src/game/pokemonScale.ts');
+const learnsets = `data:text/javascript;base64,${Buffer.from('export default ' + await readFile('src/game/pokemonLearnsets.json', 'utf8')).toString('base64')}`;
+const moves = await compile('src/game/moveAnimations.ts', { './pokemonLearnsets.json': learnsets });
+const { applyRestPose, createPokemonAnimator } = await import(await compile('src/game/pokemonAnimation.ts', { './pokemonAppendages': appendagesURL, './pokemonLocomotion': locomotion, './pokemonScale': scale, './moveAnimations': moves }));
 const catalog = (await readFile('src/game/pokemonModels.ts', 'utf8')).split('const catalog = `')[1].split('`;')[0].split('\n');
 globalThis.self = globalThis;
 for (const value of numbers) {
@@ -30,6 +34,7 @@ for (const value of numbers) {
   loader.register(() => ({ name: 'NO_TEXTURE_DECODE', loadTexture: () => Promise.resolve(null) }));
   const gltf = await loader.parseAsync(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), '');
   const root = new Group(); root.add(gltf.scene);
+  applyRestPose(gltf.scene, number, gltf.animations);
   rigPokemonAppendages(gltf.scene, number);
   const [, family] = catalog[number - 1].split(' ');
   const animator = createPokemonAnimator(gltf.scene, root, { number, family }, gltf.animations);
@@ -60,7 +65,11 @@ for (const value of numbers) {
       geometry.dispose();
     }
   }
-  // Root bobbing is intentionally excluded so pose silhouettes compare in the same frame.
+  // Keep scene-level rest corrections (the horizontal caterpillar stance). The
+  // animator's separate root bobbing is intentionally excluded from these exports.
+  const exportedScene = document.scenes[document.scene ?? 0];
+  exportedScene.nodes = [document.nodes.push({ name: 'RuntimeRestPose', children: exportedScene.nodes,
+    translation: gltf.scene.position.toArray(), rotation: gltf.scene.quaternion.toArray(), scale: gltf.scene.scale.toArray() }) - 1];
   delete document.animations;
   const json = Buffer.from(JSON.stringify(document));
   const padded = Buffer.concat([json, Buffer.alloc((4 - json.length % 4) % 4, 32)]);

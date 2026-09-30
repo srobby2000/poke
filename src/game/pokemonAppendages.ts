@@ -1,12 +1,20 @@
 import { Box3, Bone, Float32BufferAttribute, Mesh, Quaternion, Skeleton, SkinnedMesh, Uint16BufferAttribute, Vector3 } from "three";
 import type { Object3D } from "three";
 
-export const normalizePokemonBone = (name: string) => name.replace(/^\d+[ _]?/, "").replace(/_\d+$/, "").replace(/_/g, "");
+export const normalizePokemonBone = (name: string) => name.replace(/^\d+[ _]?/, "").replace(/_\d+$/, "")
+  // Dragonite uses descriptive exporter names instead of the short Kanto rig names.
+  .replace(/^(left|right)_leg_01$/i, (_, side: string) => `${side.toLowerCase() === "left" ? "L" : "R"}Thigh`)
+  .replace(/^(left|right)_leg_02$/i, (_, side: string) => `${side.toLowerCase() === "left" ? "L" : "R"}Leg`)
+  .replace(/^(left|right)_arm_01$/i, (_, side: string) => `${side.toLowerCase() === "left" ? "L" : "R"}Arm`)
+  .replace(/^(left|right)_arm_02$/i, (_, side: string) => `${side.toLowerCase() === "left" ? "L" : "R"}ForeArm`)
+  .replace(/^left_/i, "L").replace(/^right_/i, "R").replace(/_/g, "")
+  .replace(/^(L|R)(wing|hand|foot|shoulder)/i, (_, side: string, part: string) => side + part[0].toUpperCase() + part.slice(1));
 
 /** Golbat's source is an unskinned mesh. Keep the torso fixed and blend each
  * wing into a shoulder/tip chain. Geometry and skeleton belong to this instance. */
 export function rigPokemonAppendages(scene: Object3D, number: number) {
   const owned: SkinnedMesh[] = [];
+  poseCrawlerRest(scene, number);
   poseSerpentRest(scene, number);
   if (rigidQuadrupeds.has(number)) return rigRigidQuadruped(scene);
   if (partRigs[number]) return rigRigidParts(scene, number);
@@ -58,12 +66,28 @@ export function rigPokemonAppendages(scene: Object3D, number: number) {
   return () => { for (const mesh of owned) { mesh.geometry.dispose(); mesh.skeleton.dispose(); } };
 }
 
+/** Caterpie and Weedle were exported upright on their tail. Put their body along
+ * the ground and counter-rotate the head before measuring the display bounds. */
+function poseCrawlerRest(scene: Object3D, number: number) {
+  if (number !== 10 && number !== 13) return;
+  scene.updateWorldMatrix(true, true);
+  const bones: Object3D[] = [];
+  scene.traverse(node => { if ((node as Bone).isBone) bones.push(node); });
+  const head = bones.find(bone => normalizePokemonBone(bone.name) === "Head");
+  if (!head) return;
+  // Hips and spine are separate root bones in these exports; rotate their common scene.
+  scene.quaternion.multiply(new Quaternion().setFromAxisAngle(localAxis(scene, new Vector3(1, 0, 0)), Math.PI / 2));
+  scene.updateWorldMatrix(true, true);
+  head.quaternion.multiply(new Quaternion().setFromAxisAngle(localAxis(head, new Vector3(1, 0, 0)), -Math.PI / 2));
+  scene.updateWorldMatrix(true, true);
+}
+
 const wingRoots: Record<number, RegExp> = {
   6: /^[LR]Feeler1$/, 12: /^[LR]Feeler[AB]1$/, 15: /^[LR]Feeler[AB]$/,
   16: /^[LR]Arm$/, 17: /^[LR]Arm$/, 18: /^[LR]Arm$/, 21: /^[LR]Arm$/, 22: /^[LR]Arm$/,
   42: /^[LR]Wing$/, 49: /^[LR]Feeler[AB]1$/, 83: /^[LR]Arm$/,
   123: /^[LR]Feeler[AB]$/, 142: /^[LR]Arm$/, 144: /^[LR]Arm$/, 145: /^[LR]Shoulder$/,
-  146: /^[LR]UpperArm$/,
+  146: /^[LR]UpperArm$/, 149: /^[LR]Wing01$/,
 };
 const insectWings = new Set([12, 15, 49, 123]);
 const curlBudget: Record<number, number> = { 4: 0.6, 5: 0.6, 6: 0.6, 26: 2.8, 37: 1.4, 38: 2.2, 52: 2.5, 53: 0.8, 144: 0.7, 151: 3.0 };

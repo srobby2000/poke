@@ -6,8 +6,8 @@ import { loadPokemonModel } from "../game/loadPokemonModel";
 import { mountSeat } from "../game/pokemonModelGeometry";
 import { learnsetFor } from "../game/moveAnimations";
 import { act, create } from "@react-three/test-renderer";
-import { appendageMotion, rigPokemonAppendages } from "../game/pokemonAppendages";
-import { applyRestPose, createMoveClip, createPokemonAnimator } from "../game/pokemonAnimation";
+import { appendageMotion, normalizePokemonBone, rigPokemonAppendages } from "../game/pokemonAppendages";
+import { applyRestPose, createMoveClip, createPokemonAnimator, selectSpeciesClip } from "../game/pokemonAnimation";
 import { POKEMON_MODELS } from "../game/pokemonModels";
 import { clone } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { Bone, Box3, Group, SkinnedMesh, Vector3 } from "three";
@@ -124,7 +124,7 @@ it("keeps species size differences readable without extreme proportions", async 
       renderer.scene.instance.updateMatrixWorld(true);
       for (const [species, height] of Object.entries(expected)) {
         const group = renderer.scene.instance.getObjectByName(species)!;
-        const size = new Box3().setFromObject(group).getSize(new Vector3());
+        const size = new Box3().setFromObject(group.getObjectByName("pokemon-body") ?? group).getSize(new Vector3());
         expect(size.y, species).toBeCloseTo(height, 2);
       }
     });
@@ -141,7 +141,7 @@ it("animates all 151 actual rigs without changing their cached source poses", as
     const root = new Group(); root.add(scene);
     const disposeRig = rigPokemonAppendages(scene, definition.number);
     const animator = createPokemonAnimator(scene, root, definition, gltf.animations);
-    for (const motion of ["idle", "walk", "attack", "hit", "idle"] as const) {
+    for (const motion of ["idle", "walk", "run", "attack", "hit", "idle"] as const) {
       for (let i = 0; i < 20; i++) animator.update(motion, 1 / 60);
       root.updateMatrixWorld(true);
       root.traverse(node => expect(node.matrixWorld.elements.every(Number.isFinite), `#${definition.number} ${motion}: ${node.name}`).toBe(true));
@@ -186,7 +186,7 @@ it("lowers outstretched arms in actual biped idle rigs, including all four Macha
 
 
 it("animates wing hinges and distal tail bones that the old name filter skipped", async () => {
-  for (const number of [6, 12, 18, 26, 38, 49, 123, 144, 145, 151]) {
+  for (const number of [6, 12, 18, 26, 38, 49, 123, 144, 145, 149, 151]) {
     const gltf = await loadPokemonModel(number);
     const scene = clone(gltf.scene); const root = new Group(); root.add(scene);
     root.updateMatrixWorld(true);
@@ -515,4 +515,37 @@ it("can pause animation and toggle the live joint overlay without cloning a seco
     expect(renderer.scene.instance.getObjectByName("pokemon-joints")).toBeUndefined();
     expect(bone!.parent).not.toBeNull();
   } finally { await renderer.unmount(); }
+});
+
+it("keeps Mewtwo's authored travel in place without modifying the source clip", async () => {
+  const gltf = await loadPokemonModel(150);
+  for (const motion of ["walk", "run"] as const) {
+    const source = gltf.animations.find(clip => clip.name.includes(motion === "walk" ? "00030_walk" : "00100_run"))!;
+    const original = source.tracks.find(track => track.name === "origin_75.position")!;
+    const before = Array.from(original.values);
+    const clip = selectSpeciesClip(gltf.animations, motion, 150)!;
+    const track = clip.tracks.find(track => track.name === "origin_75.position")!;
+    for (let i = 3; i < track.values.length; i++) expect(track.values[i]).toBe(track.values[i % 3]);
+    expect(Array.from(original.values)).toEqual(before);
+    expect(before[before.length - 1]).toBeGreaterThan(1);
+  }
+});
+
+it("poses both caterpillar body branches along the ground before generating crawl clips", async () => {
+  for (const number of [10, 13]) {
+    const gltf = await loadPokemonModel(number);
+    const scene = clone(gltf.scene); const root = new Group(); root.add(scene);
+    const disposeRig = rigPokemonAppendages(scene, number);
+    root.updateMatrixWorld(true);
+    const joints = new Map<string, Bone>();
+    scene.traverse(bone => { if (bone instanceof Bone) joints.set(normalizePokemonBone(bone.name), bone); });
+    const head = joints.get("Head")!.getWorldPosition(new Vector3());
+    const hip = joints.get("Hips")!.getWorldPosition(new Vector3());
+    const tail = joints.get("Tail1")!.getWorldPosition(new Vector3());
+    expect(head.z).toBeGreaterThan(hip.z);
+    expect(tail.z).toBeLessThan(hip.z);
+    expect(Math.abs(head.y - hip.y)).toBeLessThan(Math.abs(head.z - hip.z) * 0.2);
+    expect(gltf.scene.quaternion.angleTo(scene.quaternion)).toBeCloseTo(Math.PI / 2);
+    disposeRig();
+  }
 });

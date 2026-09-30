@@ -1,13 +1,13 @@
 /** Offline, shaded runtime poses + joint overlays. No browser/GPU or texture decoding.
  * node scripts/audit-pokemon-motion.mjs [output-directory]
- * Eight columns: idle, walk, attack, hit, each sampled at 0.12s and 0.36s.
+ * Ten columns: idle, walk, run, attack, hit, each sampled at 0.12s and 0.36s.
  */
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { deflateSync } from 'node:zlib';
 import ts from 'typescript';
 import { Box3, Group, Vector3 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-const output = process.argv[2] ?? 'docs/model-review/motion';
+const output = process.argv[2] ?? 'docs/model-review/locomotion';
 await mkdir(output, { recursive: true });
 const compile = async (path, replacements = {}) => {
   let source = ts.transpileModule(await readFile(path, 'utf8'), { compilerOptions: { target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.ES2020 } }).outputText;
@@ -15,15 +15,18 @@ const compile = async (path, replacements = {}) => {
   for (const [from, to] of Object.entries(replacements)) source = source.replaceAll(JSON.stringify(from), JSON.stringify(to));
   return `data:text/javascript;base64,${Buffer.from(source).toString('base64')}`;
 };
+const locomotion = await compile('src/game/pokemonLocomotion.ts');
 const appendages = await compile('src/game/pokemonAppendages.ts');
 const { rigPokemonAppendages } = await import(appendages);
 const scale = await compile('src/game/pokemonScale.ts');
+const { pokemonDisplayHeight, pokemonMeasurement } = await import(scale);
+const heights = JSON.parse(await readFile('src/game/pokemonHeights.json', 'utf8'));
 const learnsetData = `data:text/javascript;base64,${Buffer.from('export default ' + await readFile('src/game/pokemonLearnsets.json', 'utf8')).toString('base64')}`;
 const moveCatalog = await compile('src/game/moveAnimations.ts', { './pokemonLearnsets.json': learnsetData });
-const { applyRestPose, createPokemonAnimator, selectPokemonClip } = await import(await compile('src/game/pokemonAnimation.ts', { './pokemonAppendages': appendages, './pokemonScale': scale, './moveAnimations': moveCatalog }));
+const { applyRestPose, createPokemonAnimator, selectSpeciesClip } = await import(await compile('src/game/pokemonAnimation.ts', { './pokemonLocomotion': locomotion, './pokemonAppendages': appendages, './pokemonScale': scale, './moveAnimations': moveCatalog }));
 const catalog = (await readFile('src/game/pokemonModels.ts', 'utf8')).split('const catalog = `')[1].split('`;')[0].split('\n');
 globalThis.self = globalThis;
-const cell = 144, columns = 8, rows = 8, width = cell * columns, height = cell * rows;
+const cell = 144, columns = 10, rows = 8, width = cell * columns, height = cell * rows;
 let pixels;
 const clear = () => { pixels = Buffer.alloc(width * height * 4); for (let i = 0; i < width * height; i++) pixels.set([19, 27, 41, 255], i * 4); };
 clear();
@@ -68,6 +71,7 @@ function draw(root, col, row, span, center) {
   // White corner ticks keep cells and phases identifiable on contact sheets.
   for(let i=0;i<8;i++){dot(i,0,[90,110,130]);dot(0,i,[90,110,130]);}
 }
+const { POKEMON_LOCOMOTION } = await import(locomotion);
 const report=[];
 for(let number=1;number<=151;number++){
   const [species,family]=catalog[number-1].split(' ');
@@ -77,19 +81,24 @@ for(let number=1;number<=151;number++){
   const root=new Group();root.add(gltf.scene);
   let originalBones=0;gltf.scene.traverse(n=>{if(n.isBone)originalBones++;});
   applyRestPose(gltf.scene,number,gltf.animations);const dispose=rigPokemonAppendages(gltf.scene,number);
+  const rawBounds=new Box3().setFromObject(gltf.scene), rawSize=rawBounds.getSize(new Vector3()), rawCenter=rawBounds.getCenter(new Vector3());
+  const heightM=heights[species];
+  const displayScale=pokemonDisplayHeight(heightM)/pokemonMeasurement(number,gltf.scene,rawSize);
+  const fit=new Group(); fit.scale.setScalar(displayScale); fit.position.set(-rawCenter.x*displayScale,-rawBounds.min.y*displayScale,-rawCenter.z*displayScale);
+  fit.add(gltf.scene); root.add(fit);
   const bounds=new Box3().setFromObject(root),size=bounds.getSize(new Vector3()),center=bounds.getCenter(new Vector3());
   const span=cell*0.68/Math.max(size.x,size.y,size.z);
   let bones=0;root.traverse(n=>{if(n.isBone)bones++;});
-  const motions=['idle','walk','attack','hit'];
+  const motions=['idle','walk','run','attack','hit'];
   for(let m=0;m<motions.length;m++){
-    const animator=createPokemonAnimator(gltf.scene,root,{number,family},gltf.animations);
+    const animator=createPokemonAnimator(gltf.scene,root,{number,family,heightM},gltf.animations);
     for(let phase=0;phase<2;phase++){
       const duration=phase?0.24:0.12;for(let i=0;i<12;i++)animator.update(motions[m],duration/12);
       draw(root,m*2+phase,(number-1)%rows,span,center);
     }
     animator.dispose();
   }
-  report.push({number,species,sourceBones:originalBones,runtimeBones:bones,clips:Object.fromEntries(motions.map(m=>[m,selectPokemonClip(gltf.animations,m)?.name??'procedural'])),sheet:Math.ceil(number/rows),row:(number-1)%rows+1});
+  report.push({number,species,locomotion:POKEMON_LOCOMOTION[number],sourceBones:originalBones,runtimeBones:bones,clips:Object.fromEntries(motions.map(m=>[m,selectSpeciesClip(gltf.animations,m,number)?.name??'procedural'])),sheet:Math.ceil(number/rows),row:(number-1)%rows+1});
   dispose();
   if(number%rows===0||number===151){await save(Math.ceil(number/rows));clear();console.log(`Rendered #${number}`);}
 }

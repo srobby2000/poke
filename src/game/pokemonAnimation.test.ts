@@ -176,3 +176,72 @@ it("builds the same joint motion whichever way the model faces when its animator
     }
   }
 });
+
+it("assigns every catalog species a deliberate travel mode, including flightless birds", async () => {
+  const { POKEMON_LOCOMOTION } = await import("./pokemonLocomotion");
+  expect(Object.keys(POKEMON_LOCOMOTION)).toHaveLength(151);
+  for (const definition of Object.values(POKEMON_MODELS)) expect(POKEMON_LOCOMOTION[definition.number]).toBeDefined();
+  for (const n of [6, 12, 16, 17, 18, 21, 22, 41, 42, 49, 83, 123, 142, 144, 145, 146, 149]) expect(POKEMON_LOCOMOTION[n]).toBe("fly");
+  for (const n of [54, 55, 84, 85, 94]) expect(POKEMON_LOCOMOTION[n]).toBe("biped");
+});
+
+it("keeps a flyer's legs still while its real wing hinges flap at both travel speeds", () => {
+  for (const motion of ["walk", "run"] as const) {
+    const scene = new Group(), root = new Group(); root.add(scene);
+    const bones = ["LArm", "RArm", "LThigh", "RThigh", "LLeg", "RLeg"].map(name => { const bone = new Bone(); bone.name = name; scene.add(bone); return bone; });
+    const animator = createPokemonAnimator(scene, root, POKEMON_MODELS.pidgeot, []);
+    animator.update(motion, 0.1);
+    const first = bones.map(b => b.quaternion.clone());
+    for (let i = 0; i < 3; i++) animator.update(motion, 0.1);
+    expect(bones[0].quaternion.angleTo(first[0])).toBeGreaterThan(0.1);
+    expect(bones[0].rotation.z).toBeCloseTo(-bones[1].rotation.z);
+    for (let i = 2; i < bones.length; i++) expect(bones[i].quaternion.angleTo(first[i])).toBeCloseTo(0);
+    expect(root.position.y).toBeGreaterThan(0.1);
+    animator.dispose();
+  }
+});
+
+it("does not flap ordinary arms on hovering Pokémon or give snakes footfall bounce", () => {
+  for (const species of ["mew", "geodude", "abra", "ekans", "onix", "muk", "diglett"]) {
+    const scene = new Group(), root = new Group(); root.add(scene);
+    const arm = new Bone(); arm.name = "LArm"; scene.add(arm);
+    const animator = createPokemonAnimator(scene, root, POKEMON_MODELS[species], []);
+    animator.update("walk", 0.1);
+    const pose = arm.quaternion.clone();
+    for (let i = 0; i < 4; i++) animator.update("walk", 0.1);
+    expect(arm.quaternion.angleTo(pose), species).toBeCloseTo(0);
+    if (["ekans", "onix", "muk", "diglett"].includes(species)) expect(root.position.y).toBe(0);
+    animator.dispose();
+  }
+});
+
+it("uses Zubat's known flight clip for travel and excludes authored ground walks for flyers", async () => {
+  const { selectSpeciesClip } = await import("./pokemonAnimation");
+  const flight = new AnimationClip("Take 001", 2, [new NumberKeyframeTrack(".position[y]", [0, 2], [0, 0])]);
+  const walk = new AnimationClip("walk", 1, []);
+  expect(selectSpeciesClip([flight, walk], "walk", 41)).toBe(flight);
+  expect(selectSpeciesClip([flight], "run", 41)?.duration).toBe(1.5);
+  expect(flight.duration).toBe(2);
+  expect(flight.tracks[0].times[1]).toBe(2);
+  expect(selectSpeciesClip([walk], "walk", 149)).toBeUndefined();
+  expect(selectSpeciesClip([walk], "walk", 84)).toBe(walk);
+});
+
+it("closes every procedural travel loop without a positional or joint snap", async () => {
+  const { createPokemonFallback } = await import("./pokemonAnimation");
+  const { Quaternion } = await import("three");
+  for (const definition of Object.values(POKEMON_MODELS)) {
+    const scene = new Group(), root = new Group(); root.add(scene);
+    for (const name of ["LArm", "LThigh", "LLeg", "Tail1", "Spine1"]) { const bone = new Bone(); bone.name = name; scene.add(bone); }
+    for (const motion of ["walk", "run"] as const) {
+      const clip = createPokemonFallback(scene, root, definition, motion);
+      for (const track of clip.tracks) {
+        const width = track.getValueSize(), values = track.values;
+        const first = Array.from(values.slice(0, width)), last = Array.from(values.slice(-width));
+        if (track.name.endsWith("quaternion")) expect(new Quaternion().fromArray(first).angleTo(new Quaternion().fromArray(last)), `${definition.number} ${motion} ${track.name}`).toBeLessThan(0.001);
+        else if (track.name.endsWith("rotation[x]") && [100, 101].includes(definition.number)) expect(Math.cos(last[0])).toBeCloseTo(Math.cos(first[0]));
+        else first.forEach((value, i) => expect(last[i], `${definition.number} ${motion} ${track.name}`).toBeCloseTo(value, 5));
+      }
+    }
+  }
+});

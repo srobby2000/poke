@@ -9,11 +9,13 @@ import { isFlameMaterial, mountSeat, removeCoincidentTriangles } from "../game/p
 import type { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { loadPokemonModel } from "../game/loadPokemonModel";
 import type { PokemonAction } from "../game/pokemonAnimation";
-import { rigPokemonAppendages } from "../game/pokemonAppendages";
+import { normalizePokemonBone, rigPokemonAppendages } from "../game/pokemonAppendages";
 import { applyRestPose, createPokemonAnimator } from "../game/pokemonAnimation";
 import { POKEMON_MODELS } from "../game/pokemonModels";
 
-type Props = { showJoints?: boolean; paused?: boolean; playbackRate?: number; animation?: PokemonAction; fitPreview?: boolean; species: string; color?: string; hit?: boolean; walking?: boolean; running?: boolean; attacking?: boolean; fainted?: boolean;
+import { PokemonEffects } from "./PokemonEffects";
+
+type Props = { effectAnchor?: { current: Vector3 }; attackEffects?: boolean; showJoints?: boolean; paused?: boolean; playbackRate?: number; animation?: PokemonAction; fitPreview?: boolean; species: string; color?: string; hit?: boolean; walking?: boolean; running?: boolean; attacking?: boolean; fainted?: boolean;
   /** While attacking, play this move's own animation instead of the generic attack. */
   moveId?: string;
   /** Rendered at the saddle point on the back, inside the animated root, so a rider rises,
@@ -34,14 +36,14 @@ class ModelBoundary extends Component<{ children: ReactNode }, { failed: boolean
 }
 
 /** Species-specific GLBs bundled locally; cached assets are cloned per instance. */
-export function PokemonModel({ showJoints = false, paused = false, playbackRate = 1, animation, species, hit = false, walking = false, running = false, attacking = false, moveId, fainted = false, fitPreview = false, children }: Props) {
+export function PokemonModel({ effectAnchor, attackEffects = true, showJoints = false, paused = false, playbackRate = 1, animation, species, hit = false, walking = false, running = false, attacking = false, moveId, fainted = false, fitPreview = false, children }: Props) {
   // Battle units store display names ("Lapras"); the asset catalog uses slugs.
   const model = POKEMON_MODELS[species.trim().toLowerCase()];
   if (!model) return <ModelPlaceholder message={`No 3D model available for ${species}`} />;
-  return <ModelBoundary key={`${species}-image-v2`}><AsyncPokemon showJoints={showJoints} paused={paused} playbackRate={playbackRate} animation={animation} number={model.number} heightM={model.heightM} fitPreview={fitPreview} hit={hit} walking={walking} running={running} attacking={attacking} moveId={moveId} fainted={fainted}>{children}</AsyncPokemon></ModelBoundary>;
+  return <ModelBoundary key={`${species}-image-v2`}><AsyncPokemon effectAnchor={effectAnchor} attackEffects={attackEffects} showJoints={showJoints} paused={paused} playbackRate={playbackRate} animation={animation} number={model.number} heightM={model.heightM} fitPreview={fitPreview} hit={hit} walking={walking} running={running} attacking={attacking} moveId={moveId} fainted={fainted}>{children}</AsyncPokemon></ModelBoundary>;
 }
 
-function AsyncPokemon({ showJoints, paused, playbackRate, animation, number, heightM, fitPreview, hit, walking, running, attacking, moveId, fainted, children }: { showJoints: boolean; paused: boolean; playbackRate: number; animation?: PokemonAction; number: number; heightM: number; fitPreview: boolean; hit: boolean; walking: boolean; running: boolean; attacking: boolean; moveId?: string; fainted: boolean; children?: ReactNode }) {
+function AsyncPokemon({ effectAnchor, attackEffects, showJoints, paused, playbackRate, animation, number, heightM, fitPreview, hit, walking, running, attacking, moveId, fainted, children }: { effectAnchor?: { current: Vector3 }; attackEffects: boolean; showJoints: boolean; paused: boolean; playbackRate: number; animation?: PokemonAction; number: number; heightM: number; fitPreview: boolean; hit: boolean; walking: boolean; running: boolean; attacking: boolean; moveId?: string; fainted: boolean; children?: ReactNode }) {
   const [result, setResult] = useState<GLTF | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
@@ -64,10 +66,10 @@ function AsyncPokemon({ showJoints, paused, playbackRate, animation, number, hei
   </Html>;
   // Keep the rider visible while the mount streams in.
   if (!result) return <><ModelPlaceholder />{children}</>;
-  return <LoadedPokemon showJoints={showJoints} paused={paused} playbackRate={playbackRate} animation={animation} number={number} heightM={heightM} fitPreview={fitPreview} gltf={result} hit={hit} walking={walking} running={running} attacking={attacking} moveId={moveId} fainted={fainted}>{children}</LoadedPokemon>;
+  return <LoadedPokemon effectAnchor={effectAnchor} attackEffects={attackEffects} showJoints={showJoints} paused={paused} playbackRate={playbackRate} animation={animation} number={number} heightM={heightM} fitPreview={fitPreview} gltf={result} hit={hit} walking={walking} running={running} attacking={attacking} moveId={moveId} fainted={fainted}>{children}</LoadedPokemon>;
 }
 
-function LoadedPokemon({ showJoints, paused, playbackRate, animation, number, heightM, fitPreview, gltf, hit, walking, running, attacking, moveId, fainted, children }: { showJoints: boolean; paused: boolean; playbackRate: number; animation?: PokemonAction; number: number; heightM: number; fitPreview: boolean; gltf: GLTF; hit: boolean; walking: boolean; running: boolean; attacking: boolean; moveId?: string; fainted: boolean; children?: ReactNode }) {
+function LoadedPokemon({ effectAnchor, attackEffects, showJoints, paused, playbackRate, animation, number, heightM, fitPreview, gltf, hit, walking, running, attacking, moveId, fainted, children }: { effectAnchor?: { current: Vector3 }; attackEffects: boolean; showJoints: boolean; paused: boolean; playbackRate: number; animation?: PokemonAction; number: number; heightM: number; fitPreview: boolean; gltf: GLTF; hit: boolean; walking: boolean; running: boolean; attacking: boolean; moveId?: string; fainted: boolean; children?: ReactNode }) {
   const { scene: source, animations } = gltf;
   const root = useRef<Group>(null);
   const model = useMemo(() => {
@@ -122,7 +124,9 @@ function LoadedPokemon({ showJoints, paused, playbackRate, animation, number, he
     const offset: [number, number, number] = [-center.x * scale, -bounds.min.y * scale, -center.z * scale];
     const saddle = mountSeat(scene, number);
     const seat: [number, number, number] = [saddle.x * scale + offset[0], saddle.y * scale + offset[1], saddle.z * scale + offset[2]];
-    return { scene, scale, offset, seat, materials, disposeRig };
+    let head: Object3D | undefined;
+    scene.traverse(node => { if (/^Head$/i.test(normalizePokemonBone(node.name))) head ??= node; });
+    return { scene, head, scale, offset, seat, materials, disposeRig, displayHeight: size.y * scale };
   }, [source, animations, number, heightM, fitPreview]);
   const animator = useRef<ReturnType<typeof createPokemonAnimator>>();
   useEffect(() => {
@@ -138,8 +142,12 @@ function LoadedPokemon({ showJoints, paused, playbackRate, animation, number, he
   useEffect(() => () => { model.disposeRig(); model.scene.traverse(object => { if (object instanceof Mesh) for (const material of Array.isArray(object.material) ? object.material : [object.material]) material.dispose(); if (number === 12 && object instanceof Mesh) object.geometry.dispose(); }); }, [model, number]);
   useFrame((_, delta) => {
     animator.current?.update(animation ?? (hit ? "hit" : attacking ? (moveId ? `move:${moveId}` as const : "attack") : running ? "run" : walking ? "walk" : "idle"), delta * playbackRate, fainted || paused);
-  });
-  return <group ref={root}><group position={model.offset} scale={model.scale}><primitive object={model.scene} dispose={null} />{showJoints && <JointOverlay scene={model.scene} />}</group>{children && <group name="pokemon-seat" position={model.seat}>{children}</group>}</group>;
+    if (effectAnchor) {
+      if (model.head) model.head.getWorldPosition(effectAnchor.current);
+      else { effectAnchor.current.set(0, model.displayHeight * 0.6, 0); root.current?.localToWorld(effectAnchor.current); }
+    }
+  }, -2);
+  return <group ref={root}><group name="pokemon-body" position={model.offset} scale={model.scale}><primitive object={model.scene} dispose={null} />{showJoints && <JointOverlay scene={model.scene} />}</group><PokemonEffects scene={model.scene} species={Object.keys(POKEMON_MODELS).find(key => POKEMON_MODELS[key].number === number)!} number={number} height={model.displayHeight} playbackRate={playbackRate} playback={() => animator.current?.getPlayback()} paused={paused} fainted={fainted} attackEffects={attackEffects} />{children && <group name="pokemon-seat" position={model.seat}>{children}</group>}</group>;
 }
 
 

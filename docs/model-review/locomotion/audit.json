@@ -1,0 +1,2418 @@
+[
+  {
+    "number": 1,
+    "species": "bulbasaur",
+    "locomotion": "quadruped",
+    "sourceBones": 56,
+    "runtimeBones": 56,
+    "clips": {
+      "idle": "model_skeleton|001aidle",
+      "walk": "model_skeleton|001walk",
+      "run": "model_skeleton|001run",
+      "attack": "model_skeleton|001fight_b",
+      "hit": "procedural"
+    },
+    "sheet": 1,
+    "row": 1
+  },
+  {
+    "number": 2,
+    "species": "ivysaur",
+    "locomotion": "quadruped",
+    "sourceBones": 39,
+    "runtimeBones": 39,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 1,
+    "row": 2
+  },
+  {
+    "number": 3,
+    "species": "venusaur",
+    "locomotion": "quadruped",
+    "sourceBones": 55,
+    "runtimeBones": 55,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 1,
+    "row": 3
+  },
+  {
+    "number": 4,
+    "species": "charmander",
+    "locomotion": "biped",
+    "sourceBones": 45,
+    "runtimeBones": 45,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 1,
+    "row": 4
+  },
+  {
+    "number": 5,
+    "species": "charmeleon",
+    "locomotion": "biped",
+    "sourceBones": 30,
+    "runtimeBones": 30,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 1,
+    "row": 5
+  },
+  {
+    "number": 6,
+    "species": "charizard",
+    "locomotion": "fly",
+    "sourceBones": 72,
+    "runtimeBones": 72,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 1,
+    "row": 6
+  },
+  {
+    "number": 7,
+    "species": "squirtle",
+    "locomotion": "biped",
+    "sourceBones": 26,
+    "runtimeBones": 26,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 1,
+    "row": 7
+  },
+  {
+    "number": 8,
+    "species": "wartortle",
+    "locomotion": "biped",
+    "sourceBones": 31,
+    "runtimeBones": 31,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 1,
+    "row": 8
+  },
+  {
+    "number": 9,
+    "species": "blastoise",
+    "locomotion": "biped",
+    "sourceBones": 42,
+    "runtimeBones": 42,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 2,
+    "row": 1
+  },
+  {
+    "number": 10,
+    "species": "caterpie",
+    "locomotion": "crawl",
+    "sourceBones": 14,
+    "runtimeBones": 14,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 2,
+    "row": 2
+  },
+  {
+    "number": 11,
+    "species": "metapod",
+    "locomotion": "hop",
+    "sourceBones": 6,
+    "runtimeBones": 6,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 2,
+    "row": 3
+  },
+  {
+    "number": 12,
+    "species": "butterfree",
+    "locomotion": "fly",
+    "sourceBones": 37,
+    "runtimeBones": 37,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 2,
+    "row": 4
+  },
+  {
+    "number": 13,
+    "species": "weedle",
+    "locomotion": "crawl",
+    "sourceBones": 25,
+    "runtimeBones": 25,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 2,
+    "row": 5
+  },
+  {
+    "number": 14,
+    "species": "kakuna",
+    "locomotion": "hop",
+    "sourceBones": 2,
+    "runtimeBones": 2,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 2,
+    "row": 6
+  },
+  {
+    "number": 15,
+    "species": "beedrill",
+    "locomotion": "fly",
+    "sourceBones": 49,
+    "runtimeBones": 49,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 2,
+    "row": 7
+  },
+  {
+    "number": 16,
+    "species": "pidgey",
+    "locomotion": "fly",
+    "sourceBones": 40,
+    "runtimeBones": 40,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 2,
+    "row": 8
+  },
+  {
+    "number": 17,
+    "species": "pidgeotto",
+    "locomotion": "fly",
+    "sourceBones": 41,
+    "runtimeBones": 41,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 3,
+    "row": 1
+  },
+  {
+    "number": 18,
+    "species": "pidgeot",
+    "locomotion": "fly",
+    "sourceBones": 70,
+    "runtimeBones": 70,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 3,
+    "row": 2
+  },
+  {
+    "number": 19,
+    "species": "rattata",
+    "locomotion": "quadruped",
+    "sourceBones": 40,
+    "runtimeBones": 40,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 3,
+    "row": 3
+  },
+  {
+    "number": 20,
+    "species": "raticate",
+    "locomotion": "quadruped",
+    "sourceBones": 50,
+    "runtimeBones": 50,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 3,
+    "row": 4
+  },
+  {
+    "number": 21,
+    "species": "spearow",
+    "locomotion": "fly",
+    "sourceBones": 39,
+    "runtimeBones": 39,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 3,
+    "row": 5
+  },
+  {
+    "number": 22,
+    "species": "fearow",
+    "locomotion": "fly",
+    "sourceBones": 66,
+    "runtimeBones": 66,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 3,
+    "row": 6
+  },
+  {
+    "number": 23,
+    "species": "ekans",
+    "locomotion": "slither",
+    "sourceBones": 25,
+    "runtimeBones": 25,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 3,
+    "row": 7
+  },
+  {
+    "number": 24,
+    "species": "arbok",
+    "locomotion": "slither",
+    "sourceBones": 26,
+    "runtimeBones": 26,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 3,
+    "row": 8
+  },
+  {
+    "number": 25,
+    "species": "pikachu",
+    "locomotion": "biped",
+    "sourceBones": 45,
+    "runtimeBones": 45,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "Impactrueno",
+      "hit": "procedural"
+    },
+    "sheet": 4,
+    "row": 1
+  },
+  {
+    "number": 26,
+    "species": "raichu",
+    "locomotion": "biped",
+    "sourceBones": 33,
+    "runtimeBones": 33,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 4,
+    "row": 2
+  },
+  {
+    "number": 27,
+    "species": "sandshrew",
+    "locomotion": "biped",
+    "sourceBones": 32,
+    "runtimeBones": 32,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 4,
+    "row": 3
+  },
+  {
+    "number": 28,
+    "species": "sandslash",
+    "locomotion": "biped",
+    "sourceBones": 57,
+    "runtimeBones": 57,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 4,
+    "row": 4
+  },
+  {
+    "number": 29,
+    "species": "nidoran-f",
+    "locomotion": "quadruped",
+    "sourceBones": 32,
+    "runtimeBones": 32,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 4,
+    "row": 5
+  },
+  {
+    "number": 30,
+    "species": "nidorina",
+    "locomotion": "quadruped",
+    "sourceBones": 34,
+    "runtimeBones": 34,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 4,
+    "row": 6
+  },
+  {
+    "number": 31,
+    "species": "nidoqueen",
+    "locomotion": "biped",
+    "sourceBones": 37,
+    "runtimeBones": 37,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 4,
+    "row": 7
+  },
+  {
+    "number": 32,
+    "species": "nidoran-m",
+    "locomotion": "quadruped",
+    "sourceBones": 30,
+    "runtimeBones": 30,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 4,
+    "row": 8
+  },
+  {
+    "number": 33,
+    "species": "nidorino",
+    "locomotion": "quadruped",
+    "sourceBones": 29,
+    "runtimeBones": 29,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 5,
+    "row": 1
+  },
+  {
+    "number": 34,
+    "species": "nidoking",
+    "locomotion": "biped",
+    "sourceBones": 39,
+    "runtimeBones": 39,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 5,
+    "row": 2
+  },
+  {
+    "number": 35,
+    "species": "clefairy",
+    "locomotion": "biped",
+    "sourceBones": 0,
+    "runtimeBones": 9,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 5,
+    "row": 3
+  },
+  {
+    "number": 36,
+    "species": "clefable",
+    "locomotion": "biped",
+    "sourceBones": 42,
+    "runtimeBones": 42,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 5,
+    "row": 4
+  },
+  {
+    "number": 37,
+    "species": "vulpix",
+    "locomotion": "quadruped",
+    "sourceBones": 53,
+    "runtimeBones": 53,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 5,
+    "row": 5
+  },
+  {
+    "number": 38,
+    "species": "ninetales",
+    "locomotion": "quadruped",
+    "sourceBones": 110,
+    "runtimeBones": 110,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 5,
+    "row": 6
+  },
+  {
+    "number": 39,
+    "species": "jigglypuff",
+    "locomotion": "biped",
+    "sourceBones": 13,
+    "runtimeBones": 13,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 5,
+    "row": 7
+  },
+  {
+    "number": 40,
+    "species": "wigglytuff",
+    "locomotion": "biped",
+    "sourceBones": 25,
+    "runtimeBones": 25,
+    "clips": {
+      "idle": "procedural",
+      "walk": "bd_run",
+      "run": "bd_run",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 5,
+    "row": 8
+  },
+  {
+    "number": 41,
+    "species": "zubat",
+    "locomotion": "fly",
+    "sourceBones": 22,
+    "runtimeBones": 22,
+    "clips": {
+      "idle": "Take 001",
+      "walk": "Take 001",
+      "run": "Take 001",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 6,
+    "row": 1
+  },
+  {
+    "number": 42,
+    "species": "golbat",
+    "locomotion": "fly",
+    "sourceBones": 0,
+    "runtimeBones": 5,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 6,
+    "row": 2
+  },
+  {
+    "number": 43,
+    "species": "oddish",
+    "locomotion": "biped",
+    "sourceBones": 23,
+    "runtimeBones": 23,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 6,
+    "row": 3
+  },
+  {
+    "number": 44,
+    "species": "gloom",
+    "locomotion": "biped",
+    "sourceBones": 38,
+    "runtimeBones": 38,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 6,
+    "row": 4
+  },
+  {
+    "number": 45,
+    "species": "vileplume",
+    "locomotion": "biped",
+    "sourceBones": 25,
+    "runtimeBones": 25,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 6,
+    "row": 5
+  },
+  {
+    "number": 46,
+    "species": "paras",
+    "locomotion": "crawl",
+    "sourceBones": 26,
+    "runtimeBones": 26,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 6,
+    "row": 6
+  },
+  {
+    "number": 47,
+    "species": "parasect",
+    "locomotion": "crawl",
+    "sourceBones": 27,
+    "runtimeBones": 27,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 6,
+    "row": 7
+  },
+  {
+    "number": 48,
+    "species": "venonat",
+    "locomotion": "biped",
+    "sourceBones": 47,
+    "runtimeBones": 47,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 6,
+    "row": 8
+  },
+  {
+    "number": 49,
+    "species": "venomoth",
+    "locomotion": "fly",
+    "sourceBones": 31,
+    "runtimeBones": 31,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 7,
+    "row": 1
+  },
+  {
+    "number": 50,
+    "species": "diglett",
+    "locomotion": "burrow",
+    "sourceBones": 6,
+    "runtimeBones": 6,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 7,
+    "row": 2
+  },
+  {
+    "number": 51,
+    "species": "dugtrio",
+    "locomotion": "burrow",
+    "sourceBones": 17,
+    "runtimeBones": 17,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 7,
+    "row": 3
+  },
+  {
+    "number": 52,
+    "species": "meowth",
+    "locomotion": "biped",
+    "sourceBones": 57,
+    "runtimeBones": 57,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 7,
+    "row": 4
+  },
+  {
+    "number": 53,
+    "species": "persian",
+    "locomotion": "quadruped",
+    "sourceBones": 46,
+    "runtimeBones": 46,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 7,
+    "row": 5
+  },
+  {
+    "number": 54,
+    "species": "psyduck",
+    "locomotion": "biped",
+    "sourceBones": 33,
+    "runtimeBones": 33,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 7,
+    "row": 6
+  },
+  {
+    "number": 55,
+    "species": "golduck",
+    "locomotion": "biped",
+    "sourceBones": 49,
+    "runtimeBones": 49,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 7,
+    "row": 7
+  },
+  {
+    "number": 56,
+    "species": "mankey",
+    "locomotion": "biped",
+    "sourceBones": 36,
+    "runtimeBones": 36,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 7,
+    "row": 8
+  },
+  {
+    "number": 57,
+    "species": "primeape",
+    "locomotion": "biped",
+    "sourceBones": 28,
+    "runtimeBones": 28,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 8,
+    "row": 1
+  },
+  {
+    "number": 58,
+    "species": "growlithe",
+    "locomotion": "quadruped",
+    "sourceBones": 42,
+    "runtimeBones": 42,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 8,
+    "row": 2
+  },
+  {
+    "number": 59,
+    "species": "arcanine",
+    "locomotion": "quadruped",
+    "sourceBones": 50,
+    "runtimeBones": 50,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 8,
+    "row": 3
+  },
+  {
+    "number": 60,
+    "species": "poliwag",
+    "locomotion": "biped",
+    "sourceBones": 0,
+    "runtimeBones": 24,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 8,
+    "row": 4
+  },
+  {
+    "number": 61,
+    "species": "poliwhirl",
+    "locomotion": "biped",
+    "sourceBones": 25,
+    "runtimeBones": 25,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 8,
+    "row": 5
+  },
+  {
+    "number": 62,
+    "species": "poliwrath",
+    "locomotion": "biped",
+    "sourceBones": 30,
+    "runtimeBones": 30,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 8,
+    "row": 6
+  },
+  {
+    "number": 63,
+    "species": "abra",
+    "locomotion": "hover",
+    "sourceBones": 50,
+    "runtimeBones": 50,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 8,
+    "row": 7
+  },
+  {
+    "number": 64,
+    "species": "kadabra",
+    "locomotion": "biped",
+    "sourceBones": 53,
+    "runtimeBones": 53,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 8,
+    "row": 8
+  },
+  {
+    "number": 65,
+    "species": "alakazam",
+    "locomotion": "biped",
+    "sourceBones": 53,
+    "runtimeBones": 53,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 9,
+    "row": 1
+  },
+  {
+    "number": 66,
+    "species": "machop",
+    "locomotion": "biped",
+    "sourceBones": 51,
+    "runtimeBones": 51,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 9,
+    "row": 2
+  },
+  {
+    "number": 67,
+    "species": "machoke",
+    "locomotion": "biped",
+    "sourceBones": 50,
+    "runtimeBones": 50,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 9,
+    "row": 3
+  },
+  {
+    "number": 68,
+    "species": "machamp",
+    "locomotion": "biped",
+    "sourceBones": 85,
+    "runtimeBones": 85,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 9,
+    "row": 4
+  },
+  {
+    "number": 69,
+    "species": "bellsprout",
+    "locomotion": "biped",
+    "sourceBones": 51,
+    "runtimeBones": 51,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 9,
+    "row": 5
+  },
+  {
+    "number": 70,
+    "species": "weepinbell",
+    "locomotion": "hop",
+    "sourceBones": 26,
+    "runtimeBones": 26,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 9,
+    "row": 6
+  },
+  {
+    "number": 71,
+    "species": "victreebel",
+    "locomotion": "hop",
+    "sourceBones": 39,
+    "runtimeBones": 39,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 9,
+    "row": 7
+  },
+  {
+    "number": 72,
+    "species": "tentacool",
+    "locomotion": "swim",
+    "sourceBones": 13,
+    "runtimeBones": 13,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 9,
+    "row": 8
+  },
+  {
+    "number": 73,
+    "species": "tentacruel",
+    "locomotion": "swim",
+    "sourceBones": 53,
+    "runtimeBones": 53,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 10,
+    "row": 1
+  },
+  {
+    "number": 74,
+    "species": "geodude",
+    "locomotion": "hover",
+    "sourceBones": 37,
+    "runtimeBones": 37,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 10,
+    "row": 2
+  },
+  {
+    "number": 75,
+    "species": "graveler",
+    "locomotion": "biped",
+    "sourceBones": 44,
+    "runtimeBones": 44,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 10,
+    "row": 3
+  },
+  {
+    "number": 76,
+    "species": "golem",
+    "locomotion": "biped",
+    "sourceBones": 32,
+    "runtimeBones": 32,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 10,
+    "row": 4
+  },
+  {
+    "number": 77,
+    "species": "ponyta",
+    "locomotion": "quadruped",
+    "sourceBones": 0,
+    "runtimeBones": 28,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 10,
+    "row": 5
+  },
+  {
+    "number": 78,
+    "species": "rapidash",
+    "locomotion": "quadruped",
+    "sourceBones": 84,
+    "runtimeBones": 84,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 10,
+    "row": 6
+  },
+  {
+    "number": 79,
+    "species": "slowpoke",
+    "locomotion": "quadruped",
+    "sourceBones": 31,
+    "runtimeBones": 31,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 10,
+    "row": 7
+  },
+  {
+    "number": 80,
+    "species": "slowbro",
+    "locomotion": "biped",
+    "sourceBones": 32,
+    "runtimeBones": 32,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 10,
+    "row": 8
+  },
+  {
+    "number": 81,
+    "species": "magnemite",
+    "locomotion": "hover",
+    "sourceBones": 0,
+    "runtimeBones": 42,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 11,
+    "row": 1
+  },
+  {
+    "number": 82,
+    "species": "magneton",
+    "locomotion": "hover",
+    "sourceBones": 0,
+    "runtimeBones": 189,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 11,
+    "row": 2
+  },
+  {
+    "number": 83,
+    "species": "farfetchd",
+    "locomotion": "fly",
+    "sourceBones": 67,
+    "runtimeBones": 67,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 11,
+    "row": 3
+  },
+  {
+    "number": 84,
+    "species": "doduo",
+    "locomotion": "biped",
+    "sourceBones": 37,
+    "runtimeBones": 37,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 11,
+    "row": 4
+  },
+  {
+    "number": 85,
+    "species": "dodrio",
+    "locomotion": "biped",
+    "sourceBones": 54,
+    "runtimeBones": 54,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 11,
+    "row": 5
+  },
+  {
+    "number": 86,
+    "species": "seel",
+    "locomotion": "swim",
+    "sourceBones": 30,
+    "runtimeBones": 30,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 11,
+    "row": 6
+  },
+  {
+    "number": 87,
+    "species": "dewgong",
+    "locomotion": "swim",
+    "sourceBones": 23,
+    "runtimeBones": 23,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 11,
+    "row": 7
+  },
+  {
+    "number": 88,
+    "species": "grimer",
+    "locomotion": "ooze",
+    "sourceBones": 68,
+    "runtimeBones": 68,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 11,
+    "row": 8
+  },
+  {
+    "number": 89,
+    "species": "muk",
+    "locomotion": "ooze",
+    "sourceBones": 57,
+    "runtimeBones": 57,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 12,
+    "row": 1
+  },
+  {
+    "number": 90,
+    "species": "shellder",
+    "locomotion": "swim",
+    "sourceBones": 0,
+    "runtimeBones": 10,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 12,
+    "row": 2
+  },
+  {
+    "number": 91,
+    "species": "cloyster",
+    "locomotion": "swim",
+    "sourceBones": 22,
+    "runtimeBones": 22,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 12,
+    "row": 3
+  },
+  {
+    "number": 92,
+    "species": "gastly",
+    "locomotion": "hover",
+    "sourceBones": 0,
+    "runtimeBones": 36,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 12,
+    "row": 4
+  },
+  {
+    "number": 93,
+    "species": "haunter",
+    "locomotion": "hover",
+    "sourceBones": 0,
+    "runtimeBones": 25,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 12,
+    "row": 5
+  },
+  {
+    "number": 94,
+    "species": "gengar",
+    "locomotion": "biped",
+    "sourceBones": 31,
+    "runtimeBones": 31,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 12,
+    "row": 6
+  },
+  {
+    "number": 95,
+    "species": "onix",
+    "locomotion": "slither",
+    "sourceBones": 18,
+    "runtimeBones": 18,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 12,
+    "row": 7
+  },
+  {
+    "number": 96,
+    "species": "drowzee",
+    "locomotion": "biped",
+    "sourceBones": 0,
+    "runtimeBones": 14,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 12,
+    "row": 8
+  },
+  {
+    "number": 97,
+    "species": "hypno",
+    "locomotion": "biped",
+    "sourceBones": 0,
+    "runtimeBones": 14,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 13,
+    "row": 1
+  },
+  {
+    "number": 98,
+    "species": "krabby",
+    "locomotion": "crawl",
+    "sourceBones": 0,
+    "runtimeBones": 46,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 13,
+    "row": 2
+  },
+  {
+    "number": 99,
+    "species": "kingler",
+    "locomotion": "crawl",
+    "sourceBones": 0,
+    "runtimeBones": 69,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 13,
+    "row": 3
+  },
+  {
+    "number": 100,
+    "species": "voltorb",
+    "locomotion": "roll",
+    "sourceBones": 14,
+    "runtimeBones": 14,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 13,
+    "row": 4
+  },
+  {
+    "number": 101,
+    "species": "electrode",
+    "locomotion": "roll",
+    "sourceBones": 0,
+    "runtimeBones": 9,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 13,
+    "row": 5
+  },
+  {
+    "number": 102,
+    "species": "exeggcute",
+    "locomotion": "hop",
+    "sourceBones": 0,
+    "runtimeBones": 66,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 13,
+    "row": 6
+  },
+  {
+    "number": 103,
+    "species": "exeggutor",
+    "locomotion": "biped",
+    "sourceBones": 15,
+    "runtimeBones": 15,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 13,
+    "row": 7
+  },
+  {
+    "number": 104,
+    "species": "cubone",
+    "locomotion": "biped",
+    "sourceBones": 31,
+    "runtimeBones": 31,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 13,
+    "row": 8
+  },
+  {
+    "number": 105,
+    "species": "marowak",
+    "locomotion": "biped",
+    "sourceBones": 33,
+    "runtimeBones": 33,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 14,
+    "row": 1
+  },
+  {
+    "number": 106,
+    "species": "hitmonlee",
+    "locomotion": "biped",
+    "sourceBones": 0,
+    "runtimeBones": 14,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 14,
+    "row": 2
+  },
+  {
+    "number": 107,
+    "species": "hitmonchan",
+    "locomotion": "biped",
+    "sourceBones": 27,
+    "runtimeBones": 27,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 14,
+    "row": 3
+  },
+  {
+    "number": 108,
+    "species": "lickitung",
+    "locomotion": "biped",
+    "sourceBones": 0,
+    "runtimeBones": 6,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 14,
+    "row": 4
+  },
+  {
+    "number": 109,
+    "species": "koffing",
+    "locomotion": "hover",
+    "sourceBones": 0,
+    "runtimeBones": 20,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 14,
+    "row": 5
+  },
+  {
+    "number": 110,
+    "species": "weezing",
+    "locomotion": "hover",
+    "sourceBones": 0,
+    "runtimeBones": 32,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 14,
+    "row": 6
+  },
+  {
+    "number": 111,
+    "species": "rhyhorn",
+    "locomotion": "quadruped",
+    "sourceBones": 0,
+    "runtimeBones": 42,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 14,
+    "row": 7
+  },
+  {
+    "number": 112,
+    "species": "rhydon",
+    "locomotion": "biped",
+    "sourceBones": 41,
+    "runtimeBones": 41,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 14,
+    "row": 8
+  },
+  {
+    "number": 113,
+    "species": "chansey",
+    "locomotion": "biped",
+    "sourceBones": 0,
+    "runtimeBones": 9,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 15,
+    "row": 1
+  },
+  {
+    "number": 114,
+    "species": "tangela",
+    "locomotion": "biped",
+    "sourceBones": 0,
+    "runtimeBones": 93,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 15,
+    "row": 2
+  },
+  {
+    "number": 115,
+    "species": "kangaskhan",
+    "locomotion": "biped",
+    "sourceBones": 70,
+    "runtimeBones": 70,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 15,
+    "row": 3
+  },
+  {
+    "number": 116,
+    "species": "horsea",
+    "locomotion": "swim",
+    "sourceBones": 0,
+    "runtimeBones": 8,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 15,
+    "row": 4
+  },
+  {
+    "number": 117,
+    "species": "seadra",
+    "locomotion": "swim",
+    "sourceBones": 0,
+    "runtimeBones": 6,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 15,
+    "row": 5
+  },
+  {
+    "number": 118,
+    "species": "goldeen",
+    "locomotion": "swim",
+    "sourceBones": 0,
+    "runtimeBones": 24,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 15,
+    "row": 6
+  },
+  {
+    "number": 119,
+    "species": "seaking",
+    "locomotion": "swim",
+    "sourceBones": 0,
+    "runtimeBones": 10,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 15,
+    "row": 7
+  },
+  {
+    "number": 120,
+    "species": "staryu",
+    "locomotion": "swim",
+    "sourceBones": 25,
+    "runtimeBones": 25,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 15,
+    "row": 8
+  },
+  {
+    "number": 121,
+    "species": "starmie",
+    "locomotion": "swim",
+    "sourceBones": 36,
+    "runtimeBones": 36,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 16,
+    "row": 1
+  },
+  {
+    "number": 122,
+    "species": "mr-mime",
+    "locomotion": "biped",
+    "sourceBones": 40,
+    "runtimeBones": 40,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 16,
+    "row": 2
+  },
+  {
+    "number": 123,
+    "species": "scyther",
+    "locomotion": "fly",
+    "sourceBones": 24,
+    "runtimeBones": 24,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 16,
+    "row": 3
+  },
+  {
+    "number": 124,
+    "species": "jynx",
+    "locomotion": "biped",
+    "sourceBones": 0,
+    "runtimeBones": 14,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 16,
+    "row": 4
+  },
+  {
+    "number": 125,
+    "species": "electabuzz",
+    "locomotion": "biped",
+    "sourceBones": 0,
+    "runtimeBones": 14,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 16,
+    "row": 5
+  },
+  {
+    "number": 126,
+    "species": "magmar",
+    "locomotion": "biped",
+    "sourceBones": 0,
+    "runtimeBones": 42,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 16,
+    "row": 6
+  },
+  {
+    "number": 127,
+    "species": "pinsir",
+    "locomotion": "biped",
+    "sourceBones": 45,
+    "runtimeBones": 45,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 16,
+    "row": 7
+  },
+  {
+    "number": 128,
+    "species": "tauros",
+    "locomotion": "quadruped",
+    "sourceBones": 0,
+    "runtimeBones": 28,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 16,
+    "row": 8
+  },
+  {
+    "number": 129,
+    "species": "magikarp",
+    "locomotion": "swim",
+    "sourceBones": 23,
+    "runtimeBones": 23,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 17,
+    "row": 1
+  },
+  {
+    "number": 130,
+    "species": "gyarados",
+    "locomotion": "swim",
+    "sourceBones": 40,
+    "runtimeBones": 40,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 17,
+    "row": 2
+  },
+  {
+    "number": 131,
+    "species": "lapras",
+    "locomotion": "swim",
+    "sourceBones": 0,
+    "runtimeBones": 7,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 17,
+    "row": 3
+  },
+  {
+    "number": 132,
+    "species": "ditto",
+    "locomotion": "ooze",
+    "sourceBones": 18,
+    "runtimeBones": 18,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 17,
+    "row": 4
+  },
+  {
+    "number": 133,
+    "species": "eevee",
+    "locomotion": "quadruped",
+    "sourceBones": 69,
+    "runtimeBones": 69,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 17,
+    "row": 5
+  },
+  {
+    "number": 134,
+    "species": "vaporeon",
+    "locomotion": "quadruped",
+    "sourceBones": 69,
+    "runtimeBones": 69,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 17,
+    "row": 6
+  },
+  {
+    "number": 135,
+    "species": "jolteon",
+    "locomotion": "quadruped",
+    "sourceBones": 81,
+    "runtimeBones": 81,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 17,
+    "row": 7
+  },
+  {
+    "number": 136,
+    "species": "flareon",
+    "locomotion": "quadruped",
+    "sourceBones": 73,
+    "runtimeBones": 73,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 17,
+    "row": 8
+  },
+  {
+    "number": 137,
+    "species": "porygon",
+    "locomotion": "hover",
+    "sourceBones": 5,
+    "runtimeBones": 5,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 18,
+    "row": 1
+  },
+  {
+    "number": 138,
+    "species": "omanyte",
+    "locomotion": "crawl",
+    "sourceBones": 24,
+    "runtimeBones": 24,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 18,
+    "row": 2
+  },
+  {
+    "number": 139,
+    "species": "omastar",
+    "locomotion": "crawl",
+    "sourceBones": 42,
+    "runtimeBones": 42,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 18,
+    "row": 3
+  },
+  {
+    "number": 140,
+    "species": "kabuto",
+    "locomotion": "crawl",
+    "sourceBones": 0,
+    "runtimeBones": 14,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 18,
+    "row": 4
+  },
+  {
+    "number": 141,
+    "species": "kabutops",
+    "locomotion": "biped",
+    "sourceBones": 0,
+    "runtimeBones": 14,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 18,
+    "row": 5
+  },
+  {
+    "number": 142,
+    "species": "aerodactyl",
+    "locomotion": "fly",
+    "sourceBones": 44,
+    "runtimeBones": 44,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 18,
+    "row": 6
+  },
+  {
+    "number": 143,
+    "species": "snorlax",
+    "locomotion": "biped",
+    "sourceBones": 0,
+    "runtimeBones": 7,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 18,
+    "row": 7
+  },
+  {
+    "number": 144,
+    "species": "articuno",
+    "locomotion": "fly",
+    "sourceBones": 68,
+    "runtimeBones": 68,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 18,
+    "row": 8
+  },
+  {
+    "number": 145,
+    "species": "zapdos",
+    "locomotion": "fly",
+    "sourceBones": 54,
+    "runtimeBones": 54,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 19,
+    "row": 1
+  },
+  {
+    "number": 146,
+    "species": "moltres",
+    "locomotion": "fly",
+    "sourceBones": 22,
+    "runtimeBones": 22,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 19,
+    "row": 2
+  },
+  {
+    "number": 147,
+    "species": "dratini",
+    "locomotion": "slither",
+    "sourceBones": 16,
+    "runtimeBones": 16,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 19,
+    "row": 3
+  },
+  {
+    "number": 148,
+    "species": "dragonair",
+    "locomotion": "slither",
+    "sourceBones": 24,
+    "runtimeBones": 24,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 19,
+    "row": 4
+  },
+  {
+    "number": 149,
+    "species": "dragonite",
+    "locomotion": "fly",
+    "sourceBones": 80,
+    "runtimeBones": 80,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "pm0149_00_00_20400_attack01",
+      "hit": "pm0149_00_00_20500_damage01"
+    },
+    "sheet": 19,
+    "row": 5
+  },
+  {
+    "number": 150,
+    "species": "mewtwo",
+    "locomotion": "biped",
+    "sourceBones": 88,
+    "runtimeBones": 88,
+    "clips": {
+      "idle": "pm0150_00_00_00000_defaultwait01_loop",
+      "walk": "pm0150_00_00_00030_walk01_loop",
+      "run": "pm0150_00_00_00100_run01_loop",
+      "attack": "pm0150_00_00_00400_attack01",
+      "hit": "pm0150_00_00_00500_damage01"
+    },
+    "sheet": 19,
+    "row": 6
+  },
+  {
+    "number": 151,
+    "species": "mew",
+    "locomotion": "hover",
+    "sourceBones": 28,
+    "runtimeBones": 28,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 19,
+    "row": 7
+  }
+]

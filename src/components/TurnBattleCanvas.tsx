@@ -2,10 +2,12 @@ import { ContactShadows } from "@react-three/drei";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { useRef } from "react";
 import type { Group, Mesh } from "three";
-import type { PokemonType } from "../game/battleState";
-import { MOVE_ARCHETYPES, moveAnimationFor } from "../game/moveAnimations";
+import { moveAnimationFor } from "../game/moveAnimations";
 import type { PokemonAction } from "../game/pokemonAnimation";
-import { typeColor } from "../game/typeColors";
+import { Vector3 } from "three";
+import { attackEffectFor, attackEffectPhase } from "../game/pokemonEffects";
+import { moveTimeline } from "../game/pokemonAnimation";
+import { EffectStream } from "./PokemonEffects";
 import type { TurnEvent, TurnSide } from "../game/turnBattle";
 import { PokemonModel } from "./PokemonModel";
 import { SceneContextStatus } from "./SceneContextStatus";
@@ -45,6 +47,8 @@ export type BattleView = {
 };
 
 export function TurnBattleCanvas({ view }: { view: BattleView }) {
+  const allyAnchor = useRef(new Vector3(FIELD.ally[0], 0.9, FIELD.ally[2]));
+  const enemyAnchor = useRef(new Vector3(FIELD.enemy[0], 0.9, FIELD.enemy[2]));
   return (
     <Canvas className="battle-canvas tb-canvas" dpr={[1, 1.5]} shadows camera={{ position: FIELD.camera, fov: 40, near: 0.1, far: 60 }} onCreated={({ camera }) => camera.lookAt(...FIELD.lookAt)}>
       <color attach="background" args={["#9fd3f2"]} />
@@ -54,9 +58,9 @@ export function TurnBattleCanvas({ view }: { view: BattleView }) {
       <Field />
       <Trainer position={FIELD.trainer} facingTo={FIELD.ally} shirt="#317cbd" />
       {view.rival && <Trainer position={FIELD.rival} facingTo={FIELD.trainer} shirt="#b64a55" cap="#2e3a4f" />}
-      {view.ally && <Slot key={view.ally.unitId} side="ally" slot={view.ally} view={view} />}
-      {view.enemy && <Slot key={view.enemy.unitId} side="enemy" slot={view.enemy} view={view} />}
-      <Projectile view={view} />
+      {view.ally && <Slot key={view.ally.unitId} effectAnchor={allyAnchor} side="ally" slot={view.ally} view={view} />}
+      {view.enemy && <Slot key={view.enemy.unitId} effectAnchor={enemyAnchor} side="enemy" slot={view.enemy} view={view} />}
+      <Projectile view={view} allyAnchor={allyAnchor} enemyAnchor={enemyAnchor} />
       <Ball view={view} />
       <ContactShadows position={[0, 0.01, 0]} opacity={0.35} scale={18} blur={2.4} far={6} />
       <SceneContextStatus />
@@ -100,7 +104,7 @@ function Trainer({ position, facingTo, shirt, cap }: { position: [number, number
 
 const ease = (t: number) => { const x = Math.max(0, Math.min(1, t)); return x * x * (3 - 2 * x); };
 
-function Slot({ side, slot, view }: { side: TurnSide; slot: SlotView; view: BattleView }) {
+function Slot({ effectAnchor, side, slot, view }: { effectAnchor: { current: Vector3 }; side: TurnSide; slot: SlotView; view: BattleView }) {
   const group = useRef<Group>(null);
   const home = side === "ally" ? FIELD.ally : FIELD.enemy;
   const target = side === "ally" ? FIELD.enemy : FIELD.ally;
@@ -140,45 +144,23 @@ function Slot({ side, slot, view }: { side: TurnSide; slot: SlotView; view: Batt
     node.visible = !(mine && current?.kind === "damage" && t < 0.45 && Math.floor(t * 14) % 2 === 1);
   });
   return <group ref={group} position={home} rotation={[0, facing(home, target), 0]}>
-    <PokemonModel species={slot.species} animation={animation} fainted={fainted} />
+    <PokemonModel effectAnchor={effectAnchor} attackEffects={false} species={slot.species} animation={animation} fainted={fainted} />
   </group>;
 }
 
-function Projectile({ view }: { view: BattleView }) {
-  const ref = useRef<Group>(null);
+function Projectile({ view, allyAnchor, enemyAnchor }: { view: BattleView; allyAnchor: { current: Vector3 }; enemyAnchor: { current: Vector3 } }) {
   const current = view.current;
-  const active = current?.kind === "move" && !!current.moveId && moveReach(current.moveId) === "ranged";
-  const from = current?.side === "ally" ? FIELD.ally : FIELD.enemy;
-  const to = current?.side === "ally" ? FIELD.enemy : FIELD.ally;
-  const archetype = active ? moveAnimationFor(current!.moveId!).archetype : null;
-  useFrame(() => {
-    const node = ref.current;
-    if (!node) return;
-    const { startedAt, seconds } = view.timing.current;
-    const t = seconds > 0 ? (performance.now() - startedAt) / 1000 / seconds : 1;
-    // Launch at the strike of the recorded movement and land just before the event ends.
-    const strike = archetype ? MOVE_ARCHETYPES[archetype].strike[0] : 0.3;
-    const p = (t - strike) / Math.max(0.2, 0.9 - strike);
-    node.visible = active && p > 0 && p < 1;
-    if (!node.visible) return;
-    const e = ease(p);
-    node.position.set(from[0] + (to[0] - from[0]) * e, 0.9 + Math.sin(Math.PI * e) * (archetype === "throw" ? 1.3 : 0.35), from[2] + (to[2] - from[2]) * e);
-    node.rotation.set(p * 9, p * 7, 0);
-  });
-  return <group ref={ref} visible={false}>
-    <ProjectileShape type={current?.moveType} archetype={archetype} />
-  </group>;
-}
-
-function ProjectileShape({ type, archetype }: { type?: PokemonType; archetype: string | null }) {
-  const color = typeColor(type ?? "normal");
-  const material = <meshBasicMaterial color={color} toneMapped={false} />;
-  if (archetype === "beam") return <mesh rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[0.09, 0.09, 1.6, 8]} />{material}</mesh>;
-  if (archetype === "electric") return <mesh><octahedronGeometry args={[0.2, 0]} />{material}</mesh>;
-  if (archetype === "psychic" || archetype === "sound" || archetype === "song") return <mesh><torusGeometry args={[0.24, 0.07, 8, 20]} /><meshBasicMaterial color={color} transparent opacity={0.8} toneMapped={false} /></mesh>;
-  if (archetype === "powder" || archetype === "gust") return <group>{[0, 1, 2, 3].map(i => <mesh key={i} position={[Math.sin(i * 1.7) * 0.25, Math.cos(i * 2.3) * 0.2, Math.sin(i) * 0.2]}><sphereGeometry args={[0.08, 8, 6]} /><meshBasicMaterial color={color} transparent opacity={0.7} toneMapped={false} /></mesh>)}</group>;
-  if (archetype === "throw") return <mesh><dodecahedronGeometry args={[0.18, 0]} />{material}</mesh>;
-  return <mesh><sphereGeometry args={[0.2, 14, 10]} />{material}</mesh>;
+  if (current?.kind !== "move" || !current.moveId) return null;
+  const attacker = current.side === "ally" ? view.ally : view.enemy;
+  const effect = attackEffectFor(current.moveId, attacker?.species, current.moveType);
+  if (!effect) return null;
+  const duration = moveTimeline(current.moveId).duration;
+  return <EffectStream key={`${current.moveId}-${current.unitId}`} style={effect} beam={effect.beam} drain={effect.drain} onSample={() => {
+    const from = (current.side === "ally" ? allyAnchor : enemyAnchor).current;
+    const to = (current.side === "ally" ? enemyAnchor : allyAnchor).current;
+    return { phase: attackEffectPhase((performance.now() - view.timing.current.startedAt) / 1000 / duration, effect.hits),
+      from: effect.reach === "contact" ? to : from, to: effect.reach === "self" ? from : to, size: 1.2 };
+  }} />;
 }
 
 function Ball({ view }: { view: BattleView }) {
