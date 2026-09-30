@@ -1,4 +1,6 @@
 /** Offline, shaded runtime poses + joint overlays. No browser/GPU or texture decoding.
+ * Poses and joints only: flat colour, no textures, materials or lighting. For skins as the game
+ * draws them, use scripts/review-pokemon-skins.mjs.
  * node scripts/audit-pokemon-motion.mjs [output-directory]
  * Ten columns: idle, walk, run, attack, hit, each sampled at 0.12s and 0.36s.
  */

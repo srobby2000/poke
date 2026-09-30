@@ -22,7 +22,7 @@ Reviewed all 151 species individually in runtime pose sheets. Each row below lin
 - Automated checks cover all 151 actual rigs through travel transitions, finite transforms and cached-source preservation. Regression checks cover mirrored flapping with still legs, hover arms, ground contact for sliding species, Zubat clip selection, Dragonite wing recognition, Mewtwo's in-place travel, crawler stance and procedural loop seams.
 - `npm test`: 397 tests pass. `npm run build` and `npm run lint` pass.
 
-These are procedural approximations fitted to the bundled assets. Generated rigs still have simpler deformation than artist-weighted skeletons, and some rigid biped assets have only torso/arm joints. This review checks sampled silhouettes and movement selection; it does not certify every frame or every move-specific attack, and does not include a live browser review. The shaded renderer omits textures and transparency masks, so flame planes appear solid.
+These are procedural approximations fitted to the bundled assets. Generated rigs still have simpler deformation than artist-weighted skeletons, and some rigid biped assets have only torso/arm joints. This review checks sampled silhouettes and movement selection; it does not certify every frame or every move-specific attack, and does not include a live browser review. The shaded renderer omits textures, materials, lighting and transparency masks, so flame planes appear solid: these sheets check poses and joints, not how skins look. For skins, see [pokemon-skin-rendering.md](pokemon-skin-rendering.md), whose sheets go through the game's real renderer.
 
 ## Reproduce
 

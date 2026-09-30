@@ -4,6 +4,7 @@ import { Canvas } from "@react-three/fiber";
 import { Component, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { PokemonModel } from "./PokemonModel";
+import { PokemonLighting } from "./PokemonLighting";
 import type { PokemonAction } from "../game/pokemonAnimation";
 import { battleMovesFor } from "../game/battleState";
 import { MOVE_ARCHETYPES, learnsetFor, moveAnimationFor } from "../game/moveAnimations";
@@ -27,7 +28,8 @@ export function PokemonViewer({ species, name, fallback }: { species: string; na
   const play = (next: PokemonAction) => { setMotion(next); setReplay(n => n + 1); setPaused(false); };
   const selectedMove = motion.startsWith("move:") ? motion.slice(5) : null;
   const selected = selectedMove ? moveAnimationFor(selectedMove) : null;
-  const moveButton = (move: MoveRow) => <button key={move.id} className="dex-move" aria-pressed={selectedMove === move.id} onClick={() => play(`move:${move.id}`)}>
+  // A species can learn the same move at two levels (Mewtwo: Psychic), so key by position too.
+  const moveButton = (move: MoveRow, index: number) => <button key={`${move.id}-${index}`} className="dex-move" aria-pressed={selectedMove === move.id} onClick={() => play(`move:${move.id}`)}>
     <span className="dex-move-type" style={{ background: typeColor(move.type) }} />
     <span className="dex-move-name">{move.name}</span>
     <small>{move.detail}</small>
@@ -35,9 +37,7 @@ export function PokemonViewer({ species, name, fallback }: { species: string; na
   return <ViewerBoundary fallback={fallback}>
     <div className="pokedex-model-viewer" role="img" aria-label={`Rotatable 3D model of ${name}`}>
       <Canvas dpr={[1, 1.5]} frameloop="always" camera={{ position: [0, 1.5, 4.8], fov: 36 }} fallback={fallback}>
-        <ambientLight intensity={1.5} />
-        <directionalLight position={[3, 5, 5]} intensity={2} />
-        <hemisphereLight args={["#d4f0ff", "#8a819b", 1]} />
+        <PokemonLighting mood="dex" />
         <group rotation={[0, 0.35, 0]}><PokemonModel key={`${motion}-${replay}`} species={species} animation={motion} paused={paused} showJoints={showJoints} fitPreview /></group>
         <OrbitControls makeDefault enablePan={false} minDistance={3} maxDistance={7} target={[0, 0.85, 0]} />
       <SceneContextStatus />

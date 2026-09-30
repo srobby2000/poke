@@ -1,6 +1,7 @@
 import { WorldParty } from "./WorldParty";
 import { VillageBuildings, VillagePonds, VillageTrees } from "./VillageScenery";
 import { TrainerModel } from "./TrainerModel";
+import { PokemonLighting } from "./PokemonLighting";
 import { SceneContextStatus } from "./SceneContextStatus";
 import { Html, Instance, Instances } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
@@ -22,9 +23,7 @@ export function WorldCanvas({ state, pickedBerries }: WorldCanvasProps) {
     <Canvas className="battle-canvas" dpr={[1, 2]} shadows camera={{ position: [0, 8.2, 7.4], fov: 50 }}>
       <color attach="background" args={[cave ? "#111827" : "#a6c8c5"]} />
       <fog attach="fog" args={[cave ? "#111827" : "#a6c8c5", 16, 34]} />
-      <ambientLight intensity={cave ? 0.65 : 0.95} />
-      <hemisphereLight args={["#e5f2df", "#7a715b", 0.8]} />
-      <directionalLight castShadow position={[-6, 12, 6]} intensity={1.9} shadow-mapSize={[1024, 1024]} />
+      <PokemonLighting mood={cave ? "cave" : "world"} />
       <StaticVillage map={state.map} pickedBerries={pickedBerries} defeatedTrainers={state.defeatedTrainers} />
       <WorldParty key={state.map.id} state={state} />
     <SceneContextStatus />

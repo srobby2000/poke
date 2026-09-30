@@ -2,14 +2,13 @@ import { SceneContextStatus } from "./SceneContextStatus";
 import { ContactShadows, Float, OrbitControls } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { PokemonModel } from "./PokemonModel";
+import { PokemonLighting } from "./PokemonLighting";
 
 export function ArenaLobbyStage() {
   return (
     <Canvas className="arena-lobby-canvas" shadows dpr={[1, 1.5]} camera={{ position: [0, 3.1, 8.5], fov: 36 }} aria-label="3D showcase of Bulbasaur, Charmander and Squirtle">
       <color attach="background" args={["#102838"]} />
-      <ambientLight intensity={1.1} />
-      <hemisphereLight args={["#dcf7ff", "#51705c", 1.2]} />
-      <directionalLight castShadow position={[3, 7, 5]} intensity={2.5} shadow-mapSize={[1024, 1024]} />
+      <PokemonLighting mood="lobby" />
       <pointLight position={[-4, 3, -2]} color="#64dfd5" intensity={12} />
       {([
         { species: "bulbasaur", x: -1.65, z: -0.25, color: "#71d7b3", turn: 0.28 },

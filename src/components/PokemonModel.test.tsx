@@ -10,7 +10,8 @@ import { appendageMotion, normalizePokemonBone, rigPokemonAppendages } from "../
 import { applyRestPose, createMoveClip, createPokemonAnimator, selectSpeciesClip } from "../game/pokemonAnimation";
 import { POKEMON_MODELS } from "../game/pokemonModels";
 import { clone } from "three/examples/jsm/utils/SkeletonUtils.js";
-import { Bone, Box3, Group, SkinnedMesh, Vector3 } from "three";
+import { Bone, Box3, Group, MeshStandardMaterial, SkinnedMesh, Vector3 } from "three";
+import type { Material, Mesh } from "three";
 import { PokemonModel } from "./PokemonModel";
 import { WorldParty } from "./WorldParty";
 import { createInitialWorldState } from "../game/worldState";
@@ -108,6 +109,27 @@ it("renders every unit using species values produced by the battle state", async
         let meshes = 0;
         group.traverse(node => { if (node.type === "SkinnedMesh" || node.type === "Mesh") meshes++; });
         expect(meshes, `${unit.sourcePokemon} must display a model`).toBeGreaterThan(0);
+      }
+    }, { timeout: 3000 });
+  } finally { await renderer.unmount(); }
+});
+
+it("gives unlit and metallic exports the shared lit skin, so they shade and flash when hit", async () => {
+  const species = ["mewtwo", "beedrill", "ditto"];
+  const renderer = await create(<group>{species.map(name => <group key={name} name={name}><PokemonModel species={name} hit /></group>)}</group>);
+  try {
+    await vi.waitFor(async () => {
+      await act(async () => {});
+      for (const name of species) {
+        const skins: Material[] = [];
+        // The body only: move and aura effects are separate unlit meshes by design.
+        renderer.scene.instance.getObjectByName(name)!.getObjectByName("pokemon-body")!.traverse(node => { if ((node as Mesh).isMesh) skins.push(...[(node as Mesh).material].flat()); });
+        expect(skins.length, name).toBeGreaterThan(0);
+        for (const skin of skins) {
+          expect(skin, name).toBeInstanceOf(MeshStandardMaterial);
+          expect((skin as MeshStandardMaterial).metalness, name).toBe(0);
+          expect((skin as MeshStandardMaterial).emissive.getHexString(), `${name} flashes white`).toBe("ffffff");
+        }
       }
     }, { timeout: 3000 });
   } finally { await renderer.unmount(); }

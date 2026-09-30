@@ -10,6 +10,7 @@ import { moveTimeline } from "../game/pokemonAnimation";
 import { EffectStream } from "./PokemonEffects";
 import type { TurnEvent, TurnSide } from "../game/turnBattle";
 import { PokemonModel } from "./PokemonModel";
+import { PokemonLighting } from "./PokemonLighting";
 import { SceneContextStatus } from "./SceneContextStatus";
 import { TrainerModel } from "./TrainerModel";
 
@@ -76,8 +77,7 @@ export function TurnBattleCanvas({ view }: { view: BattleView }) {
     <Canvas className="battle-canvas tb-canvas" dpr={[1, 1.5]} shadows camera={{ position: FIELD.camera, fov: 40, near: 0.1, far: 60 }} onCreated={({ camera }) => camera.lookAt(...FIELD.lookAt)}>
       <color attach="background" args={["#9fd3f2"]} />
       <fog attach="fog" args={["#bfe3f6", 14, 34]} />
-      <hemisphereLight args={["#e9f6ff", "#6f8f55", 1.1]} />
-      <directionalLight castShadow position={[4, 9, 6]} intensity={2.1} shadow-mapSize={[1024, 1024]} />
+      <PokemonLighting mood="battle" />
       <Field />
       <Trainer position={FIELD.trainer} facingTo={FIELD.ally} shirt="#317cbd" />
       {view.rival && <Trainer position={FIELD.rival} facingTo={FIELD.trainer} shirt="#b64a55" cap="#2e3a4f" />}

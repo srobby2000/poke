@@ -8,6 +8,7 @@ import { clone } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { isFlameMaterial, mountSeat, removeCoincidentTriangles } from "../game/pokemonModelGeometry";
 import type { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { loadPokemonModel } from "../game/loadPokemonModel";
+import { normalizePokemonMaterial } from "../game/pokemonMaterials";
 import type { PokemonAction } from "../game/pokemonAnimation";
 import { normalizePokemonBone, rigPokemonAppendages } from "../game/pokemonAppendages";
 import { applyRestPose, createPokemonAnimator, travelPlayback } from "../game/pokemonAnimation";
@@ -83,7 +84,8 @@ function LoadedPokemon({ travelSpeed, effectAnchor, attackEffects, showJoints, p
       if (number === 12) object.geometry = removeCoincidentTriangles(object.geometry);
       object.castShadow = true;
       object.receiveShadow = true;
-      object.material = Array.isArray(object.material) ? object.material.map(material => material.clone()) : object.material.clone();
+      // Every skin gets the same lit, non-metallic surface (see normalizePokemonMaterial).
+      object.material = Array.isArray(object.material) ? object.material.map(normalizePokemonMaterial) : normalizePokemonMaterial(object.material);
       for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
         if (material instanceof MeshStandardMaterial) {
           materials.push(material);
