@@ -38,11 +38,16 @@ export type PlayerSettings = {
   usePokeApiRates: boolean;
   // When on, ally movesets are overridden with normalized PokeAPI move data.
   usePokeApiMovesets: boolean;
+  // How fast battle events and animations play: 1×, 2× or 4×.
+  battleSpeed: BattleSpeed;
 };
+export const BATTLE_SPEEDS = [1, 2, 4] as const;
+export type BattleSpeed = typeof BATTLE_SPEEDS[number];
 
 export const DEFAULT_SETTINGS: PlayerSettings = {
   usePokeApiRates: false,
   usePokeApiMovesets: false,
+  battleSpeed: 1,
 };
 
 export function defaultProgress(): PlayerProgress {
@@ -156,6 +161,9 @@ function sanitizeProgress(parsed: Partial<PlayerProgress>): PlayerProgress {
         typeof parsed.settings?.usePokeApiMovesets === "boolean"
           ? parsed.settings.usePokeApiMovesets
           : DEFAULT_SETTINGS.usePokeApiMovesets,
+      battleSpeed: BATTLE_SPEEDS.includes(parsed.settings?.battleSpeed as BattleSpeed)
+        ? parsed.settings!.battleSpeed as BattleSpeed
+        : DEFAULT_SETTINGS.battleSpeed,
     },
   };
 }

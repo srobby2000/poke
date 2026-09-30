@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { lobbyArena } from "./game/battleArenas";
+import type { BattleArena } from "./game/battleArenas";
 import { PokedexModal } from "./components/PokedexModal";
 import { SettingsModal } from "./components/SettingsModal";
 import { TeamPickerModal } from "./components/TeamPickerModal";
@@ -59,6 +61,8 @@ type Session = {
   wild?: WildSession;
   trainer?: TrainerSession;
   autoFight?: boolean;
+  // Overworld battles bring their arena; lobby battles pick one from the stage.
+  arena?: BattleArena;
 };
 
 const BALL_ITEM_IDS = ["poke-ball", "great-ball"];
@@ -278,6 +282,7 @@ export default function App() {
             stage: encounter.level,
             runId: 1,
             battleMode: "wild",
+            arena: encounter.arena,
             wild: {
               speciesId: encounter.speciesId,
               level: encounter.level,
@@ -295,6 +300,7 @@ export default function App() {
             stage: trainer.level,
             runId: 1,
             battleMode: "trainer",
+            arena: trainer.arena,
             enemyTeamId: trainer.teamId,
             trainer: {
               id: trainer.id,
@@ -433,6 +439,7 @@ export default function App() {
       allyIds={session.allyIds}
       stage={session.stage}
       battleMode={session.battleMode}
+      arena={session.arena ?? lobbyArena(session.battleMode, session.stage, session.dailyKey)}
       dailyKey={session.dailyKey}
       enemyTeamId={session.enemyTeamId}
       wild={session.wild}
@@ -444,6 +451,8 @@ export default function App() {
       heldItems={progress.heldItems}
       usePokeApiRates={progress.settings.usePokeApiRates}
       usePokeApiMovesets={progress.settings.usePokeApiMovesets}
+      battleSpeed={progress.settings.battleSpeed}
+      onBattleSpeedChange={(battleSpeed) => setProgress((current) => ({ ...current, settings: { ...current.settings, battleSpeed } }))}
       moveData={moveData}
       items={progress.inventory}
       onItemUsed={(itemId, quantity) => {

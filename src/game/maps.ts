@@ -1,3 +1,5 @@
+import type { BattleArena } from "./battleArenas";
+
 export type TileKind =
   | "path"
   | "grass"
@@ -34,6 +36,8 @@ export type TrainerMeta = {
   sightRange?: number;
   // A held item granted the first time this trainer is beaten.
   itemReward?: string;
+  // Where this trainer's battle takes place, when not the map's own arena.
+  arena?: BattleArena;
 };
 
 export type EncounterEntry = {
@@ -73,6 +77,8 @@ export type WorldMap = {
   encounterZones: EncounterZone[];
   // What can be reeled in when fishing on this map's water tiles.
   fishing: EncounterEntry[];
+  // Where this map's wild and trainer battles take place (fishing battles are lakeside).
+  battleArena: BattleArena;
 };
 
 type MapLegend = {
@@ -86,6 +92,7 @@ type MapLegend = {
   encounters?: EncounterEntry[];
   encounterZones?: EncounterZone[];
   fishing?: EncounterEntry[];
+  battleArena?: BattleArena;
 };
 
 const TILE_CHARS: Record<string, TileKind> = {
@@ -166,6 +173,7 @@ function parseMap(id: string, layout: string[], legend: MapLegend): WorldMap {
     encounters: legend.encounters ?? [],
     encounterZones: legend.encounterZones ?? [],
     fishing: legend.fishing ?? [],
+    battleArena: legend.battleArena ?? "grass",
   };
 }
 
@@ -314,6 +322,7 @@ const ROUTE2_LAYOUT = [
 
 export const ROUTE2_MAP = parseMap("route2", ROUTE2_LAYOUT, {
   name: "Route 2",
+  battleArena: "forest",
   warps: {
     "<": { toMap: "village", toX: 37, toZ: 9, label: "Rift Village" },
     ">": { toMap: "cave", toX: 2, toZ: 1, label: "Crystal Cave" },
@@ -332,6 +341,7 @@ export const ROUTE2_MAP = parseMap("route2", ROUTE2_LAYOUT, {
       teamId: "ember-dojo",
       level: 8,
       reward: 50,
+      arena: "grass",
       facing: "down",
       sightRange: 3,
       itemReward: "fire-stone",
@@ -344,6 +354,7 @@ export const ROUTE2_MAP = parseMap("route2", ROUTE2_LAYOUT, {
       teamId: "shoreline-rogues",
       level: 9,
       reward: 55,
+      arena: "mountain",
       facing: "up",
       sightRange: 3,
       itemReward: "water-stone",
@@ -417,6 +428,7 @@ const CAVE_LAYOUT = [
 
 export const CAVE_MAP = parseMap("cave", CAVE_LAYOUT, {
   name: "Crystal Cave · B1",
+  battleArena: "cave",
   dungeon: { floor: 1, total: 3, subtitle: "Crystal threshold", color: "#72dfef" },
   encounterTile: "path",
   warps: {
@@ -464,6 +476,7 @@ export const CAVE_DEPTHS_MAP = parseMap("cave-depths", [
   "HHHHHHHHHHHHHHHHHHHH",
 ], {
   name: "Crystal Cave · B2",
+  battleArena: "cave",
   dungeon: { floor: 2, total: 3, subtitle: "Sunken galleries", color: "#a499ff" },
   encounterTile: "path",
   warps: {
@@ -493,6 +506,7 @@ export const CAVE_HEART_MAP = parseMap("cave-heart", [
   "HHHHHHHHHHHHHHHHHHHH",
 ], {
   name: "Crystal Cave · B3",
+  battleArena: "cave",
   dungeon: { floor: 3, total: 3, subtitle: "Crystal heart · challenge the keeper", color: "#ffbd79" },
   encounterTile: "path",
   warps: {

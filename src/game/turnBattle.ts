@@ -63,7 +63,10 @@ export type TurnEvent = {
   status?: StatusCondition | null;
   shakes?: number;
   caught?: boolean;
+  /** Stat events: each changed Pokémon's Attack and Defense stages afterwards. */
+  stages?: StageSnapshot[];
 };
+export type StageSnapshot = { unitId: string; attack: number; defense: number };
 
 export type TurnPhase = "choose" | "forcedSwitch" | "over";
 
@@ -173,6 +176,9 @@ export const activeUnit = (state: TurnBattleState, side: TurnSide) => unitById(s
 export const partyOf = (state: TurnBattleState, side: TurnSide) => state.units.filter(u => u.team === side);
 const alive = (unit: Unit) => unit.hp > 0;
 const other = (side: TurnSide): TurnSide => (side === "ally" ? "enemy" : "ally");
+
+const stagesOf = (state: TurnBattleState, ids: string[]): StageSnapshot[] =>
+  ids.map(id => { const unit = unitById(state, id); return { unitId: id, attack: unit.attackStage, defense: unit.defenseStage }; });
 
 function patch(state: TurnBattleState, id: string, change: Partial<Unit>) {
   state.units = state.units.map(u => (u.id === id ? { ...u, ...change } : u));
@@ -359,7 +365,7 @@ function perform(state: TurnBattleState, side: TurnSide, command: TurnCommand) {
       if (side === "enemy") {
         state.enemyTrainer.buffUses -= 1;
         patch(state, actor.id, { attackStage: clamp(actor.attackStage + 1, -TURN.maxStage, TURN.maxStage) });
-        emit(state, { kind: "stat", side, unitId: actor.id, text: `${state.enemyTrainer.name} used an X Attack! ${actor.name}'s Attack rose!` });
+        emit(state, { kind: "stat", side, unitId: actor.id, stages: stagesOf(state, [actor.id]), text: `${state.enemyTrainer.name} used an X Attack! ${actor.name}'s Attack rose!` });
         return;
       }
       performTrainerMove(state, actor, actor.trainerMove!);
@@ -394,7 +400,7 @@ function performTrainerMove(state: TurnBattleState, actor: Unit, move: TrainerMo
   const stat = move.kind === "attackBuff" ? "attackStage" : "defenseStage";
   const targets = move.target === "allAllies" ? partyOf(state, "ally").filter(alive) : [actor];
   for (const unit of targets) patch(state, unit.id, { [stat]: clamp(unit[stat] + move.stages, -TURN.maxStage, TURN.maxStage) });
-  emit(state, { kind: "stat", side: "ally", unitId: actor.id, text: `${move.name}! ${move.target === "allAllies" ? "Your team's" : `${actor.name}'s`} ${move.kind === "attackBuff" ? "Attack" : "Defense"} rose!` });
+  emit(state, { kind: "stat", side: "ally", unitId: actor.id, stages: stagesOf(state, targets.map(u => u.id)), text: `${move.name}! ${move.target === "allAllies" ? "Your team's" : `${actor.name}'s`} ${move.kind === "attackBuff" ? "Attack" : "Defense"} rose!` });
 }
 
 function performMove(state: TurnBattleState, side: TurnSide, move: Move, sync: boolean, holdBack: boolean) {
@@ -433,7 +439,7 @@ function performMove(state: TurnBattleState, side: TurnSide, move: Move, sync: b
     else {
       patch(state, target.id, { [key]: next });
       const amount = Math.abs(move.statChange.stages) > 1 ? " sharply" : "";
-      emit(state, { kind: "stat", side: target.team, unitId: target.id, text: `${target.name}'s ${move.statChange.stat === "attack" ? "Attack" : "Defense"}${amount} ${move.statChange.stages > 0 ? "rose" : "fell"}!` });
+      emit(state, { kind: "stat", side: target.team, unitId: target.id, stages: stagesOf(state, [target.id]), text: `${target.name}'s ${move.statChange.stat === "attack" ? "Attack" : "Defense"}${amount} ${move.statChange.stages > 0 ? "rose" : "fell"}!` });
     }
   }
 }

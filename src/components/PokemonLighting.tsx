@@ -12,8 +12,10 @@ const MOODS: Record<LightingMood, { sky: string; ground: string; key: [number, n
   lobby: { sky: "#dcf7ff", ground: "#51705c", key: [3, 7, 5], shadows: true },
 };
 
-export function PokemonLighting({ mood }: { mood: LightingMood }) {
-  const { sky, ground, key, shadows, ambient = BALANCE.ambient } = MOODS[mood];
+/** `tint` recolours the sky/ground fill (battle arenas) without changing the balance. */
+export function PokemonLighting({ mood, tint }: { mood: LightingMood; tint?: { sky: string; ground: string } }) {
+  const { key, shadows, ambient = BALANCE.ambient } = MOODS[mood];
+  const { sky, ground } = tint ?? MOODS[mood];
   return <>
     <ambientLight intensity={ambient} />
     <hemisphereLight args={[sky, ground, BALANCE.hemisphere]} />

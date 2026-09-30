@@ -75,6 +75,16 @@ describe("turn-based battle", () => {
     expect(activeUnit(burned, "ally").statusCondition).not.toBe("burn");
   });
 
+  it("reports the new stat stages on stat events, for the screen's stage chips", () => {
+    let state = createTurnBattle(17, { stage: 1, allyIds: TEAM, allyLevels: levels(1) });
+    state = withUnit(state, activeUnit(state, "ally").id, { moves: [{ id: "growl", name: "Growl", type: "normal", cost: 1, power: 0, accent: "#fff", statChange: { stat: "attack", stages: -1, target: "enemy" } }] });
+    const after = act(state, { type: "fight", moveId: "growl" });
+    const foe = activeUnit(after, "enemy");
+    const stat = newEvents(state, after).find(e => e.kind === "stat" && e.unitId === foe.id);
+    expect(stat?.stages).toEqual([{ unitId: foe.id, attack: -1, defense: 0 }]);
+    expect(foe.attackStage).toBe(-1);
+  });
+
   it("hurts poisoned and burned Pokémon at the end of the turn", () => {
     let state = createTurnBattle(13, { stage: 1, allyIds: TEAM, allyLevels: levels(4) });
     state = withUnit(state, activeUnit(state, "ally").id, { statusCondition: "poison" });

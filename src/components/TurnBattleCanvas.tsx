@@ -7,6 +7,9 @@ import type { PokemonAction } from "../game/pokemonAnimation";
 import { Vector3 } from "three";
 import { attackEffectFor, attackEffectPhase } from "../game/pokemonEffects";
 import { moveTimeline } from "../game/pokemonAnimation";
+import type { BattleArena } from "../game/battleArenas";
+import { ARENAS } from "../game/battleArenas";
+import { BattleArenaScenery } from "./BattleArenaScenery";
 import { EffectStream } from "./PokemonEffects";
 import type { TurnEvent, TurnSide } from "../game/turnBattle";
 import { PokemonModel } from "./PokemonModel";
@@ -64,10 +67,14 @@ export type BattleView = {
   ally: SlotView | null;
   enemy: SlotView | null;
   current: TurnEvent | null;
-  /** When the current event started (performance.now()) and its length in seconds; a ref, so
-   * the scene reads it every frame without re-rendering the page. */
-  timing: { current: { startedAt: number; seconds: number } };
+  /** When the current event started (performance.now()), its on-screen length in seconds and
+   * the playback rate (battle speed); a ref, so the scene reads it every frame without
+   * re-rendering the page. Animation time is real time × rate. */
+  timing: { current: { startedAt: number; seconds: number; rate: number } };
   rival: boolean;
+  arena: BattleArena;
+  /** Battle speed, for the Pokémon's own animation playback. */
+  speed: number;
 };
 
 export function TurnBattleCanvas({ view }: { view: BattleView }) {
@@ -75,10 +82,7 @@ export function TurnBattleCanvas({ view }: { view: BattleView }) {
   const enemyAnchor = useRef(new Vector3(FIELD.enemy[0], 0.9, FIELD.enemy[2]));
   return (
     <Canvas className="battle-canvas tb-canvas" dpr={[1, 1.5]} shadows camera={{ position: FIELD.camera, fov: 40, near: 0.1, far: 60 }} onCreated={({ camera }) => camera.lookAt(...FIELD.lookAt)}>
-      <color attach="background" args={["#9fd3f2"]} />
-      <fog attach="fog" args={["#bfe3f6", 14, 34]} />
-      <PokemonLighting mood="battle" />
-      <Field />
+      <Arena arena={view.arena} />
       <Trainer position={FIELD.trainer} facingTo={FIELD.ally} shirt="#317cbd" />
       {view.rival && <Trainer position={FIELD.rival} facingTo={FIELD.trainer} shirt="#b64a55" cap="#2e3a4f" />}
       {view.ally && <Slot key={view.ally.unitId} effectAnchor={allyAnchor} side="ally" slot={view.ally} view={view} />}
@@ -91,34 +95,15 @@ export function TurnBattleCanvas({ view }: { view: BattleView }) {
   );
 }
 
-function Field() {
-  return (
-    <group>
-      <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, -1]}>
-        <planeGeometry args={[60, 60]} />
-        <meshStandardMaterial color="#7fb069" roughness={0.95} />
-      </mesh>
-      {/* Battle pads under each Pokémon, as on a main-series field. */}
-      {[FIELD.ally, FIELD.enemy].map((position, index) => (
-        <group key={index} position={[position[0], 0.005, position[2]]}>
-          <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} scale={[1, 0.62, 1]}>
-            <circleGeometry args={[1.45, 48]} />
-            <meshStandardMaterial color={index ? "#c9b98d" : "#bfae80"} roughness={0.9} />
-          </mesh>
-          <mesh rotation={[-Math.PI / 2, 0, 0]} scale={[1, 0.62, 1]} position={[0, 0.004, 0]}>
-            <ringGeometry args={[1.38, 1.46, 48]} />
-            <meshStandardMaterial color="#8e7f58" />
-          </mesh>
-        </group>
-      ))}
-      {[[-7, -9], [6.5, -11], [-10, -4], [9.5, -6], [-5.5, -14], [3, -15]].map(([x, z], index) => (
-        <group key={index} position={[x, 0, z]}>
-          <mesh castShadow position={[0, 0.9, 0]}><cylinderGeometry args={[0.18, 0.25, 1.8, 7]} /><meshStandardMaterial color="#7a5638" /></mesh>
-          <mesh castShadow position={[0, 2.3, 0]}><icosahedronGeometry args={[1.25, 0]} /><meshStandardMaterial color={index % 2 ? "#4f8f4a" : "#5d9e52"} flatShading /></mesh>
-        </group>
-      ))}
-    </group>
-  );
+/** Sky, fog, lighting and scenery for the battle's arena. */
+function Arena({ arena }: { arena: BattleArena }) {
+  const look = ARENAS[arena];
+  return <>
+    <color attach="background" args={[look.sky]} />
+    <fog attach="fog" args={look.fog} />
+    <PokemonLighting mood={look.light.cave ? "cave" : "battle"} tint={look.light} />
+    <BattleArenaScenery arena={arena} pads={[FIELD.ally, FIELD.enemy]} />
+  </>;
 }
 
 function Trainer({ position, facingTo, shirt, cap }: { position: [number, number, number]; facingTo: [number, number, number]; shirt: string; cap?: string }) {
@@ -144,7 +129,7 @@ function Slot({ effectAnchor, side, slot, view }: { effectAnchor: { current: Vec
     if (!node) return;
     const now = performance.now();
     if (!mountedAt.current) mountedAt.current = now;
-    const { startedAt, seconds } = view.timing.current;
+    const { startedAt, seconds, rate } = view.timing.current;
     const t = seconds > 0 ? (now - startedAt) / 1000 / seconds : 1;
     let scale = 1, x = home[0], y = 0, z = home[2];
     // Popping out of its ball when sent in, shrinking back when withdrawn or caught.
@@ -158,7 +143,7 @@ function Slot({ effectAnchor, side, slot, view }: { effectAnchor: { current: Vec
     }
     // Contact moves travel most of the way to the target, timed to land on the strike.
     if (mine && current?.kind === "move" && current.moveId && moveReach(current.moveId) === "contact") {
-      const reach = dashReach(current.moveId, t * seconds) * 0.62;
+      const reach = dashReach(current.moveId, t * seconds * rate) * 0.62;
       x += (target[0] - home[0]) * reach; z += (target[2] - home[2]) * reach;
     }
     node.position.set(x, y, z);
@@ -167,7 +152,7 @@ function Slot({ effectAnchor, side, slot, view }: { effectAnchor: { current: Vec
     node.visible = !(mine && current?.kind === "damage" && t < 0.45 && Math.floor(t * 14) % 2 === 1);
   });
   return <group ref={group} position={home} rotation={[0, facing(home, target), 0]}>
-    <PokemonModel effectAnchor={effectAnchor} attackEffects={false} species={slot.species} animation={animation} fainted={fainted} />
+    <PokemonModel effectAnchor={effectAnchor} attackEffects={false} species={slot.species} animation={animation} fainted={fainted} playbackRate={view.speed} />
   </group>;
 }
 
@@ -181,7 +166,8 @@ function Projectile({ view, allyAnchor, enemyAnchor }: { view: BattleView; allyA
   return <EffectStream key={`${current.moveId}-${current.unitId}`} style={effect} beam={effect.beam} drain={effect.drain} onSample={() => {
     const from = (current.side === "ally" ? allyAnchor : enemyAnchor).current;
     const to = (current.side === "ally" ? enemyAnchor : allyAnchor).current;
-    return { phase: attackEffectPhase((performance.now() - view.timing.current.startedAt) / 1000 / duration, effect.hits),
+    const { startedAt, rate } = view.timing.current;
+    return { phase: attackEffectPhase((performance.now() - startedAt) / 1000 * rate / duration, effect.hits),
       from: effect.reach === "contact" ? to : from, to: effect.reach === "self" ? from : to, size: 1.2 };
   }} />;
 }

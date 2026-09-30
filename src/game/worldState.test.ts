@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CAVE_MAP, ROUTE2_MAP, VILLAGE_MAP, encountersAt, isWalkableTile, tileAt, tileKey } from "./maps";
-import type { WorldState } from "./worldState";
+import type { WildEncounter, WorldState } from "./worldState";
 import { WORLD_BALANCE, createInitialWorldState, worldReducer } from "./worldState";
 
 const tick = (state: WorldState, seconds = 1 / 30) => worldReducer(state, { type: "tick", deltaSeconds: seconds });
@@ -194,6 +194,8 @@ describe("wild encounters", () => {
     expect(entry).toBeDefined();
     expect(state.encounter!.level).toBeGreaterThanOrEqual(entry!.minLevel);
     expect(state.encounter!.level).toBeLessThanOrEqual(entry!.maxLevel);
+    // Village grass battles take place on the grassland arena.
+    expect(state.encounter!.arena).toBe("grass");
 
     // The world freezes until the encounter is consumed.
     expect(tick(state)).toBe(state);
@@ -237,6 +239,7 @@ describe("overworld trainers", () => {
     state = worldReducer(state, { type: "interact" });
     expect(state.trainerBattle?.id).toBe("village-gate");
     expect(state.trainerBattle?.teamId).toBe("kanto-rivals");
+    expect(state.trainerBattle?.arena).toBe(VILLAGE_MAP.battleArena);
 
     expect(worldReducer(state, { type: "clearTrainer" }).trainerBattle).toBeNull();
   });
@@ -312,7 +315,7 @@ describe("map warps", () => {
 describe("fishing", () => {
   it("reels in a fishing-table species when facing water", () => {
     // Try a handful of seeds until a bite lands, then validate the catch.
-    let caught: { speciesId: string; level: number } | null = null;
+    let caught: WildEncounter | null = null;
     for (let seed = 1; seed < 60 && !caught; seed += 1) {
       // Stand just west of the Route 2 pond (x14) and face east into it.
       let state = createInitialWorldState({ mapId: "route2", x: 13, z: 8 }, seed);
@@ -328,6 +331,8 @@ describe("fishing", () => {
     }
     expect(caught).not.toBeNull();
     expect(ROUTE2_MAP.fishing.some((entry) => entry.speciesId === caught!.speciesId)).toBe(true);
+    // A bite is fought lakeside, whatever the map's own arena.
+    expect(caught!.arena).toBe("water");
   });
 });
 

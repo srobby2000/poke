@@ -1,4 +1,5 @@
 import { isRideSpecies, RIDE_POKEMON, type RideSpecies } from "./riding";
+import type { BattleArena } from "./battleArenas";
 import type { TrainerMeta, WorldMap } from "./maps";
 import { encountersAt, getMap, isWalkableTile, tileAt, tileKey, warpAt } from "./maps";
 
@@ -10,7 +11,8 @@ export const WORLD_BALANCE = {
   encounterChancePerTile: 0.14,
 } as const;
 
-export type WildEncounter = { speciesId: string; level: number };
+// `arena` is where the battle takes place: the map's own, or lakeside for a bite.
+export type WildEncounter = { speciesId: string; level: number; arena?: BattleArena };
 
 // A trainer battle the player triggered by facing an overworld trainer; the
 // screen layer launches the battle and clears it.
@@ -23,6 +25,7 @@ export type TrainerChallenge = {
   reward: number;
   isRematch: boolean;
   itemReward?: string;
+  arena: BattleArena;
 };
 
 // A pending warp to another map; the screen layer applies it via a "warp"
@@ -210,6 +213,7 @@ function trainerChallengeFor(state: WorldState, key: string): TrainerChallenge |
     reward: trainer.reward,
     isRematch: state.defeatedTrainers.includes(trainer.id),
     itemReward: trainer.itemReward,
+    arena: trainer.arena ?? state.map.battleArena,
   };
 }
 
@@ -288,7 +292,7 @@ export function worldReducer(state: WorldState, action: WorldAction): WorldState
         return { ...state, rng: seedAfterBite, message: "You cast your line… not even a nibble." };
       }
       const rolled = rollEncounter(state.map.fishing, seedAfterBite);
-      return { ...state, rng: rolled.nextSeed, encounter: rolled.encounter };
+      return { ...state, rng: rolled.nextSeed, encounter: { ...rolled.encounter, arena: "water" } };
     }
     return { ...state, berryTarget: nearby.tileKey };
   }
@@ -378,7 +382,7 @@ export function worldReducer(state: WorldState, action: WorldAction): WorldState
         rng = nextSeed;
         if (roll < WORLD_BALANCE.encounterChancePerTile) {
           const rolled = rollEncounter(localEncounters, rng);
-          encounter = rolled.encounter;
+          encounter = { ...rolled.encounter, arena: state.map.battleArena };
           rng = rolled.nextSeed;
         }
       }

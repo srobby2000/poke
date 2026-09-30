@@ -2977,16 +2977,36 @@ kbd {
 .tb-topbar { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 12px; padding: 6px 12px; border-radius: 999px; background: #0f1b2bcc; color: #e8f1fb; font-size: 12px; box-shadow: 0 4px 14px #0003; z-index: 3; }
 .tb-title { font-weight: 700; letter-spacing: 0.02em; }
 .tb-turn { color: #9fb7cf; }
-.tb-auto { cursor: pointer; border: 1px solid #6b85a3; border-radius: 999px; background: transparent; color: #e8f1fb; padding: 3px 10px; font-size: 11px; }
-.tb-auto-on { background: #2f8f7a; border-color: #7fe0c8; }
+/* Top-bar controls: a speed selector, an Auto switch and a log button. Each keeps its label;
+   only its state styling changes. */
+.tb-controls { display: flex; align-items: center; gap: 8px; }
+.tb-speed { display: inline-flex; padding: 2px; border-radius: 999px; background: #0a1320; box-shadow: inset 0 0 0 1px #34465c; }
+.tb-speed-option { cursor: pointer; border: 0; border-radius: 999px; background: transparent; color: #9fb7cf; font: inherit; font-size: 11px; font-weight: 700; padding: 3px 9px; transition: background-color 0.15s, color 0.15s; }
+.tb-speed-option:hover { color: #e8f1fb; }
+.tb-speed-option[aria-checked="true"] { background: #e8f1fb; color: #0f1b2b; }
+.tb-switch, .tb-icon-button { cursor: pointer; display: inline-flex; align-items: center; gap: 6px; border: 0; background: transparent; color: #e8f1fb; font: inherit; font-size: 11px; font-weight: 700; padding: 3px 6px; border-radius: 999px; }
+.tb-switch:hover, .tb-icon-button:hover { background: #ffffff14; }
+.tb-switch-track { position: relative; width: 28px; height: 16px; border-radius: 999px; background: #34465c; transition: background-color 0.2s; }
+.tb-switch-knob { position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: #e8f1fb; box-shadow: 0 1px 3px #0006; transition: transform 0.2s; }
+.tb-switch[aria-checked="true"] .tb-switch-track { background: #2fb58f; }
+.tb-switch[aria-checked="true"] .tb-switch-knob { transform: translateX(12px); }
+.tb-icon-button svg { width: 13px; height: 13px; fill: currentColor; }
+.tb-icon-button[aria-pressed="true"] { background: #e8f1fb; color: #0f1b2b; }
+.tb-speed-option:focus-visible, .tb-switch:focus-visible, .tb-icon-button:focus-visible { outline: 2px solid #7fe0c8; outline-offset: 1px; }
 .tb-info { position: absolute; z-index: 2; width: min(300px, 44vw); padding: 9px 12px 10px; border-radius: 12px 4px 12px 4px; background: linear-gradient(180deg, #fbfdff, #e7eef6); color: #1c2837; box-shadow: 0 6px 18px #0003, inset 0 0 0 2px #fff8; }
 .tb-info-enemy { top: 58px; left: 18px; }
 .tb-info-ally { right: 18px; bottom: 262px; }
 .tb-info-head { display: flex; align-items: baseline; gap: 8px; }
 .tb-info-head strong { font-size: 16px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tb-level { font-weight: 700; font-size: 13px; color: #3c4b5f; }
-.tb-status { font-size: 10px; font-weight: 800; color: #fff; padding: 1px 5px; border-radius: 4px; }
+.tb-info-tags, .tb-member-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-top: 4px; }
+.tb-types { display: inline-flex; gap: 3px; }
+.tb-types i { font-style: normal; color: #fff; text-transform: uppercase; font-size: 9px; font-weight: 800; letter-spacing: 0.03em; padding: 1px 6px; border-radius: 3px; text-shadow: 0 1px 1px #0004; }
+.tb-status { display: inline-flex; align-items: center; gap: 2px; font-size: 10px; font-weight: 800; color: #fff; padding: 1px 6px 1px 4px; border-radius: 999px; }
+.tb-status svg { width: 11px; height: 11px; fill: currentColor; }
 .tb-status-burn { background: #e2573b; } .tb-status-poison { background: #9c4fc4; } .tb-status-paralysis { background: #d7a800; }
+.tb-stage { font-size: 10px; font-weight: 800; padding: 1px 5px; border-radius: 3px; }
+.tb-stage-up { background: #dff6e7; color: #1f7a45; } .tb-stage-down { background: #fde4e1; color: #b3372a; }
 .tb-hp { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
 .tb-hp > span { font-size: 10px; font-weight: 800; color: #e0a300; background: #2c3a4c; padding: 0 4px; border-radius: 3px; }
 .tb-hp-track { position: relative; flex: 1; height: 8px; border-radius: 99px; background: #3a4757; overflow: hidden; display: block; }
@@ -3004,7 +3024,10 @@ kbd {
 .tb-menu button { cursor: pointer; border-radius: 12px; border: 2px solid #c9d6e4; background: #f7fafd; color: #1c2837; font: inherit; text-align: left; padding: 10px 12px; box-shadow: 0 4px 12px #0002; }
 .tb-menu button:disabled { cursor: not-allowed; opacity: 0.45; }
 .tb-menu button:not(:disabled):hover { transform: translateY(-1px); box-shadow: 0 6px 16px #0003; }
-.tb-cmd { font-size: 20px; font-weight: 800; text-align: center !important; letter-spacing: 0.02em; }
+/* `.tb-menu button` sets `font: inherit`, so the command style needs the same specificity. */
+.tb-menu .tb-cmd { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 19px; font-weight: 800; letter-spacing: 0.02em; }
+.tb-cmd-icon { width: 22px; height: 22px; fill: currentColor; opacity: 0.8; }
+.tb-cmd-fight { color: #a3281a !important; } .tb-cmd-bag { color: #8a5a00 !important; } .tb-cmd-party { color: #1d6b39 !important; } .tb-cmd-run { color: #1f4f9e !important; }
 .tb-cmd-fight { background: #fde4df !important; border-color: #e35d4a !important; }
 .tb-cmd-bag { background: #fdf0d6 !important; border-color: #e0a431 !important; }
 .tb-cmd-party { background: #dff3e4 !important; border-color: #3fae62 !important; }
@@ -3013,7 +3036,7 @@ kbd {
 .tb-fight .tb-move, .tb-party-menu .tb-member, .tb-bag .tb-member { padding: 7px 10px; }
 .tb-move, .tb-member { display: flex; flex-direction: column; gap: 3px; border-left-width: 6px !important; }
 .tb-move-name { font-weight: 800; font-size: 14px; }
-.tb-move-name kbd, .tb-back kbd, .tb-auto kbd { font-size: 10px; padding: 0 4px; border-radius: 3px; background: #0001; border: 1px solid #0002; }
+.tb-move-name kbd, .tb-back kbd { font-size: 10px; padding: 0 4px; border-radius: 3px; background: #0001; border: 1px solid #0002; }
 .tb-move-meta { display: flex; gap: 8px; align-items: center; font-size: 11px; color: #4a596c; }
 .tb-move-meta i { font-style: normal; color: #fff; text-transform: uppercase; font-size: 9px; font-weight: 800; padding: 1px 6px; border-radius: 3px; }
 .tb-move small, .tb-member small { font-size: 11px; color: #5a687a; }
@@ -3021,8 +3044,25 @@ kbd {
 .tb-sync { border-color: #8b5cf6 !important; background: #f3edff !important; }
 .tb-back { grid-column: 1 / -1; text-align: center !important; font-weight: 700; background: #e8edf3 !important; padding: 5px 10px !important; }
 .tb-empty { margin: 0; align-self: center; color: #d6e0ea; font-size: 13px; }
+.tb-commands { flex: 1; min-width: 0; display: flex; margin: 0; padding: 0; border: 0; transition: opacity 0.2s, filter 0.2s; }
+.tb-commands > .tb-menu { flex: 1; }
+.tb-commands-locked { opacity: 0.5; filter: saturate(0.6); }
+.tb-commands-locked .tb-menu button:disabled { opacity: 1; cursor: default; }
+.tb-member-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.tb-matchup { flex: none; font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 999px; }
+.tb-matchup-advantage { background: #dff6e7; color: #1f7a45; }
+.tb-matchup-disadvantage { background: #fde4e1; color: #b3372a; }
+.tb-matchup-even { background: #e8edf3; color: #4a596c; }
+.tb-log { position: absolute; top: 56px; right: 18px; z-index: 4; width: min(340px, 80vw); max-height: min(360px, 50vh); display: flex; flex-direction: column; border-radius: 12px; background: #0f1b2bf2; color: #e8f1fb; box-shadow: 0 10px 28px #0006; }
+.tb-log header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid #ffffff1f; font-size: 13px; }
+.tb-log header button { cursor: pointer; border: 0; background: transparent; color: #9fb7cf; font-size: 18px; line-height: 1; }
+.tb-log ol { margin: 0; padding: 8px 12px 10px 30px; overflow: auto; font-size: 12px; line-height: 1.5; }
+.tb-log li::marker { color: #5f7894; }
+.tb-log-damage, .tb-log-faint { color: #ffd0c9; } .tb-log-status { color: #f2d48a; } .tb-log-stat { color: #b9f0cf; } .tb-log-sendOut, .tb-log-withdraw { color: #9fd3f2; }
 @media (max-width: 720px) {
   .tb-dock { flex-direction: column; min-height: 0; }
   .tb-info-ally { bottom: 320px; }
   .tb-message p { font-size: 15px; }
+  .tb-topbar { flex-wrap: wrap; justify-content: center; row-gap: 4px; width: calc(100% - 24px); border-radius: 14px; }
+  .tb-info-enemy { top: 96px; }
 }
