@@ -1,6 +1,6 @@
 import { act, create } from "@react-three/test-renderer";
 import { expect, it } from "vitest";
-import { Group, InstancedMesh, Vector3 } from "three";
+import { Bone, Group, InstancedMesh, Matrix4, Quaternion, Vector3 } from "three";
 import { EffectStream, PokemonEffects } from "./PokemonEffects";
 import type { EffectPlayback } from "./PokemonEffects";
 import { EFFECT_STYLES } from "../game/pokemonEffects";
@@ -30,7 +30,7 @@ it("shows only the active move's pool, stops after the one-shot and hides fainte
 
 it("freezes movement particles when paused and removes them on idle", async () => {
   const state: EffectPlayback = { action: "run", time: 0.2, duration: 1 };
-  const props = { scene: new Group(), species: "charmander", number: 4, height: 1, playback: () => state, paused: false, fainted: false };
+  const props = { scene: new Group(), species: "ponyta", number: 77, height: 1, playback: () => state, paused: false, fainted: false };
   const renderer = await create(<PokemonEffects {...props} />);
   try {
     await act(async () => { await renderer.advanceFrames(3, 0.1); });
@@ -44,6 +44,28 @@ it("freezes movement particles when paused and removes them on idle", async () =
     state.action = "idle";
     await act(async () => { await renderer.advanceFrames(1, 0.1); });
     expect(fire.visible).toBe(false);
+  } finally { await renderer.unmount(); }
+});
+
+it("keeps a tail flame shedding embers at rest, and freezes them when paused", async () => {
+  // Charmander's flame is fire, not a movement trail: embers rise from its tip even while idle.
+  const scene = new Group(), tip = new Bone();
+  tip.name = "TailA03"; tip.position.set(0, 0.8, -0.4); scene.add(tip);
+  const state: EffectPlayback = { action: "idle", time: 0, duration: 1 };
+  const props = { scene, species: "charmander", number: 4, height: 1, playback: () => state, paused: false, fainted: false };
+  const renderer = await create(<PokemonEffects {...props} />);
+  try {
+    await act(async () => { await renderer.advanceFrames(6, 0.05); });
+    const pool = renderer.scene.instance.getObjectByName("flame-embers")!.children[0] as InstancedMesh;
+    const matrix = new Matrix4(), position = new Vector3(), scale = new Vector3();
+    const live = () => Array.from({ length: pool.count }, (_, i) => { pool.getMatrixAt(i, matrix); matrix.decompose(position, new Quaternion(), scale); return { y: position.y, size: scale.x }; }).filter(ember => ember.size > 0);
+    expect(live().length).toBeGreaterThan(5);
+    // They start at the flame and rise from it.
+    expect(Math.max(...live().map(ember => ember.y))).toBeGreaterThan(0.8);
+    await renderer.update(<PokemonEffects {...props} paused />);
+    const before = Array.from(pool.instanceMatrix.array);
+    await act(async () => { await renderer.advanceFrames(3, 0.05); });
+    expect(Array.from(pool.instanceMatrix.array)).toEqual(before);
   } finally { await renderer.unmount(); }
 });
 

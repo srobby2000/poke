@@ -9,6 +9,7 @@ import { isFlameMaterial, mountSeat, removeCoincidentTriangles } from "../game/p
 import type { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { loadPokemonModel } from "../game/loadPokemonModel";
 import { normalizePokemonMaterial } from "../game/pokemonMaterials";
+import { burnFlameMaterial, createFlameDriver, FLAME_RIGS } from "../game/pokemonFlames";
 import type { PokemonAction } from "../game/pokemonAnimation";
 import { normalizePokemonBone, rigPokemonAppendages } from "../game/pokemonAppendages";
 import { applyRestPose, createPokemonAnimator, travelPlayback } from "../game/pokemonAnimation";
@@ -79,6 +80,7 @@ function LoadedPokemon({ travelSpeed, effectAnchor, attackEffects, showJoints, p
   const model = useMemo(() => {
     const scene = clone(source);
     const materials: MeshStandardMaterial[] = [];
+    const flameRig = FLAME_RIGS[number], flameClock = { value: 0 };
     scene.traverse(object => {
       if (!(object instanceof Mesh)) return;
       if (number === 12) object.geometry = removeCoincidentTriangles(object.geometry);
@@ -90,6 +92,7 @@ function LoadedPokemon({ travelSpeed, effectAnchor, attackEffects, showJoints, p
         if (material instanceof MeshStandardMaterial) {
           materials.push(material);
           if (number === 12) material.side = DoubleSide;
+          if (flameRig && (material.name === flameRig.core || material.name === flameRig.shell)) burnFlameMaterial(material, material.name === flameRig.core ? "core" : "shell", flameClock);
           const flame = isFlameMaterial(number, material.name);
           if (flame) {
             material.transparent = true;
@@ -131,7 +134,9 @@ function LoadedPokemon({ travelSpeed, effectAnchor, attackEffects, showJoints, p
     const seat: [number, number, number] = [saddle.x * scale + offset[0], saddle.y * scale + offset[1], saddle.z * scale + offset[2]];
     let head: Object3D | undefined;
     scene.traverse(node => { if (/^Head$/i.test(normalizePokemonBone(node.name))) head ??= node; });
-    return { scene, head, scale, offset, seat, materials, disposeRig, displayHeight: size.y * scale };
+    // Tail flames burn on their own, driven after the clip each frame (see pokemonFlames).
+    const flame = createFlameDriver(scene, number, size.y * scale, flameClock);
+    return { scene, head, scale, offset, seat, materials, disposeRig, flame, displayHeight: size.y * scale };
   }, [source, animations, number, heightM, fitPreview]);
   const animator = useRef<ReturnType<typeof createPokemonAnimator>>();
   useEffect(() => {
@@ -144,7 +149,7 @@ function LoadedPokemon({ travelSpeed, effectAnchor, attackEffects, showJoints, p
     if (hit) for (const { material } of saved) { material.emissive.set("white"); material.emissiveIntensity = 0.6; }
     return () => { for (const { material, emissive, intensity } of saved) { material.emissive.copy(emissive); material.emissiveIntensity = intensity; } };
   }, [hit, model]);
-  useEffect(() => () => { model.disposeRig(); model.scene.traverse(object => { if (object instanceof Mesh) for (const material of Array.isArray(object.material) ? object.material : [object.material]) material.dispose(); if (number === 12 && object instanceof Mesh) object.geometry.dispose(); }); }, [model, number]);
+  useEffect(() => () => { model.flame?.dispose(); model.disposeRig(); model.scene.traverse(object => { if (object instanceof Mesh) for (const material of Array.isArray(object.material) ? object.material : [object.material]) material.dispose(); if (number === 12 && object instanceof Mesh) object.geometry.dispose(); }); }, [model, number]);
   useFrame((_, delta) => {
     let motion: PokemonAction = animation ?? (hit ? "hit" : attacking ? (moveId ? `move:${moveId}` as const : "attack") : running ? "run" : walking ? "walk" : "idle");
     let rate = playbackRate;
@@ -155,6 +160,7 @@ function LoadedPokemon({ travelSpeed, effectAnchor, attackEffects, showJoints, p
       motion = matched.motion; rate *= matched.rate;
     }
     animator.current?.update(motion, delta * rate, fainted || paused);
+    if (!paused) model.flame?.update(delta * rate, { fainted });
     if (effectAnchor) {
       if (model.head) model.head.getWorldPosition(effectAnchor.current);
       else { effectAnchor.current.set(0, model.displayHeight * 0.6, 0); root.current?.localToWorld(effectAnchor.current); }

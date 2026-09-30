@@ -10,10 +10,38 @@ import { POKEMON_MODELS } from "../game/pokemonModels";
 const COLUMNS = 8, ROWS = 5, CELL = 2, PIXELS = 200;
 const species = Object.entries(POKEMON_MODELS).sort(([, a], [, b]) => a.number - b.number);
 
+// Close-up views of one species: side, back three-quarter, front three-quarter.
+const VIEWS = [{ label: "side", turn: -Math.PI / 2 }, { label: "back", turn: Math.PI * 0.8 }, { label: "front", turn: 0.35 }];
+
 /** A contact sheet of Pokémon rendered exactly as the game renders them. URL parameters:
- * `sheet` (1-based, 40 per sheet), `motion` (default: the rest pose, paused), `mood` (lighting). */
+ * `sheet` (1-based, 40 per sheet), `motion` (default: the rest pose, paused), `mood` (lighting),
+ * or `species` for a close-up of one Pokémon from three sides, playing `motion`. */
 export function ModelReview() {
   const params = new URLSearchParams(location.search);
+  const close = params.get("species");
+  return close ? <CloseUp species={close} motion={(params.get("motion") ?? "idle") as PokemonAction} mood={(params.get("mood") ?? "dex") as LightingMood} /> : <ContactSheet params={params} />;
+}
+
+function CloseUp({ species: name, motion, mood }: { species: string; motion: PokemonAction; mood: LightingMood }) {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    const model = POKEMON_MODELS[name];
+    if (model) loadPokemonModel(model.number).then(() => setTimeout(() => setReady(true), 1500));
+  }, [name]);
+  const size = 420;
+  return <div data-ready={ready} style={{ position: "relative", width: size * VIEWS.length, height: size, fontFamily: "system-ui, sans-serif" }}>
+    <Canvas orthographic dpr={1} frameloop="always" shadows style={{ width: size * VIEWS.length, height: size }} camera={{ position: [0, 0.75, 20], zoom: size / 2.5, near: 0.1, far: 100 }}>
+      <color attach="background" args={["#1d2733"]} />
+      <PokemonLighting mood={mood} />
+      {VIEWS.map(({ label, turn }, index) => <group key={label} position={[(index - 1) * 2.5, -0.15, 0]} rotation={[0.12, turn, 0]}>
+        <PokemonModel species={name} fitPreview animation={motion} />
+      </group>)}
+    </Canvas>
+    {VIEWS.map(({ label }, index) => <span key={label} style={{ position: "absolute", left: index * size + 8, top: 6, color: "#cfd8e3", fontSize: 12 }}>{name} · {motion} · {label}</span>)}
+  </div>;
+}
+
+function ContactSheet({ params }: { params: URLSearchParams }) {
   const sheet = Math.max(1, Number(params.get("sheet") ?? 1));
   const motion = params.get("motion") as PokemonAction | null;
   const mood = (params.get("mood") ?? "dex") as LightingMood;

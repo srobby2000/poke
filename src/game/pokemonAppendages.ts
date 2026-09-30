@@ -16,6 +16,7 @@ export function rigPokemonAppendages(scene: Object3D, number: number) {
   const owned: SkinnedMesh[] = [];
   poseCrawlerRest(scene, number);
   poseSerpentRest(scene, number);
+  poseTailCurl(scene, number);
   attachHeldItems(scene, number);
   if (rigidQuadrupeds.has(number)) return rigRigidQuadruped(scene);
   if (partRigs[number]) return rigRigidParts(scene, number);
@@ -99,8 +100,11 @@ function localAxis(bone: Object3D, axis: Vector3, frame = new Quaternion()) {
   return axis.applyQuaternion(frame).applyQuaternion(bone.getWorldQuaternion(new Quaternion()).invert()).normalize();
 }
 
+// Tails that sway side to side (a lizard's), rather than bobbing up and down. Their resting curl
+// is baked into the rest pose (poseTailCurl), so the swing axis is free to be the vertical.
+const swayingTails = new Set([4]);
+
 export function appendageMotion(bone: Object3D, number: number, frame = new Quaternion()) {
-  const toFrame = frame.clone().invert();
   // Generated rigs store each joint's swing in world space when they build it.
   const swing = bone.userData.swing as Swing | undefined;
   if (swing) return { kind: "part" as const, axis: localAxis(bone, new Vector3(...swing.axis), frame), offset: 0, amplitude: swing.amplitude, phase: swing.phase, frequency: swing.frequency };
@@ -115,6 +119,31 @@ export function appendageMotion(bone: Object3D, number: number, frame = new Quat
       // wings are a blur, far faster than reads on screen).
       phase: tip ? -0.5 : /B1?$/.test(name) ? -0.15 : 0, frequency: insect ? 3.5 : 2.2 };
   }
+  const motion = tailMotion(bone, number, frame);
+  if (!motion || !swayingTails.has(number)) return motion;
+  // Side to side about the body's vertical, in a wave that travels to the tip and grows there.
+  const segment = Number(normalizePokemonBone(bone.name).match(/(\d+)$/)?.[1] ?? 1);
+  return { ...motion, axis: localAxis(bone, new Vector3(0, 1, 0), frame), offset: 0, amplitude: 0.05 + 0.012 * segment, phase: -segment * 0.5 };
+}
+
+/** Bake a swaying tail's resting curl into its rest pose, so its swing can be purely sideways. */
+function poseTailCurl(scene: Object3D, number: number) {
+  if (!swayingTails.has(number)) return;
+  scene.updateWorldMatrix(true, true);
+  const frame = scene.getWorldQuaternion(new Quaternion());
+  const curls: { bone: Object3D; axis: Vector3; angle: number }[] = [];
+  scene.traverse(node => {
+    if (!(node as Bone).isBone) return;
+    const motion = tailMotion(node, number, frame);
+    if (motion?.offset) curls.push({ bone: node, axis: motion.axis, angle: motion.offset });
+  });
+  for (const { bone, axis, angle } of curls) bone.quaternion.multiply(new Quaternion().setFromAxisAngle(axis, angle));
+  scene.updateWorldMatrix(true, true);
+}
+
+function tailMotion(bone: Object3D, number: number, frame: Quaternion) {
+  const toFrame = frame.clone().invert();
+  const name = normalizePokemonBone(bone.name);
   const tail = name.match(/^([LR]?Tail[A-Z]?)(\d*)$/i);
   if (!tail) return undefined;
   // Flame tongues are not separate tails; bending them independently detaches the flame silhouette.

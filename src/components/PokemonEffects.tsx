@@ -5,6 +5,7 @@ import type { AttackEffect, EffectStyle } from "../game/pokemonEffects";
 import { attackEffectFor, attackEffectPhase, EFFECT_STYLES, hasFlameTrail, movementEffectFor } from "../game/pokemonEffects";
 import type { PokemonAction } from "../game/pokemonAnimation";
 import { normalizePokemonBone } from "../game/pokemonAppendages";
+import { FLAME_RIGS } from "../game/pokemonFlames";
 
 export type EffectFrame = { phase: number; from: Vector3; to: Vector3; size: number; trail?: boolean; beam?: boolean; drain?: boolean };
 const COUNT = 40;
@@ -139,6 +140,68 @@ export function PokemonEffects({ scene, species, number, height, playback, pause
   return <group ref={container} name="pokemon-effects">
     {attackEffects && Object.values(EFFECT_STYLES).map(style => <EffectStream key={style.kind} style={style} beam onSample={attackSample} />)}
     {movement && <EffectStream style={movement} onSample={() => movementSample()} />}
-    {hasFlameTrail(number) && <EffectStream style={EFFECT_STYLES.fire} onSample={() => movementSample(true)} />}
+    {hasFlameTrail(number) && !FLAME_RIGS[number] && <EffectStream style={EFFECT_STYLES.fire} onSample={() => movementSample(true)} />}
+    {FLAME_RIGS[number] && <FlameEmbers scene={scene} number={number} height={height} paused={paused} fainted={fainted} playbackRate={playbackRate} />}
+  </group>;
+}
+
+const EMBERS = 22;
+const EMBER_COLORS = [new Color("#fff3a8"), new Color("#ffb13b"), new Color("#ff5a1f"), new Color("#7a1d0a")];
+
+/** Sparks rising off a tail flame, always (not only while moving). They live in world space, so a
+ * moving Pokémon leaves them behind, and they fade from yellow to deep red as they cool. */
+function FlameEmbers({ scene, number, height, paused, fainted, playbackRate }: { scene: Object3D; number: number; height: number; paused: boolean; fainted: boolean; playbackRate: number }) {
+  const pool = useRef<InstancedMesh>(null), group = useRef<Group>(null);
+  const tip = useMemo(() => {
+    const bones = FLAME_RIGS[number].bones, name = bones[bones.length - 1];
+    let found: Object3D | undefined;
+    scene.traverse(node => { if (!found && normalizePokemonBone(node.name) === name) found = node; });
+    return found;
+  }, [scene, number]);
+  const state = useRef({
+    position: Array.from({ length: EMBERS }, () => new Vector3()), velocity: Array.from({ length: EMBERS }, () => new Vector3()),
+    age: Array.from({ length: EMBERS }, (_, i) => 1 + i / EMBERS), life: Array.from({ length: EMBERS }, () => 1),
+    tip: new Vector3(), local: new Vector3(), dummy: new Object3D(), color: new Color(), seed: 1,
+  });
+  useFrame((_, delta) => {
+    const mesh = pool.current, node = group.current;
+    if (!mesh || !node || !tip) return;
+    const s = state.current;
+    const random = () => { s.seed = (Math.imul(s.seed, 1664525) + 1013904223) >>> 0; return s.seed / 0x100000000; };
+    const dt = paused ? 0 : Math.min(delta * playbackRate, 0.05);
+    tip.getWorldPosition(s.tip);
+    node.updateWorldMatrix(true, false);
+    for (let i = 0; i < EMBERS; i++) {
+      s.age[i] += dt / s.life[i];
+      // A spent ember respawns at the flame; a fainted Pokémon's flame sheds few.
+      if (s.age[i] >= 1 && (!fainted || random() < 0.02)) {
+        s.age[i] = 0; s.life[i] = 0.45 + random() * 0.6;
+        s.position[i].copy(s.tip).add(new Vector3((random() - 0.5) * height * 0.08, random() * height * 0.06, (random() - 0.5) * height * 0.08));
+        s.velocity[i].set((random() - 0.5) * height * 0.35, height * (0.55 + random() * 0.5), (random() - 0.5) * height * 0.35);
+      }
+      const age = Math.min(s.age[i], 1);
+      // Rise, slowing as they cool, and flutter sideways.
+      s.velocity[i].multiplyScalar(Math.exp(-1.6 * dt));
+      s.velocity[i].x += Math.sin(age * 9 + i) * height * 0.9 * dt;
+      s.position[i].addScaledVector(s.velocity[i], dt);
+      s.local.copy(s.position[i]);
+      node.worldToLocal(s.local);
+      const size = age >= 1 ? 0 : height * 0.011 * (1 - age) * (0.6 + (i % 3) * 0.25);
+      s.dummy.position.copy(s.local);
+      s.dummy.rotation.set(i, age * 6 + i, 0);
+      s.dummy.scale.set(size, size * 1.6, size);
+      s.dummy.updateMatrix();
+      mesh.setMatrixAt(i, s.dummy.matrix);
+      const band = Math.min(age * 3, 2.999), k = Math.floor(band);
+      mesh.setColorAt(i, s.color.copy(EMBER_COLORS[k]).lerp(EMBER_COLORS[k + 1], band - k));
+    }
+    mesh.instanceMatrix.needsUpdate = true;
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+  });
+  return <group ref={group} name="flame-embers">
+    <instancedMesh ref={pool} args={[undefined, undefined, EMBERS]} frustumCulled={false}>
+      <octahedronGeometry args={[1, 0]} />
+      <meshBasicMaterial transparent depthWrite={false} blending={AdditiveBlending} toneMapped={false} />
+    </instancedMesh>
   </group>;
 }
