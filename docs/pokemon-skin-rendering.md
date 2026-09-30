@@ -30,6 +30,8 @@ The five ways a mesh gets skinned (authored skins, Golbat's wing rig, and the ge
   - Flame sheets (Charizard, Rapidash) get their flame shader on top, as before. Hit flashes now work on all 151.
 - **One lighting balance** (`src/components/PokemonLighting.tsx`): ambient 0.95, hemisphere 0.8 and a key light of 1.9, which is the overworld's existing balance. The Pokédex, world, cave, battle and lobby differ only in tint, key-light direction and shadows, and caves use less ambient light (0.65).
 
+- **Solid skins exported as blended** (`SOLID_SKINS`): a blended material skips the depth buffer, so a body drawn that way sorts against itself and shows through. Farfetch'd's beak showed through the back of its head and its leek through its wing. Its body texture is 97% opaque, and Moltres' body and eyes have no alpha channel at all, so these render opaque and ignore alpha. Farfetch'd's few low-alpha texels are painted skin, not cut-outs, so cutting them out opens holes at the neck and crown. Eye decals, Gastly's gas and Moltres' fire stay blended. A test re-checks every blended material in the model files.
+
 Weezing is still dark: its UVs sample the dark purple parts of its own texture. That comes from the source art, not the renderer.
 
 ## Review sheets

@@ -12,9 +12,18 @@ type SourceMaterial = Material & Partial<Pick<MeshStandardMaterial,
   "color" | "map" | "normalMap" | "normalScale" | "aoMap" | "aoMapIntensity" | "emissive" | "emissiveMap" | "emissiveIntensity" | "alphaMap" | "flatShading">>
   & Partial<Pick<MeshBasicMaterial, "vertexColors">>;
 
+/** Solid skins exported as alpha-blended. A blended material skips the depth buffer, so a body
+ * drawn that way sorts against itself and shows through: Farfetch'd's beak shows through the
+ * back of its head and its leek through its wing. These textures are solid (Farfetch'd's body is
+ * 97% opaque; Moltres' body and eyes have no alpha channel at all), so they render opaque and
+ * ignore alpha. Farfetch'd's few low-alpha texels are painted skin (its dark collar, the crown of
+ * its head), not cut-outs: cutting them out opens holes. Eye decals, Gastly's gas and Moltres'
+ * fire stay blended. pokemonMaterials.test.ts re-checks every blended material. */
+export const SOLID_SKINS: Record<number, string[]> = { 83: ["Body"], 146: ["body", "eye"] };
+
 /** A fresh non-metallic, lit material carrying the source's textures, colour and transparency.
  * The source (shared by the cached GLTF) is left untouched; textures stay shared with it. */
-export function normalizePokemonMaterial(source: Material): MeshStandardMaterial {
+export function normalizePokemonMaterial(source: Material, number?: number): MeshStandardMaterial {
   const from = source as SourceMaterial;
   const skin = new MeshStandardMaterial({ metalness: 0, roughness: SKIN_ROUGHNESS });
   skin.name = source.name;
@@ -37,5 +46,10 @@ export function normalizePokemonMaterial(source: Material): MeshStandardMaterial
   skin.depthWrite = source.depthWrite;
   skin.depthTest = source.depthTest;
   skin.userData = { ...source.userData };
+  if (number !== undefined && SOLID_SKINS[number]?.includes(source.name)) {
+    skin.transparent = false;
+    skin.depthWrite = true;
+    skin.alphaTest = 0;
+  }
   return skin;
 }

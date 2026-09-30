@@ -88,7 +88,7 @@ function LoadedPokemon({ travelSpeed, effectAnchor, attackEffects, showJoints, p
       object.castShadow = true;
       object.receiveShadow = true;
       // Every skin gets the same lit, non-metallic surface (see normalizePokemonMaterial).
-      object.material = Array.isArray(object.material) ? object.material.map(normalizePokemonMaterial) : normalizePokemonMaterial(object.material);
+      object.material = Array.isArray(object.material) ? object.material.map(material => normalizePokemonMaterial(material, number)) : normalizePokemonMaterial(object.material, number);
       for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
         if (material instanceof MeshStandardMaterial) {
           materials.push(material);
