@@ -1,0 +1,534 @@
+{
+ "source": "Authored clips bundled in public/models/pokemon, measured by src/game/pokemonMotionMetrics.ts",
+ "references": [
+  {
+   "number": 150,
+   "species": "mewtwo",
+   "mode": "biped",
+   "motion": "idle",
+   "clip": "pm0150_00_00_00000_defaultwait01_loop",
+   "metrics": {
+    "duration": 3.02,
+    "roles": {
+     "spine": 4.71,
+     "head": 3.06,
+     "arm": 7.32,
+     "ear": 9.99,
+     "hand": 4.67,
+     "thigh": 4.07,
+     "knee": 4.94,
+     "foot": 1.94,
+     "tail": 28.47
+    },
+    "peakRange": 28.47,
+    "bob": 0.37,
+    "beatHz": 0.66,
+    "seam": 0.03,
+    "peakSpeedAt": 0.9,
+    "kink": 2.88
+   }
+  },
+  {
+   "number": 150,
+   "species": "mewtwo",
+   "mode": "biped",
+   "motion": "walk",
+   "clip": "pm0150_00_00_00030_walk01_loop",
+   "metrics": {
+    "duration": 1.62,
+    "roles": {
+     "spine": 27.06,
+     "head": 15.87,
+     "arm": 23.44,
+     "ear": 20.34,
+     "hand": 23.81,
+     "thigh": 52.86,
+     "knee": 53.35,
+     "foot": 72.44,
+     "tail": 44.04
+    },
+    "peakRange": 72.44,
+    "bob": 2.22,
+    "beatHz": 0.62,
+    "seam": 0.03,
+    "peakSpeedAt": 0.07,
+    "kink": 3.59
+   }
+  },
+  {
+   "number": 150,
+   "species": "mewtwo",
+   "mode": "biped",
+   "motion": "run",
+   "clip": "pm0150_00_00_00100_run01_loop",
+   "metrics": {
+    "duration": 0.68,
+    "roles": {
+     "spine": 31.83,
+     "head": 20.95,
+     "arm": 25.96,
+     "ear": 3.9,
+     "hand": 31.35,
+     "thigh": 103.9,
+     "knee": 103.77,
+     "foot": 80.91,
+     "tail": 44.91
+    },
+    "peakRange": 103.9,
+    "bob": 8.3,
+    "beatHz": 1.46,
+    "seam": 0.02,
+    "peakSpeedAt": 0.44,
+    "kink": 5.23
+   }
+  },
+  {
+   "number": 150,
+   "species": "mewtwo",
+   "mode": "biped",
+   "motion": "attack",
+   "clip": "pm0150_00_00_00400_attack01",
+   "metrics": {
+    "duration": 2.18,
+    "roles": {
+     "spine": 78.29,
+     "head": 73.25,
+     "arm": 105.08,
+     "ear": 66.86,
+     "hand": 68.56,
+     "thigh": 51.76,
+     "knee": 75.77,
+     "foot": 58.5,
+     "tail": 54.28
+    },
+    "peakRange": 105.08,
+    "bob": 13.27,
+    "beatHz": 0.46,
+    "seam": 0.04,
+    "peakSpeedAt": 0.32,
+    "kink": 16.06
+   }
+  },
+  {
+   "number": 150,
+   "species": "mewtwo",
+   "mode": "biped",
+   "motion": "hit",
+   "clip": "pm0150_00_00_00500_damage01",
+   "metrics": {
+    "duration": 0.68,
+    "roles": {
+     "spine": 17.87,
+     "head": 26.21,
+     "arm": 22.74,
+     "ear": 42.66,
+     "hand": 37.31,
+     "thigh": 26.03,
+     "knee": 44.66,
+     "foot": 36.84,
+     "tail": 25.46
+    },
+    "peakRange": 44.66,
+    "bob": 4.85,
+    "beatHz": 1.46,
+    "seam": 31.99,
+    "peakSpeedAt": 0.09,
+    "kink": 9.1
+   }
+  },
+  {
+   "number": 149,
+   "species": "dragonite",
+   "mode": "biped",
+   "motion": "idle",
+   "clip": "pm0149_00_00_00000_defaultwait01_loop",
+   "metrics": {
+    "duration": 2.52,
+    "roles": {
+     "spine": 3.05,
+     "head": 3.45,
+     "wing": 23.88,
+     "arm": 4.3,
+     "ear": 2.99,
+     "hand": 14.94,
+     "tail": 18.44,
+     "thigh": 9.66,
+     "knee": 20.79,
+     "foot": 10.43
+    },
+    "peakRange": 23.88,
+    "bob": 1.65,
+    "beatHz": 0.4,
+    "seam": 0.04,
+    "peakSpeedAt": 0.37,
+    "kink": 2.36
+   }
+  },
+  {
+   "number": 149,
+   "species": "dragonite",
+   "mode": "biped",
+   "motion": "walk",
+   "clip": "pm0149_00_00_00030_walk01_loop",
+   "metrics": {
+    "duration": 1.58,
+    "roles": {
+     "spine": 18.51,
+     "head": 8.37,
+     "wing": 20.35,
+     "arm": 24.35,
+     "ear": 17.29,
+     "hand": 22.11,
+     "tail": 20.93,
+     "thigh": 66.9,
+     "knee": 50.31,
+     "foot": 63.56
+    },
+    "peakRange": 66.9,
+    "bob": 9.16,
+    "beatHz": 0.63,
+    "seam": 0.03,
+    "peakSpeedAt": 0.7,
+    "kink": 7.59
+   }
+  },
+  {
+   "number": 149,
+   "species": "dragonite",
+   "mode": "biped",
+   "motion": "run",
+   "clip": "pm0149_00_00_00100_run01_loop",
+   "metrics": {
+    "duration": 0.68,
+    "roles": {
+     "spine": 15.04,
+     "head": 13.17,
+     "wing": 27.48,
+     "arm": 40.2,
+     "ear": 34.41,
+     "hand": 0.01,
+     "tail": 34.7,
+     "thigh": 98.3,
+     "knee": 79.86,
+     "foot": 42.95
+    },
+    "peakRange": 98.3,
+    "bob": 6.37,
+    "beatHz": 1.46,
+    "seam": 0.04,
+    "peakSpeedAt": 0.79,
+    "kink": 3.81
+   }
+  },
+  {
+   "number": 149,
+   "species": "dragonite",
+   "mode": "biped",
+   "motion": "attack",
+   "clip": "pm0149_00_00_20400_attack01",
+   "metrics": {
+    "duration": 2.18,
+    "roles": {
+     "spine": 31.16,
+     "head": 31.53,
+     "wing": 91.17,
+     "arm": 102.56,
+     "ear": 41.22,
+     "hand": 31.22,
+     "tail": 29.81,
+     "thigh": 40.89,
+     "knee": 26.41,
+     "foot": 33.24
+    },
+    "peakRange": 102.56,
+    "bob": 18.09,
+    "beatHz": 0.46,
+    "seam": 0.04,
+    "peakSpeedAt": 0.3,
+    "kink": 14.75
+   }
+  },
+  {
+   "number": 149,
+   "species": "dragonite",
+   "mode": "biped",
+   "motion": "hit",
+   "clip": "pm0149_00_00_20500_damage01",
+   "metrics": {
+    "duration": 0.68,
+    "roles": {
+     "spine": 23.4,
+     "head": 36.64,
+     "wing": 66.46,
+     "arm": 70.34,
+     "ear": 46.52,
+     "hand": 22.9,
+     "tail": 11.07,
+     "thigh": 30.57,
+     "knee": 33.69,
+     "foot": 29.72
+    },
+    "peakRange": 70.34,
+    "bob": 6.52,
+    "beatHz": 0,
+    "seam": 66.46,
+    "peakSpeedAt": 0.05,
+    "kink": 6.18
+   }
+  },
+  {
+   "number": 40,
+   "species": "wigglytuff",
+   "mode": "biped",
+   "motion": "run",
+   "clip": "bd_run",
+   "metrics": {
+    "duration": 0.67,
+    "roles": {
+     "spine": 32.71,
+     "thigh": 124.18,
+     "knee": 42.23,
+     "arm": 64.62,
+     "head": 11.11,
+     "tail": 34.64
+    },
+    "peakRange": 124.18,
+    "bob": 1.5,
+    "beatHz": 1.5,
+    "seam": 0.03,
+    "peakSpeedAt": 0.25,
+    "kink": 4.39
+   }
+  },
+  {
+   "number": 25,
+   "species": "pikachu",
+   "mode": "biped",
+   "motion": "attack",
+   "clip": "Impactrueno",
+   "metrics": {
+    "duration": 4.5,
+    "roles": {
+     "spine": 22.56,
+     "head": 16.18,
+     "ear": 50.14,
+     "arm": 90.16,
+     "hand": 38.55,
+     "thigh": 57.88,
+     "knee": 60.28,
+     "foot": 55.2,
+     "tail": 47.44,
+     "wing": 12.69
+    },
+    "peakRange": 90.16,
+    "bob": 114.54,
+    "beatHz": 0.22,
+    "seam": 0.77,
+    "peakSpeedAt": 0.24,
+    "kink": 14.64
+   }
+  },
+  {
+   "number": 1,
+   "species": "bulbasaur",
+   "mode": "quadruped",
+   "motion": "idle",
+   "clip": "model_skeleton|001aidle",
+   "metrics": {
+    "duration": 1.67,
+    "roles": {
+     "spine": 2.96,
+     "head": 2.68,
+     "arm": 8.79,
+     "ear": 17.54,
+     "hand": 16.37,
+     "wing": 1.81,
+     "thigh": 2.94,
+     "knee": 6.07,
+     "foot": 16.49
+    },
+    "peakRange": 17.54,
+    "bob": 0.04,
+    "beatHz": 0.6,
+    "seam": 3.11,
+    "peakSpeedAt": 0.93,
+    "kink": 3.33
+   }
+  },
+  {
+   "number": 1,
+   "species": "bulbasaur",
+   "mode": "quadruped",
+   "motion": "walk",
+   "clip": "model_skeleton|001walk",
+   "metrics": {
+    "duration": 1.17,
+    "roles": {
+     "spine": 33.11,
+     "head": 6.26,
+     "arm": 72.57,
+     "ear": 44.05,
+     "hand": 50.42,
+     "wing": 4.38,
+     "thigh": 36.5,
+     "knee": 71.09,
+     "foot": 41.86
+    },
+    "peakRange": 72.57,
+    "bob": 1.38,
+    "beatHz": 0.86,
+    "seam": 32.39,
+    "peakSpeedAt": 0.97,
+    "kink": 3.91
+   }
+  },
+  {
+   "number": 1,
+   "species": "bulbasaur",
+   "mode": "quadruped",
+   "motion": "run",
+   "clip": "model_skeleton|001run",
+   "metrics": {
+    "duration": 0.38,
+    "roles": {
+     "spine": 30.46,
+     "head": 5.41,
+     "arm": 64.24,
+     "ear": 25.24,
+     "hand": 35.45,
+     "wing": 3.14,
+     "thigh": 63.22,
+     "knee": 35.65,
+     "foot": 35.69
+    },
+    "peakRange": 64.24,
+    "bob": 10.22,
+    "beatHz": 2.67,
+    "seam": 35.69,
+    "peakSpeedAt": 0.91,
+    "kink": 4.19
+   }
+  },
+  {
+   "number": 1,
+   "species": "bulbasaur",
+   "mode": "quadruped",
+   "motion": "attack",
+   "clip": "model_skeleton|001fight_b",
+   "metrics": {
+    "duration": 1.75,
+    "roles": {
+     "spine": 13.31,
+     "head": 15.87,
+     "arm": 32.38,
+     "ear": 46.93,
+     "hand": 50.31,
+     "wing": 3.4,
+     "thigh": 8.83,
+     "knee": 21.76,
+     "foot": 25.82
+    },
+    "peakRange": 50.31,
+    "bob": 0.03,
+    "beatHz": 0.57,
+    "seam": 3,
+    "peakSpeedAt": 0.12,
+    "kink": 2.6
+   }
+  },
+  {
+   "number": 41,
+   "species": "zubat",
+   "mode": "fly",
+   "motion": "walk",
+   "clip": "Take 001",
+   "metrics": {
+    "duration": 1.97,
+    "roles": {},
+    "peakRange": 99.16,
+    "bob": 0,
+    "beatHz": 3.05,
+    "seam": 26.17,
+    "peakSpeedAt": 0.56,
+    "kink": 3.05
+   }
+  },
+  {
+   "number": 93,
+   "species": "haunter",
+   "mode": "hover",
+   "motion": "idle",
+   "clip": "Animation",
+   "metrics": {
+    "duration": 3.33,
+    "roles": {},
+    "peakRange": 0,
+    "bob": 11.66,
+    "beatHz": 0,
+    "seam": 0,
+    "peakSpeedAt": 0,
+    "kink": 0
+   }
+  },
+  {
+   "number": 81,
+   "species": "magnemite",
+   "mode": "hover",
+   "motion": "idle",
+   "clip": "Take 001",
+   "metrics": {
+    "duration": 2,
+    "roles": {},
+    "peakRange": 0,
+    "bob": 16.88,
+    "beatHz": 0,
+    "seam": 0,
+    "peakSpeedAt": 0,
+    "kink": 0
+   }
+  },
+  {
+   "number": 95,
+   "species": "onix",
+   "mode": "slither",
+   "motion": "idle",
+   "clip": "Take 001",
+   "metrics": {
+    "duration": 5.67,
+    "roles": {},
+    "peakRange": 15.05,
+    "bob": 0,
+    "beatHz": 0.35,
+    "seam": 0.04,
+    "peakSpeedAt": 0.09,
+    "kink": 0.82
+   }
+  },
+  {
+   "number": 88,
+   "species": "grimer",
+   "mode": "ooze",
+   "motion": "idle",
+   "clip": "ArmatureAction",
+   "metrics": {
+    "duration": 6.46,
+    "roles": {
+     "spine": 26.68,
+     "head": 45.5,
+     "wing": 97.6,
+     "arm": 35.44,
+     "forearm": 47.12,
+     "ear": 51.94,
+     "hand": 96.86,
+     "foot": 0
+    },
+    "peakRange": 179.89,
+    "bob": 0,
+    "beatHz": 2.01,
+    "seam": 138.48,
+    "peakSpeedAt": 0.5,
+    "kink": 16.46
+   }
+  }
+ ]
+}

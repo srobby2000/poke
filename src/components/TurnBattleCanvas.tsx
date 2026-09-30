@@ -35,6 +35,29 @@ function moveReach(moveId: string) {
   return CONTACT.has(archetype) ? "contact" : RANGED.has(archetype) ? "ranged" : "self";
 }
 
+/** When a contact move's recorded lunge peaks (fraction of its clip), and the clip length. */
+const strikes = new Map<string, { strike: number; duration: number }>();
+function strikeOf(moveId: string) {
+  let found = strikes.get(moveId);
+  if (!found) {
+    const { duration, sample } = moveTimeline(moveId);
+    let strike = 0.45, best = -Infinity;
+    for (let i = 0; i <= 80; i++) { const lunge = sample(i / 80).lunge; if (lunge > best) { best = lunge; strike = i / 80; } }
+    found = { strike, duration };
+    strikes.set(moveId, found);
+  }
+  return found;
+}
+/** Close the distance just before the strike, hold contact through it, return in recovery. */
+function dashReach(moveId: string, seconds: number) {
+  const { strike, duration } = strikeOf(moveId);
+  const u = seconds / duration;
+  if (u < strike - 0.28) return 0;
+  if (u < strike) return ease((u - (strike - 0.28)) / 0.28);
+  if (u < strike + 0.12) return 1;
+  return 1 - ease((u - strike - 0.12) / 0.35);
+}
+
 export type SlotView = { unitId: string; species: string; fainted: boolean };
 export type BattleView = {
   ally: SlotView | null;
@@ -133,9 +156,9 @@ function Slot({ effectAnchor, side, slot, view }: { effectAnchor: { current: Vec
       const f = mine && current?.kind === "faint" ? ease(t / 0.7) : 1;
       y = -0.9 * f; scale *= 1 - 0.6 * f;
     }
-    // Contact moves travel most of the way to the target and come back.
+    // Contact moves travel most of the way to the target, timed to land on the strike.
     if (mine && current?.kind === "move" && current.moveId && moveReach(current.moveId) === "contact") {
-      const reach = Math.sin(Math.PI * ease(Math.min(1, t / 0.85))) * 0.62;
+      const reach = dashReach(current.moveId, t * seconds) * 0.62;
       x += (target[0] - home[0]) * reach; z += (target[2] - home[2]) * reach;
     }
     node.position.set(x, y, z);

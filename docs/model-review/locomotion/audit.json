@@ -393,7 +393,7 @@
       "idle": "procedural",
       "walk": "procedural",
       "run": "procedural",
-      "attack": "Impactrueno",
+      "attack": "procedural",
       "hit": "procedural"
     },
     "sheet": 4,
@@ -631,7 +631,7 @@
     "runtimeBones": 25,
     "clips": {
       "idle": "procedural",
-      "walk": "bd_run",
+      "walk": "procedural",
       "run": "bd_run",
       "attack": "procedural",
       "hit": "procedural"

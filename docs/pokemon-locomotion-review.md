@@ -1,5 +1,7 @@
 # Pokémon locomotion review
 
+The motion itself is now tuned to measured references and checked for every species: see [animation references](animation-references.md) for the targets, their sources and what changed.
+
 Reviewed all 151 species individually in runtime pose sheets. Each row below links to its samples. The movement table in `src/game/pokemonLocomotion.ts` records an explicit choice for every species; the game's walk/run inputs select normal/fast travel in that mode.
 
 ## Corrections

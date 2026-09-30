@@ -50,11 +50,12 @@ describe("move animation catalog", () => {
   it("plays a move once through the animator and returns to idle", () => {
     const scene = new Group(); const root = new Group(); root.add(scene);
     const animator = createPokemonAnimator(scene, root, POKEMON_MODELS.machop, []);
-    for (let i = 0; i < 20; i++) animator.update("move:karate-chop", 1 / 60);
-    const lunge = root.position.z;
+    // Winds up first, then lunges in about half a second later.
+    let lunge = 0;
+    for (let i = 0; i < 60; i++) { animator.update("move:karate-chop", 1 / 60); lunge = Math.max(lunge, root.position.z); }
     expect(lunge).toBeGreaterThan(0);
     // The battle flag drops almost at once; the chop still plays out and then settles.
-    for (let i = 0; i < 120; i++) animator.update("idle", 1 / 60);
+    for (let i = 0; i < 200; i++) animator.update("idle", 1 / 60);
     expect(Math.abs(root.position.z)).toBeLessThan(0.01);
     animator.dispose();
   });

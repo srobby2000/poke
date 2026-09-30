@@ -23,7 +23,8 @@ describe("procedural coverage", () => {
       const animator = createPokemonAnimator(scene, root, definition, []);
       for (const state of ["idle", "walk", "attack", "hit"] as const) {
         for (let frame = 0; frame < 10; frame++) animator.update(state, 1 / 60);
-        expect(root.position.y).toBeGreaterThan(0);
+        // Never below the floor; planted four-legged attacks stay on it.
+        expect(root.position.y).toBeGreaterThanOrEqual(0);
         expect([...root.position.toArray(), ...bone.quaternion.toArray()].every(Number.isFinite)).toBe(true);
       }
       const position = root.position.clone();
@@ -67,7 +68,8 @@ it("moves mount forelegs forward and back in a diagonal trot", () => {
 it("plays a held attack once and crossfades back to idle", () => {
   const scene = new Group(); const root = new Group(); root.add(scene);
   const animator = createPokemonAnimator(scene, root, POKEMON_MODELS.squirtle, []);
-  for (let i = 0; i < 60; i++) animator.update("attack", 1 / 60);
+  // Attacks run about 2 s, like the authored ones; past the end it holds still.
+  for (let i = 0; i < 140; i++) animator.update("attack", 1 / 60);
   const after = root.rotation.x;
   for (let i = 0; i < 15; i++) animator.update("attack", 1 / 60);
   expect(root.rotation.x).toBeCloseTo(after);
@@ -93,9 +95,9 @@ it("finishes a started attack after a short battle pulse, but lets a hit interru
   const scene = new Group(); const root = new Group(); root.add(scene);
   const animator = createPokemonAnimator(scene, root, POKEMON_MODELS.machop, []);
   for (let i = 0; i < 12; i++) animator.update("attack", 1 / 60);
-  // The battle flag drops after ~0.2 s; the lunge still arrives.
+  // The battle flag drops after ~0.2 s; the lunge still arrives, after the wind-up.
   let lunge = 0;
-  for (let i = 0; i < 20; i++) { animator.update("idle", 1 / 60); lunge = Math.max(lunge, root.position.z); }
+  for (let i = 0; i < 70; i++) { animator.update("idle", 1 / 60); lunge = Math.max(lunge, root.position.z); }
   expect(lunge).toBeGreaterThan(0.05);
   animator.update("hit", 1 / 60);
   for (let i = 0; i < 10; i++) animator.update("hit", 1 / 60);
@@ -192,8 +194,10 @@ it("keeps a flyer's legs still while its real wing hinges flap at both travel sp
     const animator = createPokemonAnimator(scene, root, POKEMON_MODELS.pidgeot, []);
     animator.update(motion, 0.1);
     const first = bones.map(b => b.quaternion.clone());
-    for (let i = 0; i < 3; i++) animator.update(motion, 0.1);
-    expect(bones[0].quaternion.angleTo(first[0])).toBeGreaterThan(0.1);
+    // Wings beat ~2 times a second, so look for the largest swing across the cycle.
+    let swing = 0;
+    for (let i = 0; i < 8; i++) { animator.update(motion, 0.05); swing = Math.max(swing, bones[0].quaternion.angleTo(first[0])); }
+    expect(swing).toBeGreaterThan(0.1);
     expect(bones[0].rotation.z).toBeCloseTo(-bones[1].rotation.z);
     for (let i = 2; i < bones.length; i++) expect(bones[i].quaternion.angleTo(first[i])).toBeCloseTo(0);
     expect(root.position.y).toBeGreaterThan(0.1);
@@ -244,4 +248,21 @@ it("closes every procedural travel loop without a positional or joint snap", asy
       }
     }
   }
+});
+
+it("matches travel playback to ground speed, breaking small Pokémon into a run", async () => {
+  const { MOTION_SECONDS, STRIDE_PER_CYCLE, travelPlayback } = await import("./pokemonAnimation");
+  const { pokemonDisplayHeight } = await import("./pokemonScale");
+  // Squirtle (0.5 m) following a trainer at 3.6 units/s can't walk that fast; it runs.
+  const squirtle = pokemonDisplayHeight(0.5);
+  const seconds = { walk: MOTION_SECONDS.walk(squirtle), run: MOTION_SECONDS.run(squirtle) };
+  const following = travelPlayback(3.6, squirtle, seconds, "walk");
+  expect(following.motion).toBe("run");
+  // Feet keep pace: ground covered per second equals the stride per second.
+  expect(following.rate * STRIDE_PER_CYCLE.run * squirtle / seconds.run).toBeCloseTo(3.6, 5);
+  // A slow stroll stays a walk, and very slow speeds don't freeze the cycle.
+  expect(travelPlayback(0.8, squirtle, seconds, "walk").motion).toBe("walk");
+  expect(travelPlayback(0.05, squirtle, seconds, "walk").rate).toBeGreaterThanOrEqual(0.6);
+  // Arcanine's gallop at ride speed plays close to its natural rate.
+  expect(travelPlayback(5.4, pokemonDisplayHeight(1.9), { walk: 1.3, run: 0.45 }, "run").rate).toBeCloseTo(1, 0);
 });

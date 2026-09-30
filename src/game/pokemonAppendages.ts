@@ -1,7 +1,7 @@
 import { Box3, Bone, Float32BufferAttribute, Mesh, Quaternion, Skeleton, SkinnedMesh, Uint16BufferAttribute, Vector3 } from "three";
 import type { Object3D } from "three";
 
-export const normalizePokemonBone = (name: string) => name.replace(/^\d+[ _]?/, "").replace(/_\d+$/, "")
+export const normalizePokemonBone = (name: string) => name.replace(/^\d+[ _]?/, "").replace(/^Bip\d+_?(?=[A-Z])/, "").replace(/_\d+$/, "")
   // Dragonite uses descriptive exporter names instead of the short Kanto rig names.
   .replace(/^(left|right)_leg_01$/i, (_, side: string) => `${side.toLowerCase() === "left" ? "L" : "R"}Thigh`)
   .replace(/^(left|right)_leg_02$/i, (_, side: string) => `${side.toLowerCase() === "left" ? "L" : "R"}Leg`)
@@ -16,6 +16,7 @@ export function rigPokemonAppendages(scene: Object3D, number: number) {
   const owned: SkinnedMesh[] = [];
   poseCrawlerRest(scene, number);
   poseSerpentRest(scene, number);
+  attachHeldItems(scene, number);
   if (rigidQuadrupeds.has(number)) return rigRigidQuadruped(scene);
   if (partRigs[number]) return rigRigidParts(scene, number);
   if (number !== 42) return rigRigidBody(scene, number);
@@ -110,7 +111,9 @@ export function appendageMotion(bone: Object3D, number: number, frame = new Quat
     const tip = name.endsWith("Tip");
     return { kind: "wing" as const, axis: localAxis(bone, new Vector3(0, insect ? 1 : 0, insect ? 0 : 1), frame),
       offset: side * (insect ? 0.35 : 0.2), amplitude: side * (tip ? 0.18 : insect ? 0.55 : 0.38),
-      phase: tip ? -0.5 : /B1?$/.test(name) ? -0.15 : 0, frequency: insect ? 3 : 1 };
+      // Zubat's authored flight beats ~3 times a second. Birds ~2.2, insects ~3.3 (real insect
+      // wings are a blur, far faster than reads on screen).
+      phase: tip ? -0.5 : /B1?$/.test(name) ? -0.15 : 0, frequency: insect ? 3.5 : 2.2 };
   }
   const tail = name.match(/^([LR]?Tail[A-Z]?)(\d*)$/i);
   if (!tail) return undefined;
@@ -526,4 +529,21 @@ export function rigRigidParts(scene: Object3D, number: number) {
     }));
   }
   return () => { for (const mesh of owned) { mesh.geometry.dispose(); mesh.skeleton.dispose(); } };
+}
+
+
+// Alakazam's spoons hang off top-level joints; the game keys them to its hands. Re-parent them
+// so they follow the hands, keeping their world transform (the skin doesn't move at rest).
+const HELD_ITEMS: Record<number, [item: string, hand: string][]> = { 65: [["LFeelerA", "LHand"], ["RFeelerA", "RHand"]] };
+function attachHeldItems(scene: Object3D, number: number) {
+  const pairs = HELD_ITEMS[number];
+  if (!pairs) return;
+  scene.updateMatrixWorld(true);
+  const byName = new Map<string, Object3D>();
+  scene.traverse(node => { if ((node as Object3D & { isBone?: boolean }).isBone) byName.set(normalizePokemonBone(node.name), node); });
+  for (const [item, hand] of pairs) {
+    const itemBone = byName.get(item), handBone = byName.get(hand);
+    if (itemBone && handBone && itemBone.parent !== handBone) handBone.attach(itemBone);
+  }
+  scene.updateMatrixWorld(true);
 }
