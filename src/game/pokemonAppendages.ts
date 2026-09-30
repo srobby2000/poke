@@ -91,7 +91,9 @@ const wingRoots: Record<number, RegExp> = {
   123: /^[LR]Feeler[AB]$/, 142: /^[LR]Arm$/, 144: /^[LR]Arm$/, 145: /^[LR]Shoulder$/,
   146: /^[LR]UpperArm$/, 149: /^[LR]Wing01$/,
 };
-const insectWings = new Set([12, 15, 49, 123]);
+export const insectWings = new Set([12, 15, 49, 123]);
+/** Whether this (normalized) bone is where a wing attaches to the body. */
+export const isWingRoot = (name: string, number: number) => !!wingRoots[number]?.test(name);
 const curlBudget: Record<number, number> = { 4: 0.6, 5: 0.6, 6: 0.6, 26: 2.8, 37: 1.4, 38: 2.2, 52: 2.5, 53: 0.8, 144: 0.7, 151: 3.0 };
 
 /** Return a rig-local axis: glTF bones do not share a common local orientation.
@@ -102,7 +104,7 @@ function localAxis(bone: Object3D, axis: Vector3, frame = new Quaternion()) {
 
 // Tails that sway side to side (a lizard's), rather than bobbing up and down. Their resting curl
 // is baked into the rest pose (poseTailCurl), so the swing axis is free to be the vertical.
-const swayingTails = new Set([4]);
+const swayingTails = new Set([4, 5, 6]);
 
 export function appendageMotion(bone: Object3D, number: number, frame = new Quaternion()) {
   // Generated rigs store each joint's swing in world space when they build it.

@@ -80,3 +80,19 @@ it("sways Charmander's tail side to side as it walks, more than it bobs", async 
   expect(range(xs)).toBeGreaterThan(range(ys));
   expect(range(xs)).toBeGreaterThan(0.05);
 });
+
+it("gives Charmeleon and Charizard the same burning, rising tail flame", async () => {
+  for (const species of ["charmeleon", "charizard"]) {
+    const definition = POKEMON_MODELS[species];
+    const gltf = await load(definition.number);
+    applyRestPose(gltf.scene, definition.number, gltf.animations);
+    rigPokemonAppendages(gltf.scene, definition.number);
+    const root = stageForDisplay(gltf.scene, definition.number, definition.heightM);
+    const driver = createFlameDriver(gltf.scene, definition.number, 1, { value: 0 });
+    expect(driver, species).not.toBeNull();
+    for (let i = 0; i < 90; i++) { root.updateMatrixWorld(true); driver!.update(1 / 60, { fainted: false }); }
+    const bone = (name: string) => { let found: Object3D | undefined; gltf.scene.traverse(node => { if (!found && normalizePokemonBone(node.name) === name) found = node; }); return found!; };
+    expect(flameDirection(bone("TailA01"), bone("TailA02")).y, species).toBeGreaterThan(0.75);
+    driver!.dispose();
+  }
+});

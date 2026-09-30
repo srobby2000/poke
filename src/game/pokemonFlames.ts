@@ -14,17 +14,24 @@ export type FlameRig = {
   bones: string[];
   /** Colour of the light the flame casts. */
   light: string;
+  /** The textures are greyscale heat masks (Charizard): colour comes from heat, and black is
+   * outside the flame. Otherwise the textures are already painted red and yellow. */
+  mask?: boolean;
+  /** Flame size relative to the Pokémon, for its halo and light. */
+  scale?: number;
 };
 
 export const FLAME_RIGS: Record<number, FlameRig> = {
   4: { core: "Material #36", shell: "Material #37", bones: ["TailA01", "TailA02", "TailA03"], light: "#ff8a2a" },
+  5: { core: "Material #36", shell: "Material #38", bones: ["TailA01", "TailA02", "TailA03"], light: "#ff7a22" },
+  6: { core: "Material_15", shell: "Material_16", bones: ["TailA01", "TailA02", "TailA03", "TailA04"], light: "#ff7418", mask: true, scale: 0.7 },
 };
 
 export type FlameClock = { value: number };
 
 /** Turn a flame material into fire: it glows with its own texture, which scrolls upward so the
  * tongues rise. The shell is additive and see-through, softest at its silhouette. */
-export function burnFlameMaterial(material: MeshStandardMaterial, role: "core" | "shell", clock: FlameClock) {
+export function burnFlameMaterial(material: MeshStandardMaterial, role: "core" | "shell", clock: FlameClock, mask = false) {
   const shell = role === "shell";
   material.emissive.set("#ffffff");
   material.emissiveIntensity = shell ? 1 : 0.85;
@@ -32,6 +39,10 @@ export function burnFlameMaterial(material: MeshStandardMaterial, role: "core" |
     material.transparent = true;
     material.depthWrite = false;
     material.blending = AdditiveBlending;
+  } else if (mask) {
+    // A masked core is cut out where its heat is black.
+    material.transparent = true;
+    material.alphaTest = 0.12;
   }
   material.onBeforeCompile = shader => {
     shader.uniforms.flameTime = clock;
@@ -43,6 +54,11 @@ export function burnFlameMaterial(material: MeshStandardMaterial, role: "core" |
           vec2 flameUv = vMapUv + vec2(sin(vMapUv.y * 9.0 + flameTime * 7.0) * 0.03, -flameTime * ${shell ? "0.55" : "0.22"});
           flame = texture2D(map, flameUv);
         #endif
+        ${mask ? `// A heat mask: hotter is brighter and yellower; black is outside the flame.
+        float heat = flame.r;
+        ${shell ? "" : "diffuseColor.a *= heat;"}
+        flame.rgb = mix(vec3(1.0, 0.16, 0.01), vec3(1.0, 0.8, 0.2), smoothstep(0.6, 1.0, heat));
+        flame.g = smoothstep(0.5, 1.0, heat);` : ""}
         ${shell ? `// The shell's tongues: deep orange, with the yellow wisps burning brighter.
         flame.rgb = mix(vec3(1.0, 0.28, 0.02), vec3(1.0, 0.72, 0.16), smoothstep(0.3, 0.85, flame.g));` : ""}
         // Unlit: the fire makes its own light, so its low-poly facets don't show.
@@ -59,7 +75,7 @@ export function burnFlameMaterial(material: MeshStandardMaterial, role: "core" |
         totalEmissiveRadiance *= diffuseColor.a;` : ""}
       `);
   };
-  material.customProgramCacheKey = () => `pokemon-tail-flame-${role}-v1`;
+  material.customProgramCacheKey = () => `pokemon-tail-flame-${role}${mask ? "-mask" : ""}-v1`;
   material.needsUpdate = true;
 }
 
@@ -173,14 +189,14 @@ export function createFlameDriver(scene: Object3D, number: number, displayHeight
         bone.scale.setComponent((along[i] + 2) % 3, bone.scale.getComponent((along[i] + 2) % 3) * narrow);
       }
       const flicker = 1 + 0.2 * Math.sin(t * 12.7) + 0.12 * Math.sin(t * 21.1);
-      light.intensity = s.glow * displayHeight * displayHeight * 1.6 * flicker;
+      light.intensity = s.glow * displayHeight * displayHeight * 1.6 * (rig.scale ?? 1) * flicker;
       // The halo sits at the middle of the flame, in the scene's own (unscaled) units.
       chain[1].getWorldPosition(haloAt);
       scene.updateWorldMatrix(true, false);
       scene.worldToLocal(haloAt);
       scene.getWorldScale(worldScale);
       halo.position.copy(haloAt);
-      halo.scale.setScalar(displayHeight * 0.55 * s.glow * (0.95 + 0.08 * flicker) / Math.max(worldScale.x, 1e-6));
+      halo.scale.setScalar(displayHeight * 0.55 * (rig.scale ?? 1) * s.glow * (0.95 + 0.08 * flicker) / Math.max(worldScale.x, 1e-6));
       halo.material.opacity = 0.55 * s.glow;
     },
     dispose() { light.removeFromParent(); light.dispose(); halo.removeFromParent(); halo.material.dispose(); },

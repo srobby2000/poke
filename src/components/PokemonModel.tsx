@@ -10,6 +10,7 @@ import type { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { loadPokemonModel } from "../game/loadPokemonModel";
 import { normalizePokemonMaterial } from "../game/pokemonMaterials";
 import { burnFlameMaterial, createFlameDriver, FLAME_RIGS } from "../game/pokemonFlames";
+import { createWingDriver } from "../game/pokemonWings";
 import type { PokemonAction } from "../game/pokemonAnimation";
 import { normalizePokemonBone, rigPokemonAppendages } from "../game/pokemonAppendages";
 import { applyRestPose, createPokemonAnimator, travelPlayback } from "../game/pokemonAnimation";
@@ -92,8 +93,10 @@ function LoadedPokemon({ travelSpeed, effectAnchor, attackEffects, showJoints, p
         if (material instanceof MeshStandardMaterial) {
           materials.push(material);
           if (number === 12) material.side = DoubleSide;
-          if (flameRig && (material.name === flameRig.core || material.name === flameRig.shell)) burnFlameMaterial(material, material.name === flameRig.core ? "core" : "shell", flameClock);
-          const flame = isFlameMaterial(number, material.name);
+          const burning = !!flameRig && (material.name === flameRig.core || material.name === flameRig.shell);
+          if (burning) burnFlameMaterial(material, material.name === flameRig.core ? "core" : "shell", flameClock, flameRig.mask);
+          // Older flame sheets without a flame rig (Rapidash) keep their masked flame surface.
+          const flame = !burning && isFlameMaterial(number, material.name);
           if (flame) {
             material.transparent = true;
             material.depthWrite = false;
@@ -136,7 +139,9 @@ function LoadedPokemon({ travelSpeed, effectAnchor, attackEffects, showJoints, p
     scene.traverse(node => { if (/^Head$/i.test(normalizePokemonBone(node.name))) head ??= node; });
     // Tail flames burn on their own, driven after the clip each frame (see pokemonFlames).
     const flame = createFlameDriver(scene, number, size.y * scale, flameClock);
-    return { scene, head, scale, offset, seat, materials, disposeRig, flame, displayHeight: size.y * scale };
+    // Wing joints past the shoulder drag and fold, after the clip each frame (see pokemonWings).
+    const wings = createWingDriver(scene, number, size.y * scale);
+    return { scene, head, scale, offset, seat, materials, disposeRig, flame, wings, displayHeight: size.y * scale };
   }, [source, animations, number, heightM, fitPreview]);
   const animator = useRef<ReturnType<typeof createPokemonAnimator>>();
   useEffect(() => {
@@ -160,6 +165,7 @@ function LoadedPokemon({ travelSpeed, effectAnchor, attackEffects, showJoints, p
       motion = matched.motion; rate *= matched.rate;
     }
     animator.current?.update(motion, delta * rate, fainted || paused);
+    if (!paused && !fainted) model.wings?.update(delta * rate);
     if (!paused) model.flame?.update(delta * rate, { fainted });
     if (effectAnchor) {
       if (model.head) model.head.getWorldPosition(effectAnchor.current);
