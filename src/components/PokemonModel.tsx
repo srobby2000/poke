@@ -165,7 +165,7 @@ function LoadedPokemon({ travelSpeed, effectAnchor, attackEffects, showJoints, p
       motion = matched.motion; rate *= matched.rate;
     }
     animator.current?.update(motion, delta * rate, fainted || paused);
-    if (!paused && !fainted) model.wings?.update(delta * rate);
+    if (!paused && !fainted) model.wings?.update(delta * rate, animator.current?.getPlayback().action === "idle");
     if (!paused) model.flame?.update(delta * rate, { fainted });
     if (effectAnchor) {
       if (model.head) model.head.getWorldPosition(effectAnchor.current);

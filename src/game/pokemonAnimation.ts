@@ -1,7 +1,7 @@
 import { Box3, AnimationClip, AnimationMixer, Group, LoopOnce, LoopRepeat, NumberKeyframeTrack, PropertyBinding, Quaternion, QuaternionKeyframeTrack, Vector3 } from "three";
 import type { AnimationAction, KeyframeTrack, Object3D } from "three";
 import { POKEMON_LOCOMOTION, isSuspended } from "./pokemonLocomotion";
-import { appendageMotion, normalizePokemonBone } from "./pokemonAppendages";
+import { appendageMotion, isWingRoot, insectWings, normalizePokemonBone } from "./pokemonAppendages";
 import type { PokemonModelDefinition } from "./pokemonModels";
 import { pokemonDisplayHeight } from "./pokemonScale";
 import { MOVE_ARCHETYPES, moveAnimationFor } from "./moveAnimations";
@@ -92,6 +92,36 @@ function relaxedArmPose(bone: Object3D, definition: PokemonModelDefinition, fram
   return new Quaternion().setFromUnitVectors(from, to).multiply(rest);
 }
 
+/** Build a folded pose in the model frame and restore the source before building travel. */
+function foldedWingPose(scene: Object3D, root: Group, number: number) {
+  const saved = new Map<Object3D, Quaternion>();
+  const poses = new Map<Object3D, Quaternion>();
+  scene.updateWorldMatrix(true, true);
+  const frame = root.getWorldQuaternion(new Quaternion());
+  const before = new Box3().setFromObject(scene).min.y;
+  const visit = (bone: Object3D, depth: number) => {
+    saved.set(bone, bone.quaternion.clone());
+    const child = bone.children.find(node => (node as Object3D & { isBone?: boolean }).isBone);
+    if (child && bone.parent && depth < 3) {
+      const inverse = bone.parent.getWorldQuaternion(new Quaternion()).invert();
+      const from = child.getWorldPosition(new Vector3()).sub(bone.getWorldPosition(new Vector3())).normalize().applyQuaternion(inverse);
+      // Roots tuck toward the flank; distal links lie back along the body.
+      const side = bone.getWorldPosition(new Vector3()).sub(scene.getWorldPosition(new Vector3())).applyQuaternion(frame.clone().invert()).x < 0 ? -1 : 1;
+      const to = new Vector3(side * 0.12, depth === 0 && !insectWings.has(number) ? -0.65 : -0.12, -1).normalize().applyQuaternion(frame).applyQuaternion(inverse);
+      bone.quaternion.premultiply(new Quaternion().setFromUnitVectors(from, to));
+      bone.updateWorldMatrix(false, true);
+    }
+    poses.set(bone, bone.quaternion.clone());
+    for (const child of bone.children) if ((child as Object3D & { isBone?: boolean }).isBone) visit(child, depth + 1);
+  };
+  scene.traverse(bone => { if (isWingRoot(boneName(bone.name), number)) visit(bone, 0); });
+  scene.updateWorldMatrix(true, true);
+  const floor = (before - new Box3().setFromObject(scene).min.y) / root.getWorldScale(new Vector3()).y;
+  for (const [bone, pose] of saved) bone.quaternion.copy(pose);
+  scene.updateWorldMatrix(true, true);
+  return { poses, floor: Number.isFinite(floor) ? floor : 0 };
+}
+
 const ease = (value: number) => { const t = Math.max(0, Math.min(1, value)); return t * t * (3 - 2 * t); };
 /** Shared choreography over normalized clip time u (0..1). Every curve returns to 0 at u = 1
  * so clamped one-shots settle on the rest pose. */
@@ -142,7 +172,7 @@ export function createPokemonFallback(scene: Object3D, root: Group, definition: 
   const gain = running ? RUN_GAIN : 1;
   scene.updateWorldMatrix(true, true);
   const frame = root.getWorldQuaternion(new Quaternion());
-  const floating = isSuspended(definition.number);
+  const floating = isSuspended(definition.number) && !(requested === "idle" && POKEMON_LOCOMOTION[definition.number] === "fly");
   const swaying = swayingFamilies.has(definition.family);
   const quadruped = POKEMON_LOCOMOTION[definition.number] === "quadruped";
   const size = Number.isFinite(definition.heightM) ? pokemonDisplayHeight(definition.heightM) : 1;
@@ -199,12 +229,14 @@ export function createPokemonFallback(scene: Object3D, root: Group, definition: 
     const R = name.startsWith("R");
     const appendage = appendageMotion(bone, definition.number, frame);
     if (appendage) {
-      const { axis, offset, amplitude, phase, frequency, kind } = appendage;
+      const { offset, amplitude, phase, frequency, kind } = appendage;
+      const coiled = POKEMON_LOCOMOTION[definition.number] === "slither" && kind === "tail" && motion === "idle";
+      const axis = coiled ? rigAxis(bone, frame, bone.quaternion, 0, 1, 0) : appendage.axis;
       const cycles = Math.max(1, Math.round(duration * frequency));
       const tip = late(strike, kind === "wing" ? 0 : 0.06);
       // At rest the body stays calm and tails, wings and parts carry the motion (authored idles
       // swing them 18–28°): short chains get a floor so they read, long chains stay a wave.
-      const idleAmplitude = kind === "wing" ? amplitude * (floating ? 1.4 : 1) : Math.sign(amplitude || 1) * Math.min(0.22, Math.max(0.1, Math.abs(amplitude) * 2.2));
+      const idleAmplitude = coiled ? 0.035 : kind === "wing" ? amplitude * (floating ? 1.4 : 1) : Math.sign(amplitude || 1) * Math.min(0.22, Math.max(0.1, Math.abs(amplitude) * 2.2));
       const angle = (t: number, u: number) => offset + ({
         idle: Math.sin(cycle(t) * cycles + phase) * idleAmplitude,
         walk: Math.sin(cycle(t) * cycles + phase) * amplitude * 1.5 * gain,
@@ -277,6 +309,19 @@ export function createPokemonFallback(scene: Object3D, root: Group, definition: 
     const values = times.flatMap(t => rest.clone().multiply(new Quaternion().setFromAxisAngle(axis, sample(t, t / duration))).toArray());
     tracks.push(new QuaternionKeyframeTrack(`${bone.uuid}.quaternion`, times, values));
   });
+  if (requested === "idle" && POKEMON_LOCOMOTION[definition.number] === "fly") {
+    const folded = foldedWingPose(scene, root, definition.number);
+    for (const [bone, pose] of folded.poses) {
+      const name = `${bone.uuid}.quaternion`;
+      const existing = tracks.findIndex(track => track.name === name);
+      if (existing >= 0) tracks.splice(existing, 1);
+      tracks.push(new QuaternionKeyframeTrack(name, [0, duration], [...pose.toArray(), ...pose.toArray()]));
+    }
+    const height = tracks.find(track => track.name === `${root.uuid}.position[y]`)!;
+    height.values.fill(folded.floor);
+    // A planted resting pose has no body roll or pitch that could swing folded wings.
+    for (const track of tracks) if ([`${root.uuid}.rotation[x]`, `${root.uuid}.rotation[z]`].includes(track.name)) track.values.fill(0);
+  }
   return new AnimationClip(`procedural-${definition.number}-${requested}`, duration, tracks);
 }
 
@@ -356,7 +401,7 @@ export function closeLoopSeam(source: AnimationClip, fraction = 0.12) {
 /** Authored ground clips must not override a species' chosen travel mode. */
 export function selectSpeciesClip(clips: AnimationClip[], motion: PokemonMotion, number: number) {
   const mode = POKEMON_LOCOMOTION[number];
-  if (number === 41 && ["idle", "walk", "run"].includes(motion)) {
+  if (number === 41 && ["walk", "run"].includes(motion)) {
     const found = clips.find(clip => clip.name === "Take 001" && clip.duration > 0);
     const flight = found && closeLoopSeam(found);
     if (flight && motion === "run") {

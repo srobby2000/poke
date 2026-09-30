@@ -22,6 +22,12 @@ export function ModelReview() {
   return close ? <CloseUp species={close} motion={(params.get("motion") ?? "idle") as PokemonAction} mood={(params.get("mood") ?? "dex") as LightingMood} /> : <ContactSheet params={params} />;
 }
 
+const SERPENT_VIEWS = [
+  { label: "front", turn: 0, pitch: 0 }, { label: "right", turn: -Math.PI / 2, pitch: 0 },
+  { label: "back", turn: Math.PI, pitch: 0 }, { label: "left", turn: Math.PI / 2, pitch: 0 },
+  { label: "top", turn: 0, pitch: Math.PI / 2 }, { label: "three-quarter", turn: 0.5, pitch: 0.2 },
+];
+
 function CloseUp({ species: name, motion, mood }: { species: string; motion: PokemonAction; mood: LightingMood }) {
   const [ready, setReady] = useState(false);
   useEffect(() => {
@@ -29,15 +35,20 @@ function CloseUp({ species: name, motion, mood }: { species: string; motion: Pok
     if (model) loadPokemonModel(model.number).then(() => setTimeout(() => setReady(true), 1500));
   }, [name]);
   const size = 420;
-  return <div data-ready={ready} style={{ position: "relative", width: size * VIEWS.length, height: size, fontFamily: "system-ui, sans-serif" }}>
-    <Canvas orthographic dpr={1} frameloop="always" shadows style={{ width: size * VIEWS.length, height: size }} camera={{ position: [0, 0.75, 20], zoom: size / 2.5, near: 0.1, far: 100 }}>
+  const allViews = new URLSearchParams(location.search).get("views") === "all";
+  const views = allViews ? SERPENT_VIEWS : VIEWS.map(view => ({ ...view, pitch: 0.12 }));
+  const height = size * (allViews ? 2 : 1);
+  return <div data-ready={ready} style={{ position: "relative", width: size * VIEWS.length, height, fontFamily: "system-ui, sans-serif" }}>
+    <Canvas orthographic dpr={1} frameloop="always" shadows style={{ width: size * VIEWS.length, height }} camera={{ position: [0, 0.75, 20], zoom: size / 2.5, near: 0.1, far: 100 }}>
       <color attach="background" args={["#1d2733"]} />
       <PokemonLighting mood={mood} />
-      {VIEWS.map(({ label, turn }, index) => <group key={label} position={[(index - 1) * 2.5, -0.15, 0]} rotation={[0.12, turn, 0]}>
+      {views.map(({ label, turn, pitch }, index) => <group key={label} position={[((index % 3) - 1) * 2.5, allViews ? (index < 3 ? 1.6 : -0.9) : 0.6, 0]}>
+        <group rotation={[pitch, turn, 0]}><group position={[0, -0.75, 0]}>
         <PokemonModel species={name} fitPreview animation={motion} />
+        </group></group>
       </group>)}
     </Canvas>
-    {VIEWS.map(({ label }, index) => <span key={label} style={{ position: "absolute", left: index * size + 8, top: 6, color: "#cfd8e3", fontSize: 12 }}>{name} · {motion} · {label}</span>)}
+    {views.map(({ label }, index) => <span key={label} style={{ position: "absolute", left: (index % 3) * size + 8, top: Math.floor(index / 3) * size + 6, color: "#cfd8e3", fontSize: 12 }}>{name} · {motion} · {label}</span>)}
   </div>;
 }
 

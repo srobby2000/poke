@@ -12,7 +12,7 @@ import { insectWings, isWingRoot, normalizePokemonBone } from "./pokemonAppendag
  *  - all through: each joint past the shoulder drags against the air through a soft spring,
  *    so the tip trails the beat and whips over at the top and bottom.
  * Insect wings are stiff panels: they twist a little and flex a little, and never fold. */
-export type WingDriver = { update: (delta: number) => void };
+export type WingDriver = { update: (delta: number, resting?: boolean) => void };
 
 type Joint = {
   bone: Object3D;
@@ -85,7 +85,7 @@ export function createWingDriver(scene: Object3D, number: number, displayHeight:
     into.multiply(s.turn.setFromAxisAngle(s.local.copy(axis).normalize().applyQuaternion(s.inverse), angle));
   };
   return {
-    update(delta) {
+    update(delta, resting = false) {
       const dt = Math.min(delta, 0.05);
       if (dt <= 0) return;
       // Start from the clip's pose. A joint the clip doesn't animate still shows last frame's
@@ -93,6 +93,14 @@ export function createWingDriver(scene: Object3D, number: number, displayHeight:
       for (const j of all) {
         if (!j.bone.quaternion.equals(j.output)) j.clip.copy(j.bone.quaternion);
         j.bone.quaternion.copy(j.clip);
+      }
+      if (resting) {
+        for (const j of all) {
+          j.extra.identity(); j.shape.identity(); j.velocity.set(0, 0, 0); j.started = false;
+          j.output.copy(j.bone.quaternion);
+        }
+        for (const wing of wings) { wing.started = false; wing.rate = 0; wing.peak = 1e-3; }
+        return;
       }
       scene.updateWorldMatrix(true, true);
       scene.getWorldQuaternion(s.world);

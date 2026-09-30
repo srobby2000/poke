@@ -43,9 +43,9 @@ export const MOTION_TARGETS: Record<PokemonLocomotion, Record<Motion, MotionBand
     attack: { ...ATTACK, bob: [0, 5], peak: [45] },
     hit: { ...HIT, peak: [30] },
   },
-  // Zubat's flight: wings ~99°, 2.8 beats/s. Flyers also bob while holding position.
+  // Zubat's travel: wings ~99°, 2.8 beats/s. Resting flyers land and fold wings.
   fly: {
-    idle: { ...IDLE, peak: [20] },
+    idle: { ...IDLE, bob: [0, 1] },
     walk: { duration: [0.8, 2.2], peak: [45], beatHz: [1.2, 4] },
     run: { duration: [0.5, 1.6], peak: [45], beatHz: [1.5, 5] },
     attack: ATTACK, hit: HIT,

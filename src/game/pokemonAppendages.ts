@@ -1,4 +1,4 @@
-import { Box3, Bone, Float32BufferAttribute, Mesh, Quaternion, Skeleton, SkinnedMesh, Uint16BufferAttribute, Vector3 } from "three";
+import { Box3, Bone, CatmullRomCurve3, Float32BufferAttribute, Matrix4, Mesh, Quaternion, Skeleton, SkinnedMesh, Uint16BufferAttribute, Vector3 } from "three";
 import type { Object3D } from "three";
 
 export const normalizePokemonBone = (name: string) => name.replace(/^\d+[ _]?/, "").replace(/^Bip\d+_?(?=[A-Z])/, "").replace(/_\d+$/, "")
@@ -15,7 +15,8 @@ export const normalizePokemonBone = (name: string) => name.replace(/^\d+[ _]?/, 
 export function rigPokemonAppendages(scene: Object3D, number: number) {
   const owned: SkinnedMesh[] = [];
   poseCrawlerRest(scene, number);
-  poseSerpentRest(scene, number);
+  const serpentRig = poseSerpentRest(scene, number);
+  if (serpentRig) return serpentRig;
   poseTailCurl(scene, number);
   attachHeldItems(scene, number);
   if (rigidQuadrupeds.has(number)) return rigRigidQuadruped(scene);
@@ -85,7 +86,7 @@ function poseCrawlerRest(scene: Object3D, number: number) {
 }
 
 const wingRoots: Record<number, RegExp> = {
-  6: /^[LR]Feeler1$/, 12: /^[LR]Feeler[AB]1$/, 15: /^[LR]Feeler[AB]$/,
+  41: /^Bone00[16]$/, 6: /^[LR]Feeler1$/, 12: /^[LR]Feeler[AB]1$/, 15: /^[LR]Feeler[AB]$/,
   16: /^[LR]Arm$/, 17: /^[LR]Arm$/, 18: /^[LR]Arm$/, 21: /^[LR]Arm$/, 22: /^[LR]Arm$/,
   42: /^[LR]Wing$/, 49: /^[LR]Feeler[AB]1$/, 83: /^[LR]Arm$/,
   123: /^[LR]Feeler[AB]$/, 142: /^[LR]Arm$/, 144: /^[LR]Arm$/, 145: /^[LR]Shoulder$/,
@@ -120,6 +121,12 @@ export function appendageMotion(bone: Object3D, number: number, frame = new Quat
       // Zubat's authored flight beats ~3 times a second. Birds ~2.2, insects ~3.3 (real insect
       // wings are a blur, far faster than reads on screen).
       phase: tip ? -0.5 : /B1?$/.test(name) ? -0.15 : 0, frequency: insect ? 3.5 : 2.2 };
+  }
+  if ([72, 73, 138, 139].includes(number) && /^(?:[LR])?Feeler[A-Z]?\d*$/.test(name)) {
+    const segment = Number(name.match(/\d+$/)?.[0] ?? 1);
+    const branch = name.match(/Feeler([A-Z])/)?.[1].charCodeAt(0) ?? 65;
+    return { kind: "part" as const, axis: localAxis(bone, new Vector3(1, 0, 0), frame),
+      offset: 0.12, amplitude: 0.11, phase: -segment * 0.65 + (branch - 65) * 0.8 + (name.startsWith("R") ? Math.PI : 0), frequency: 0.5 };
   }
   const motion = tailMotion(bone, number, frame);
   if (!motion || !swayingTails.has(number)) return motion;
@@ -264,16 +271,205 @@ export function rigRigidBody(scene: Object3D, number: number) {
 }
 
 
-/** Give straight bind-pose snakes a curved rest silhouette before measuring
- * their display bounds. Changes affect the cloned rig only, never skin binds. */
+/** Add deformation joints and geometry samples before posing. All buffers and skeletons
+ * are owned by this instance; the loader's shared geometry and inverse binds stay intact. */
+function refineSerpentSkin(scene: Object3D, chains: Object3D[][]) {
+  scene.updateWorldMatrix(true, true);
+  const meshes: SkinnedMesh[] = [];
+  scene.traverse(node => { if (node instanceof SkinnedMesh) meshes.push(node); });
+  const spans: { bone: Object3D; child: Object3D; from: Vector3; to: Vector3; joints: Object3D[] }[] = [];
+  const expanded = chains.map(chain => {
+    const result: Object3D[] = [];
+    for (let i = 0; i < chain.length - 1; i++) {
+      const bone = chain[i], child = chain[i + 1];
+      result.push(bone);
+      if (child.parent !== bone) continue;
+      const from = bone.getWorldPosition(new Vector3()), to = child.getWorldPosition(new Vector3());
+      const step = child.position.clone().multiplyScalar(0.2);
+      let parent = bone;
+      const joints = [bone];
+      for (let j = 1; j < 5; j++) {
+        const joint = new Bone(); joint.name = `Coil_${bone.name}_${j}`;
+        joint.position.copy(step); parent.add(joint); parent = joint;
+        joints.push(joint); result.push(joint);
+      }
+      parent.add(child); child.position.copy(step);
+      spans.push({ bone, child, from, to, joints });
+    }
+    result.push(chain[chain.length - 1]);
+    return result;
+  });
+  scene.updateWorldMatrix(true, true);
+  for (const mesh of meshes) {
+    const source = mesh.geometry;
+    const oldSkeleton = mesh.skeleton;
+    const bones = oldSkeleton.bones.map(bone => (scene.getObjectByName(bone.name) as Bone | undefined) ?? bone);
+    const inverses = oldSkeleton.boneInverses.map(matrix => matrix.clone());
+    for (const span of spans) for (const bone of span.joints.slice(1)) {
+      bones.push(bone as Bone); inverses.push(bone.matrixWorld.clone().invert().multiply(mesh.matrixWorld));
+    }
+    // Subdivide triangles twice without smoothing away the original silhouette or UVs.
+    // New weights are fitted below, so interpolating integer joint indices is unnecessary.
+    const geometry = source.index ? source.toNonIndexed() : source.clone();
+    const vertexInfluences = Array.from({ length: geometry.attributes.position.count }, (_, i) =>
+      [0, 1, 2, 3].map(k => ({ index: geometry.attributes.skinIndex.getComponent(i, k), weight: geometry.attributes.skinWeight.getComponent(i, k) })));
+    const attributes = Object.entries(geometry.attributes).filter(([name]) => name !== "skinIndex" && name !== "skinWeight");
+    let indices = Array.from({ length: geometry.attributes.position.count }, (_, i) => i);
+    const data = Object.fromEntries(attributes.map(([name, attr]) => [name, Array.from(attr.array)]));
+    for (let pass = 0; pass < 2; pass++) {
+      const next: number[] = [];
+      const midpoint = (a: number, b: number) => {
+        const index = data.position.length / 3;
+        for (const [name, attr] of attributes) for (let k = 0; k < attr.itemSize; k++) data[name].push((data[name][a * attr.itemSize + k] + data[name][b * attr.itemSize + k]) / 2);
+        const combined = new Map<number, number>();
+        for (const influence of [...vertexInfluences[a], ...vertexInfluences[b]]) combined.set(influence.index, (combined.get(influence.index) ?? 0) + influence.weight / 2);
+        vertexInfluences.push([...combined].map(([index, weight]) => ({ index, weight })).sort((a, b) => b.weight - a.weight).slice(0, 4));
+        return index;
+      };
+      for (let i = 0; i < indices.length; i += 3) {
+        const [a, b, c] = indices.slice(i, i + 3), ab = midpoint(a, b), bc = midpoint(b, c), ca = midpoint(c, a);
+        next.push(a, ab, ca, ab, b, bc, ca, bc, c, ab, bc, ca);
+      }
+      indices = next;
+    }
+    for (const [name, attr] of attributes) geometry.setAttribute(name, new Float32BufferAttribute(data[name], attr.itemSize));
+    geometry.setIndex(indices);
+    // Expand material groups by the same number of child triangles.
+    geometry.groups.forEach(group => { group.start *= 16; group.count *= 16; });
+    const skinIndices: number[] = [], weights: number[] = [];
+    const position = geometry.attributes.position;
+    const v = new Vector3(), nearest = new Vector3();
+    // The source meshes have a straight body. Project each sample onto its nearest
+    // rest segment; outside that body region retain the nearest original skin weights.
+    for (let i = 0; i < position.count; i++) {
+      v.fromBufferAttribute(position, i).applyMatrix4(mesh.matrixWorld);
+      let best = Infinity, chosen: typeof spans[number] | undefined, along = 0;
+      for (const span of spans) {
+        const direction = span.to.clone().sub(span.from);
+        const t = Math.max(0, Math.min(1, v.clone().sub(span.from).dot(direction) / direction.lengthSq()));
+        const d = nearest.copy(span.from).addScaledVector(direction, t).distanceToSquared(v);
+        if (d < best) { best = d; chosen = span; along = t; }
+      }
+      const influences = vertexInfluences[i];
+      const bodyWeight = influences.filter(influence => spans.some(span => span.bone === bones[influence.index])).reduce((sum, influence) => sum + influence.weight, 0);
+      let fitted = influences;
+      if (chosen && bodyWeight > 0) {
+        const t = along * 5, left = Math.min(4, Math.floor(t)), blend = t - left;
+        fitted = [
+          { index: bones.indexOf(chosen.joints[left] as Bone), weight: (1 - blend) * bodyWeight },
+          { index: bones.indexOf((chosen.joints[left + 1] ?? chosen.child) as Bone), weight: blend * bodyWeight },
+          ...influences.filter(influence => !spans.some(span => span.bone === bones[influence.index])),
+        ];
+      }
+      fitted = fitted.sort((a, b) => b.weight - a.weight).slice(0, 4);
+      while (fitted.length < 4) fitted.push({ index: 0, weight: 0 });
+      const totalWeight = fitted.reduce((sum, influence) => sum + influence.weight, 0);
+      skinIndices.push(...fitted.map(influence => influence.index));
+      weights.push(...fitted.map(influence => influence.weight / totalWeight));
+    }
+    geometry.setAttribute("skinIndex", new Uint16BufferAttribute(skinIndices, 4));
+    geometry.setAttribute("skinWeight", new Float32BufferAttribute(weights, 4));
+    mesh.geometry = geometry;
+    mesh.skeleton = new Skeleton(bones, inverses);
+    mesh.frustumCulled = false;
+  }
+  return { chains: expanded, dispose: () => { for (const mesh of meshes) { mesh.geometry.dispose(); mesh.skeleton.dispose(); } } };
+}
+
+/** Rest silhouettes fitted to the official Pokédex artwork (see pokemon-resting-review.md).
+ * The lower spine is part of a snake's coil, not a vertical post above a curled tail.
+ * Angles describe anatomical directions in the scene frame; joint lengths stay untouched. */
 function poseSerpentRest(scene: Object3D, number: number) {
   if (![23, 24, 147, 148].includes(number)) return;
   scene.updateWorldMatrix(true, true);
-  const tail: Object3D[] = [];
-  scene.traverse(bone => { if (bone.type === "Bone" && /^Tail\d+$/.test(normalizePokemonBone(bone.name))) tail.push(bone); });
-  const rotations = tail.map(bone => ({ bone, axis: localAxis(bone, new Vector3(1, 0, 0)) }));
-  for (const { bone, axis } of rotations) bone.quaternion.multiply(new Quaternion().setFromAxisAngle(axis, 2.8 / tail.length));
+  const bones: Object3D[] = [];
+  scene.traverse(bone => { if (bone.type === "Bone") bones.push(bone); });
+  const chain = (prefix: string) => bones.filter(b => new RegExp(`^${prefix}\\d+$`).test(normalizePokemonBone(b.name)))
+    .sort((a, b) => Number(normalizePokemonBone(a.name).slice(prefix.length)) - Number(normalizePokemonBone(b.name).slice(prefix.length)));
+  const tail = chain("Tail"), spine = chain("Spine");
+  const hips = bones.find(b => normalizePokemonBone(b.name) === "Hips");
+  if (hips && tail[0]?.parent === hips) tail.unshift(hips);
+  const head = bones.find(b => normalizePokemonBone(b.name) === "Head");
+  const headWorld = head?.getWorldQuaternion(new Quaternion());
+  const spineEnd = spine[spine.length - 1]?.children.find(b => /^(Neck|Head)$/.test(normalizePokemonBone(b.name)));
+  const refinement = refineSerpentSkin(scene, [tail, spineEnd ? [...spine, spineEnd] : spine]);
+  const [denseTail, denseSpine] = refinement.chains;
+  const frame = scene.getWorldQuaternion(new Quaternion());
+  const bindDirections = new Map<Object3D, { direction: Vector3; rotation: Quaternion }>();
+  for (const chain of [denseTail, denseSpine]) for (let i = 0; i < chain.length - 1; i++) {
+    bindDirections.set(chain[i], { direction: chain[i + 1].getWorldPosition(new Vector3()).sub(chain[i].getWorldPosition(new Vector3())).normalize(), rotation: chain[i].getWorldQuaternion(new Quaternion()) });
+  }
+  const orientation = (direction: Vector3, belly: Vector3) => {
+    belly.addScaledVector(direction, -belly.dot(direction)).normalize();
+    const side = new Vector3().crossVectors(direction, belly).normalize();
+    return new Quaternion().setFromRotationMatrix(new Matrix4().makeBasis(side, direction, belly));
+  };
+  const aim = (bone: Object3D, _child: Object3D, yaw: number, elevation: number) => {
+    if (!bone.parent) return;
+    scene.updateWorldMatrix(true, true);
+    const bind = bindDirections.get(bone)!;
+    const direction = new Vector3(Math.sin(yaw) * Math.cos(elevation), Math.sin(elevation), Math.cos(yaw) * Math.cos(elevation));
+    // Keep belly scales facing the floor around the coil, and forward on the neck.
+    // A chain of shortest-arc swings accumulates twist and pinches the skin at the join.
+    const belly = new Vector3(0, -Math.cos(elevation), Math.abs(Math.sin(elevation))).applyQuaternion(frame);
+    direction.applyQuaternion(frame);
+    const from = orientation(bind.direction.clone(), new Vector3(0, 0, 1).applyQuaternion(frame));
+    const to = orientation(direction, belly);
+    bone.quaternion.copy(bone.parent.getWorldQuaternion(new Quaternion()).invert().multiply(to).multiply(from.invert()).multiply(bind.rotation));
+  };
+  // Lower body turns into the raised neck. Ekans uses a second, rising turn;
+  // Arbok keeps the hood's upper joints upright. Dratini remains an open J curve.
+  const neck: Record<number, [number, number][]> = {
+    23: [[0, 0.2], [1.05, 0.25], [2.1, 0.3], [3.15, 0.3], [4.2, 0.4], [5.25, 0.55], [6.0, 0.85], [6.25, 1.1]],
+    24: [[0, 0.2], [0.65, 0.5], [0.8, 0.9], [0.6, 1.25]],
+    147: [[0, 0.5], [0, 1.0], [0, 1.35], [0, 1.5]],
+    148: [[-1.1, 0.5], [-1.0, 0.8], [-0.7, 1.1], [0, 1.4], [0.7, 1.35], [0.8, 1.2], [0.5, 1.25]],
+  };
+  const lengthOf = (chain: Object3D[]) => chain.slice(1).reduce((sum, bone, i) => sum + bone.getWorldPosition(new Vector3()).distanceTo(chain[i].getWorldPosition(new Vector3())), 0);
+  const spineLength = lengthOf(denseSpine), tailLength = lengthOf(denseTail);
+  const makeUpperCoil = (radius: number) => {
+    const center = tailLength * 0.8 / (Math.PI * 2);
+    const lift = spineLength * 0.065;
+    const points = [new Vector3(), new Vector3(0, center * 0.25 * 0.13, center * 0.25)];
+    for (let j = 0; j <= 18; j++) {
+      const angle = j / 18 * Math.PI * 1.85;
+      points.push(new Vector3(center - radius * Math.cos(angle), lift * (1 + j / 18 * 0.25), radius * Math.sin(angle)));
+    }
+    const end = points[points.length - 1];
+    points.push(end.clone().add(new Vector3(-radius * 0.2, spineLength * 0.09, radius * 0.4)), end.clone().add(new Vector3(-radius * 0.4, spineLength * 0.18, radius * 0.65)));
+    return new CatmullRomCurve3(points, false, "centripetal");
+  };
+  // Fit the upper turn to the available body length, centered over the lower turn.
+  let low = spineLength * 0.01, high = spineLength * 0.2;
+  for (let i = 0; i < 16; i++) { const mid = (low + high) / 2; if (makeUpperCoil(mid).getLength() > spineLength) high = mid; else low = mid; }
+  const upperCoil = makeUpperCoil((low + high) / 2);
+  let spineDistance = 0;
+  for (let i = 0; i < denseSpine.length - 1; i++) {
+    const coordinate = i / 5, index = Math.floor(coordinate), blend = coordinate - index;
+    const a = neck[number][index] ?? [0, Math.PI / 2], b = neck[number][index + 1] ?? a;
+    let yaw = a[0] + (b[0] - a[0]) * blend, elevation = a[1] + (b[1] - a[1]) * blend;
+    if (number === 23) {
+      const direction = upperCoil.getTangentAt(spineDistance / spineLength);
+      yaw = Math.atan2(direction.x, direction.z); elevation = Math.asin(direction.y);
+    }
+    spineDistance += denseSpine[i + 1].getWorldPosition(new Vector3()).distanceTo(denseSpine[i].getWorldPosition(new Vector3()));
+    aim(denseSpine[i], denseSpine[i + 1], yaw, elevation);
+  }
+  const lengths = denseTail.slice(1).map(b => b.position.length());
+  const total = lengths.reduce((a, b) => a + b, 0);
+  let distance = 0;
+  for (let i = 0; i < denseTail.length - 1; i++) {
+    const u = distance / total;
+    const turn = number === 23 ? 6.0 : number === 24 ? 4.7 : number === 147 ? 0.5 : 5.0;
+    const elevation = number === 147 ? -0.5 + 0.95 * u : -0.13 * Math.max(0, 1 - u * 5) + Math.max(0, (u - (number === 23 ? 0.8 : 0.65)) / (number === 23 ? 0.2 : 0.35)) * 1.1;
+    aim(denseTail[i], denseTail[i + 1], Math.PI - (number === 23 ? Math.PI * 2 * Math.min(u / 0.8, 1) : turn * u), elevation);
+    distance += lengths[i];
+  }
+  // Face forward after the neck bends; avoid turning the head into the coil.
   scene.updateWorldMatrix(true, true);
+  if (head?.parent && headWorld) head.quaternion.copy(head.parent.getWorldQuaternion(new Quaternion()).invert().multiply(headWorld));
+  scene.updateWorldMatrix(true, true);
+  return refinement.dispose;
 }
 
 // Rigid four-legged assets. Models face +Z; legs are found from the geometry.

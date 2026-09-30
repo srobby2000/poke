@@ -217,9 +217,9 @@ it("animates wing hinges and distal tail bones that the old name filter skipped"
     expect(appendages.length, `#${number}`).toBeGreaterThan(0);
     const definition = Object.values(POKEMON_MODELS).find(entry => entry.number === number)!;
     const animator = createPokemonAnimator(scene, root, definition, gltf.animations);
-    animator.update("idle", 0.05);
+    animator.update("walk", 0.05);
     const before = appendages.map(bone => bone.quaternion.clone());
-    animator.update("idle", 0.1);
+    animator.update("walk", 0.1);
     expect(appendages.every((bone, i) => bone.quaternion.angleTo(before[i]) > 0.00001), `#${number} every appendage should move`).toBe(true);
     animator.dispose();
   }

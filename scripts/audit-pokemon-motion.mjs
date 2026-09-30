@@ -2,6 +2,8 @@
  * Poses and joints only: flat colour, no textures, materials or lighting. For skins as the game
  * draws them, use scripts/review-pokemon-skins.mjs.
  * node scripts/audit-pokemon-motion.mjs [output-directory]
+ * Add --serpents for Ekans, Arbok, Dratini, Dragonair: idle front/quarter/right/left/back/top,
+ * late idle quarter, and travel quarter, one species per row.
  * Ten columns: idle, walk, run, attack, hit, each sampled at 0.12s and 0.36s.
  */
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
@@ -9,6 +11,7 @@ import { deflateSync } from 'node:zlib';
 import ts from 'typescript';
 import { Box3, Group, Vector3 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+const serpentReview = process.argv.includes('--serpents');
 const output = process.argv[2] ?? 'docs/model-review/locomotion';
 await mkdir(output, { recursive: true });
 const compile = async (path, replacements = {}) => {
@@ -20,6 +23,7 @@ const compile = async (path, replacements = {}) => {
 const locomotion = await compile('src/game/pokemonLocomotion.ts');
 const appendages = await compile('src/game/pokemonAppendages.ts');
 const { rigPokemonAppendages } = await import(appendages);
+const { createWingDriver } = await import(await compile('src/game/pokemonWings.ts', { './pokemonAppendages': appendages }));
 const scale = await compile('src/game/pokemonScale.ts');
 const { pokemonDisplayHeight, pokemonMeasurement } = await import(scale);
 const heights = JSON.parse(await readFile('src/game/pokemonHeights.json', 'utf8'));
@@ -28,17 +32,22 @@ const moveCatalog = await compile('src/game/moveAnimations.ts', { './pokemonLear
 const { applyRestPose, createPokemonAnimator, selectSpeciesClip } = await import(await compile('src/game/pokemonAnimation.ts', { './pokemonLocomotion': locomotion, './pokemonAppendages': appendages, './pokemonScale': scale, './moveAnimations': moveCatalog }));
 const catalog = (await readFile('src/game/pokemonModels.ts', 'utf8')).split('const catalog = `')[1].split('`;')[0].split('\n');
 globalThis.self = globalThis;
-const cell = 144, columns = 10, rows = 8, width = cell * columns, height = cell * rows;
+const cell = serpentReview ? 256 : 144, columns = serpentReview ? 8 : 10, rows = serpentReview ? 4 : 8, width = cell * columns, height = cell * rows;
 let pixels;
 const clear = () => { pixels = Buffer.alloc(width * height * 4); for (let i = 0; i < width * height; i++) pixels.set([19, 27, 41, 255], i * 4); };
 clear();
 const crcTable = Array.from({ length: 256 }, (_, n) => { for (let k = 0; k < 8; k++) n = n & 1 ? 0xedb88320 ^ n >>> 1 : n >>> 1; return n >>> 0; });
 const chunk = (name, data) => { const type = Buffer.from(name); const body = Buffer.concat([type, data]); let crc = 0xffffffff; for (const b of body) crc = crcTable[(crc ^ b) & 255] ^ crc >>> 8; const h = Buffer.alloc(4), c = Buffer.alloc(4); h.writeUInt32BE(data.length); c.writeUInt32BE((crc ^ 0xffffffff) >>> 0); return Buffer.concat([h, body, c]); };
 async function save(page) { const raw = Buffer.alloc(height * (width * 4 + 1)); for (let y = 0; y < height; y++) pixels.copy(raw, y * (width * 4 + 1) + 1, y * width * 4, (y + 1) * width * 4); const header = Buffer.alloc(13); header.writeUInt32BE(width); header.writeUInt32BE(height, 4); header[8] = 8; header[9] = 6; await writeFile(`${output}/sheet-${String(page).padStart(2, '0')}.png`, Buffer.concat([Buffer.from([137,80,78,71,13,10,26,10]), chunk('IHDR', header), chunk('IDAT', deflateSync(raw)), chunk('IEND', Buffer.alloc(0))])); }
-function draw(root, col, row, span, center) {
+function draw(root, col, row, span, center, view = "quarter") {
   const depth = new Float64Array(cell * cell).fill(-Infinity);
   const originX = col * cell, originY = row * cell;
-  const project = p => { const x = p.x - center.x, y = p.y - center.y, z = p.z - center.z; return [(0.857 * x - 0.514 * z) * span + cell / 2, -(y * 0.955 - x * 0.153 - z * 0.255) * span + cell / 2, x * 0.491 + y * 0.297 + z * 0.818]; };
+  const project = p => { const x = p.x - center.x, y = p.y - center.y, z = p.z - center.z; if (view === "front") return [x * span + cell / 2, -y * span + cell / 2, z];
+    if (view === "back") return [-x * span + cell / 2, -y * span + cell / 2, -z];
+    if (view === "left") return [z * span + cell / 2, -y * span + cell / 2, -x];
+    if (view === "side") return [-z * span + cell / 2, -y * span + cell / 2, x];
+    if (view === "top") return [x * span + cell / 2, z * span + cell / 2, y];
+    return [(0.857 * x - 0.514 * z) * span + cell / 2, -(y * 0.955 - x * 0.153 - z * 0.255) * span + cell / 2, x * 0.491 + y * 0.297 + z * 0.818]; };
   const dot = (x, y, color) => { if (x >= 0 && y >= 0 && x < cell && y < cell) pixels.set([...color, 255], ((originY + y) * width + originX + x) * 4); };
   root.updateMatrixWorld(true);
   root.traverse(mesh => {
@@ -75,7 +84,8 @@ function draw(root, col, row, span, center) {
 }
 const { POKEMON_LOCOMOTION } = await import(locomotion);
 const report=[];
-for(let number=1;number<=151;number++){
+const numbers = serpentReview ? [23,24,147,148] : Array.from({length:151},(_,i)=>i+1);
+for(const [reviewIndex, number] of numbers.entries()){
   const [species,family]=catalog[number-1].split(' ');
   const bytes=await readFile(`public/models/pokemon/${number}.glb`);
   const loader=new GLTFLoader();loader.register(()=>({name:'NO_TEXTURE_DECODE',loadTexture:()=>Promise.resolve(null)}));
@@ -92,16 +102,27 @@ for(let number=1;number<=151;number++){
   const span=cell*0.68/Math.max(size.x,size.y,size.z);
   let bones=0;root.traverse(n=>{if(n.isBone)bones++;});
   const motions=['idle','walk','run','attack','hit'];
-  for(let m=0;m<motions.length;m++){
+  if (serpentReview) {
     const animator=createPokemonAnimator(gltf.scene,root,{number,family,heightM},gltf.animations);
+    for(let i=0;i<60;i++)animator.update('idle',1/60);
+    for(const [col,view] of ['front','quarter','side','left','back','top'].entries())draw(root,col,reviewIndex,span,center,view);
+    for(let i=0;i<120;i++)animator.update('idle',1/60);
+    draw(root,6,reviewIndex,span,center);
+    for(let i=0;i<60;i++)animator.update('walk',1/60);
+    draw(root,7,reviewIndex,span,center);
+    animator.dispose();
+  }
+  for(let m=0;!serpentReview && m<motions.length;m++){
+    const animator=createPokemonAnimator(gltf.scene,root,{number,family,heightM},gltf.animations);
+    const wings = createWingDriver(gltf.scene, number, size.y);
     for(let phase=0;phase<2;phase++){
-      const duration=phase?0.24:0.12;for(let i=0;i<12;i++)animator.update(motions[m],duration/12);
+      const duration=phase?0.24:0.12;for(let i=0;i<12;i++){ animator.update(motions[m],duration/12); wings?.update(duration/12, motions[m] === "idle"); }
       draw(root,m*2+phase,(number-1)%rows,span,center);
     }
     animator.dispose();
   }
-  report.push({number,species,locomotion:POKEMON_LOCOMOTION[number],sourceBones:originalBones,runtimeBones:bones,clips:Object.fromEntries(motions.map(m=>[m,selectSpeciesClip(gltf.animations,m,number)?.name??'procedural'])),sheet:Math.ceil(number/rows),row:(number-1)%rows+1});
+  report.push({number,species,locomotion:POKEMON_LOCOMOTION[number],sourceBones:originalBones,runtimeBones:bones,clips:Object.fromEntries(motions.map(m=>[m,selectSpeciesClip(gltf.animations,m,number)?.name??'procedural'])),sheet:serpentReview?1:Math.ceil(number/rows),row:serpentReview?reviewIndex+1:(number-1)%rows+1});
   dispose();
-  if(number%rows===0||number===151){await save(Math.ceil(number/rows));clear();console.log(`Rendered #${number}`);}
+  if(serpentReview ? reviewIndex===numbers.length-1 : number%rows===0||number===151){await save(serpentReview ? 1 : Math.ceil(number/rows));clear();console.log(`Rendered #${number}`);}
 }
 await writeFile(`${output}/audit.json`,JSON.stringify(report,null,2)+'\n');

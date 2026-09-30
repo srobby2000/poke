@@ -1,0 +1,66 @@
+[
+  {
+    "number": 23,
+    "species": "ekans",
+    "locomotion": "slither",
+    "sourceBones": 25,
+    "runtimeBones": 109,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 1,
+    "row": 1
+  },
+  {
+    "number": 24,
+    "species": "arbok",
+    "locomotion": "slither",
+    "sourceBones": 26,
+    "runtimeBones": 102,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 1,
+    "row": 2
+  },
+  {
+    "number": 147,
+    "species": "dratini",
+    "locomotion": "slither",
+    "sourceBones": 16,
+    "runtimeBones": 60,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 1,
+    "row": 3
+  },
+  {
+    "number": 148,
+    "species": "dragonair",
+    "locomotion": "slither",
+    "sourceBones": 24,
+    "runtimeBones": 92,
+    "clips": {
+      "idle": "procedural",
+      "walk": "procedural",
+      "run": "procedural",
+      "attack": "procedural",
+      "hit": "procedural"
+    },
+    "sheet": 1,
+    "row": 4
+  }
+]
