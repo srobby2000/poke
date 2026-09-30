@@ -5,7 +5,7 @@ import type { Object3D } from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import type { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { applyRestPose, createPokemonFallback, selectSpeciesClip } from "./pokemonAnimation";
-import { normalizePokemonBone, rigPokemonAppendages } from "./pokemonAppendages";
+import { normalizePokemonBone, rigPokemonAppendages, SERPENT_HEAD_NOD } from "./pokemonAppendages";
 import { POKEMON_MODELS } from "./pokemonModels";
 import { stageForDisplay } from "./pokemonMotionMetrics";
 import { pokemonDisplayHeight } from "./pokemonScale";
@@ -152,7 +152,15 @@ it("fits distinct serpent silhouettes, preserving lengths and forward-facing hea
       while (parent && parent !== lengths[i].parent) { length += parent.position.length(); parent = parent.parent; }
       expect(length).toBeCloseTo(lengths[i].length);
     });
-    expect(head!.getWorldQuaternion(headFacing.clone()).angleTo(headFacing)).toBeLessThan(0.001);
+    // The head only nods forward from its exported orientation (see SERPENT_HEAD_NOD).
+    expect(head!.getWorldQuaternion(headFacing.clone()).angleTo(headFacing)).toBeCloseTo(SERPENT_HEAD_NOD[number] ?? 0, 3);
+    if (number === 23) {
+      // Ekans faces forward, not up: its jaw is further ahead of its head than above it.
+      let jaw: Object3D | undefined;
+      scene.traverse(b => { if (!jaw && normalizePokemonBone(b.name) === "UpperJaw") jaw = b; });
+      const toJaw = jaw!.getWorldPosition(new Vector3()).sub(head!.getWorldPosition(new Vector3()));
+      expect(toJaw.z).toBeGreaterThan(toJaw.y);
+    }
     const positions = tails.map(b => b.getWorldPosition(new Vector3()));
     // Tips rise out of the base; a completely flat tail is not the reference pose.
     const ys = positions.map(p => p.y);

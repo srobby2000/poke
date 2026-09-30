@@ -376,6 +376,11 @@ function refineSerpentSkin(scene: Object3D, chains: Object3D[][]) {
   return { chains: expanded, dispose: () => { for (const mesh of meshes) { mesh.geometry.dispose(); mesh.skeleton.dispose(); } } };
 }
 
+/** The exported serpent heads look up (Ekans' by about 40°); after the neck is posed they nod
+ * forward by this much (radians about the side axis), as in the artwork: Ekans' hooked head
+ * faces forward and a little down, Dragonair's tips down from its arched neck. */
+export const SERPENT_HEAD_NOD: Record<number, number> = { 23: 0.8, 147: 0.15, 148: 0.3 };
+
 /** Rest silhouettes fitted to the official Pokédex artwork (see pokemon-resting-review.md).
  * The lower spine is part of a snake's coil, not a vertical post above a curled tail.
  * Angles describe anatomical directions in the scene frame; joint lengths stay untouched. */
@@ -418,13 +423,15 @@ function poseSerpentRest(scene: Object3D, number: number) {
     bone.quaternion.copy(bone.parent.getWorldQuaternion(new Quaternion()).invert().multiply(to).multiply(from.invert()).multiply(bind.rotation));
   };
   // Lower body turns into the raised neck. Ekans uses a second, rising turn;
-  // Arbok keeps the hood's upper joints upright. Dratini remains an open J curve.
+  // Arbok keeps the hood's upper joints upright. Dratini remains an open J curve whose neck
+  // leans forward at the top; Dragonair's neck is a swan's, rising and then arching forward.
   const neck: Record<number, [number, number][]> = {
     23: [[0, 0.2], [1.05, 0.25], [2.1, 0.3], [3.15, 0.3], [4.2, 0.4], [5.25, 0.55], [6.0, 0.85], [6.25, 1.1]],
     24: [[0, 0.2], [0.65, 0.5], [0.8, 0.9], [0.6, 1.25]],
-    147: [[0, 0.5], [0, 1.0], [0, 1.35], [0, 1.5]],
-    148: [[-1.1, 0.5], [-1.0, 0.8], [-0.7, 1.1], [0, 1.4], [0.7, 1.35], [0.8, 1.2], [0.5, 1.25]],
+    147: [[0, 0.5], [0, 1.0], [0, 1.3], [0, 1.1]],
+    148: [[-1.1, 0.5], [-1.0, 0.8], [-0.7, 1.15], [0, 1.45], [0.4, 1.3], [0.4, 0.95], [0.3, 0.6]],
   };
+  const nod = SERPENT_HEAD_NOD;
   const lengthOf = (chain: Object3D[]) => chain.slice(1).reduce((sum, bone, i) => sum + bone.getWorldPosition(new Vector3()).distanceTo(chain[i].getWorldPosition(new Vector3())), 0);
   const spineLength = lengthOf(denseSpine), tailLength = lengthOf(denseTail);
   const makeUpperCoil = (radius: number) => {
@@ -436,7 +443,9 @@ function poseSerpentRest(scene: Object3D, number: number) {
       points.push(new Vector3(center - radius * Math.cos(angle), lift * (1 + j / 18 * 0.25), radius * Math.sin(angle)));
     }
     const end = points[points.length - 1];
-    points.push(end.clone().add(new Vector3(-radius * 0.2, spineLength * 0.09, radius * 0.4)), end.clone().add(new Vector3(-radius * 0.4, spineLength * 0.18, radius * 0.65)));
+    // The neck rises out of the upper turn, then hooks forward at the top (the artwork's "?").
+    points.push(end.clone().add(new Vector3(-radius * 0.2, spineLength * 0.09, radius * 0.4)), end.clone().add(new Vector3(-radius * 0.4, spineLength * 0.17, radius * 0.75)),
+      end.clone().add(new Vector3(-radius * 0.5, spineLength * 0.21, radius * 1.25)));
     return new CatmullRomCurve3(points, false, "centripetal");
   };
   // Fit the upper turn to the available body length, centered over the lower turn.
@@ -468,6 +477,7 @@ function poseSerpentRest(scene: Object3D, number: number) {
   // Face forward after the neck bends; avoid turning the head into the coil.
   scene.updateWorldMatrix(true, true);
   if (head?.parent && headWorld) head.quaternion.copy(head.parent.getWorldQuaternion(new Quaternion()).invert().multiply(headWorld));
+  if (head && nod[number]) head.quaternion.multiply(new Quaternion().setFromAxisAngle(localAxis(head, new Vector3(1, 0, 0), frame), nod[number]));
   scene.updateWorldMatrix(true, true);
   return refinement.dispose;
 }

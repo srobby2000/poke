@@ -39,7 +39,7 @@ function CloseUp({ species: name, motion, mood }: { species: string; motion: Pok
   const views = allViews ? SERPENT_VIEWS : VIEWS.map(view => ({ ...view, pitch: 0.12 }));
   const height = size * (allViews ? 2 : 1);
   return <div data-ready={ready} style={{ position: "relative", width: size * VIEWS.length, height, fontFamily: "system-ui, sans-serif" }}>
-    <Canvas orthographic dpr={1} frameloop="always" shadows style={{ width: size * VIEWS.length, height }} camera={{ position: [0, 0.75, 20], zoom: size / 2.5, near: 0.1, far: 100 }}>
+    <Canvas orthographic dpr={1} frameloop="always" shadows style={{ width: size * VIEWS.length, height }} camera={{ position: [0, 0.8, 20], zoom: size / 3, near: 0.1, far: 100 }}>
       <color attach="background" args={["#1d2733"]} />
       <PokemonLighting mood={mood} />
       {views.map(({ label, turn, pitch }, index) => <group key={label} position={[((index % 3) - 1) * 2.5, allViews ? (index < 3 ? 1.6 : -0.9) : 0.6, 0]}>

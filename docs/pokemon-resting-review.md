@@ -21,6 +21,16 @@ Joint counts: Ekans 25 → 109, Arbok 26 → 102, Dratini 16 → 60, Dragonair 2
 
 Tentacool, Tentacruel, Omanyte and Omastar have explicit feeler mappings with a resting curl and delays per segment and branch. These mappings are shared by idle, travel, attack, hit and move clips. Tangela retains its generated part rig.
 
+### Necks and heads
+
+The first fitted poses still read oddly above the body. Ekans' exported head looks up by about 40°, so keeping its world orientation left it staring at the sky. Dratini's and Dragonair's necks rose as straight vertical posts. Compared again with the official artwork:
+
+- **Ekans**: the neck rises out of the upper turn and hooks forward at the top, like a question mark. The head nods 0.8 rad to face forward and a little down, mouth open to the front.
+- **Dratini**: still an open J, but the top of the neck leans forward (elevation 1.1 rad instead of vertical) and the head nods 0.15 rad.
+- **Dragonair**: a swan's neck that rises from the loop and arches forward over its last segments. The head nods 0.3 rad.
+
+Head nods live in `SERPENT_HEAD_NOD`. The serpent test checks that heads turn only by that nod, and that Ekans' jaw sits further ahead of its head than above it.
+
 ## Additional reference views
 
 - [Ekans game sprites](https://pokemondb.net/sprites/ekans), [Arbok](https://pokemondb.net/sprites/arbok), [Dratini](https://pokemondb.net/sprites/dratini), [Dragonair](https://pokemondb.net/sprites/dragonair): inspected game-derived front/back silhouettes in addition to official artwork.
