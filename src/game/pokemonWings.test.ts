@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { expect, it } from "vitest";
-import { AnimationMixer, Group } from "three";
+import { AnimationMixer, Group, Vector3 } from "three";
 import type { Object3D } from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import type { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
@@ -69,4 +69,35 @@ it("keeps insect wings nearly stiff", async () => {
 
 it("leaves species without wing joints alone", () => {
   expect(createWingDriver(new Group(), 1, 1)).toBeNull();
+});
+
+it("folds a bird's wing on the upstroke and spreads it for the downstroke", async () => {
+  const definition = POKEMON_MODELS.pidgey;
+  const gltf = await load(definition.number);
+  applyRestPose(gltf.scene, definition.number, gltf.animations);
+  rigPokemonAppendages(gltf.scene, definition.number);
+  const root = stageForDisplay(gltf.scene, definition.number, definition.heightM);
+  const clip = createPokemonFallback(gltf.scene, root, definition, "walk");
+  const mixer = new AnimationMixer(root);
+  mixer.clipAction(clip).play();
+  const driver = createWingDriver(gltf.scene, definition.number, pokemonDisplayHeight(definition.heightM))!;
+  const find = (name: string) => { let found: Object3D | undefined; gltf.scene.traverse(node => { if (!found && normalizePokemonBone(node.name) === name) found = node; }); return found!; };
+  const shoulder = find("LArm"), elbow = find("LForeArm");
+  // The flight clip swings the shoulder only, so the elbow's clip pose is its rest pose.
+  const clipPose = elbow.quaternion.clone();
+  const up: number[] = [], down: number[] = [];
+  let last = 0;
+  for (let frame = 0; frame < 180; frame++) {
+    mixer.update(1 / 60);
+    driver.update(1 / 60);
+    root.updateMatrixWorld(true);
+    const a = shoulder.getWorldPosition(new Vector3()), b = elbow.getWorldPosition(new Vector3());
+    const elevation = (b.y - a.y) / a.distanceTo(b);
+    const bend = clipPose.angleTo(elbow.quaternion) * 180 / Math.PI;
+    if (frame > 60) (elevation > last ? up : down).push(bend);
+    last = elevation;
+  }
+  const mean = (values: number[]) => values.reduce((sum, v) => sum + v, 0) / values.length;
+  expect(mean(up)).toBeGreaterThan(30);
+  expect(mean(up)).toBeGreaterThan(mean(down) + 15);
 });
